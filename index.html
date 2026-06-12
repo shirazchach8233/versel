@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kerala PSC CDPO — Study &amp; Assessment</title>
+<style>
+:root{--p:#1a56db;--pd:#1e429f;--ps:#eff6ff;--g:#057a55;--gs:#ecfdf5;--r:#c81e1e;--rs:#fef2f2;--o:#d97706;--os:#fefce8;--bg:#f1f5f9;--card:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a8a,#1d4ed8)}
+.login-box{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .icon{font-size:2.8rem}
+.login-logo h1{font-size:1.3rem;font-weight:800;color:var(--pd);margin-top:8px}
+.login-logo p{font-size:.8rem;color:var(--muted);margin-top:4px}
+.user-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.user-card{border:2px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.user-card:hover,.user-card.sel{border-color:var(--p);background:var(--ps)}
+.av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;margin:0 auto 8px;color:#fff}
+.av-s{background:linear-gradient(135deg,#7c3aed,#4f46e5)}
+.av-sh{background:linear-gradient(135deg,#0891b2,#0284c7)}
+.user-card .uname{font-size:.9rem;font-weight:700}
+.lf-group{margin-bottom:16px}
+.lf-group label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px}
+.lf-group input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;outline:none}
+.lf-group input:focus{border-color:var(--p)}
+.login-btn{width:100%;padding:12px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer}
+.login-btn:hover{background:var(--pd)}
+.login-err{color:var(--r);font-size:.83rem;margin-top:10px;text-align:center;min-height:18px}
+#appShell{display:none;flex-direction:column;min-height:100vh}
+header{background:var(--pd);color:#fff;padding:0 20px;height:56px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header .brand{font-size:1rem;font-weight:800}
+header .spacer{flex:1}
+#timerEl{font-size:.9rem;font-weight:700;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:6px;letter-spacing:.5px}
+#timerEl.warn{color:#fca5a5}
+.user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);padding:5px 12px 5px 5px;border-radius:20px;cursor:pointer;font-size:.85rem}
+.av-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff}
+nav.tabs{background:#fff;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 20px;gap:4px;position:sticky;top:56px;z-index:90}
+nav.tabs::-webkit-scrollbar{height:0}
+.tab{padding:14px 16px;border-bottom:2.5px solid transparent;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab:hover{color:var(--p)}
+.tab.active{color:var(--p);border-bottom-color:var(--p)}
+.page{max-width:900px;margin:0 auto;padding:28px 20px;width:100%}
+.welcome-banner{background:linear-gradient(135deg,var(--pd),var(--p));color:#fff;border-radius:16px;padding:28px;margin-bottom:24px}
+.welcome-banner h2{font-size:1.4rem;font-weight:800}
+.welcome-banner p{opacity:.8;margin-top:4px;font-size:.9rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 16px}
+.kpi .kv{font-size:1.8rem;font-weight:800;color:var(--p)}
+.kpi .kl{font-size:.75rem;color:var(--muted);margin-top:2px}
+.section-title{font-size:1rem;font-weight:700;margin-bottom:14px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:500px){.mode-grid{grid-template-columns:1fr}}
+.mode-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:24px;cursor:pointer;transition:all .2s}
+.mode-card:hover{border-color:var(--p);box-shadow:0 4px 14px rgba(26,86,219,.1)}
+.mode-card .mc-icon{font-size:2rem;margin-bottom:10px}
+.mode-card h3{font-size:1rem;font-weight:700;margin-bottom:6px}
+.mode-card p{font-size:.82rem;color:var(--muted);line-height:1.5}
+.topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:500px){.topic-grid{grid-template-columns:1fr}}
+.topic-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s}
+.topic-card:hover,.topic-card.sel{border-color:var(--p);background:var(--ps)}
+.topic-card .tc-name{font-size:.9rem;font-weight:700}
+.topic-card .tc-count{font-size:.78rem;color:var(--muted);margin-top:4px}
+.topic-card .tc-icon{font-size:1.5rem;margin-bottom:8px}
+.config-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+.config-card h3{font-size:1rem;font-weight:700;margin-bottom:16px}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.cfg-row:last-child{border-bottom:none}
+.cfg-row label{font-size:.9rem}
+.cfg-row select{padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:.88rem;outline:none}
+.cfg-row select:focus{border-color:var(--p)}
+.start-btn{width:100%;padding:14px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px}
+.start-btn:hover{background:var(--pd)}
+#quizWrap{max-width:760px;margin:0 auto;padding:24px 20px}
+.prog-wrap{background:var(--border);border-radius:9px;height:7px;margin-bottom:18px;overflow:hidden}
+.prog-fill{background:var(--p);height:100%;border-radius:9px;transition:width .3s}
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.83rem;color:var(--muted)}
+.qtag{background:var(--ps);color:var(--p);border-radius:5px;padding:3px 10px;font-size:.76rem;font-weight:600;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:18px}
+.qnum{font-size:.8rem;color:var(--muted);margin-bottom:6px}
+.qtext{font-size:1.03rem;font-weight:600;line-height:1.6}
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.opt{display:flex;align-items:flex-start;gap:11px;padding:12px 15px;border:1.5px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;font-size:.93rem;text-align:left;transition:all .15s;width:100%}
+.opt:hover:not(:disabled){border-color:var(--p);background:var(--ps)}
+.opt .ol{font-weight:800;color:var(--muted);min-width:20px;font-size:.85rem;padding-top:1px}
+.opt.picked{border-color:var(--p);background:var(--ps)}
+.opt.correct{border-color:var(--g)!important;background:var(--gs)!important}
+.opt.wrong{border-color:var(--r)!important;background:var(--rs)!important}
+.opt.show-ok{border-color:var(--g)!important;background:var(--gs)!important}
+.opt:disabled{cursor:default}
+.expl-box{background:var(--os);border:1px solid #fde68a;border-radius:10px;padding:13px 16px;font-size:.88rem;line-height:1.6;margin-top:14px}
+.expl-box b{color:var(--o)}
+.reveal-btn{width:100%;padding:10px;border:1.5px dashed var(--p);border-radius:8px;background:transparent;color:var(--p);cursor:pointer;font-size:.88rem;margin-top:14px}
+.reveal-btn:hover{background:var(--ps)}
+.qnav{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.btn-sec{padding:10px 18px;border:1.5px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:.88rem;font-weight:500}
+.btn-sec:hover{border-color:var(--p)}
+.btn-pri{padding:10px 22px;background:var(--p);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:600}
+.btn-pri:hover{background:var(--pd)}
+.btn-end{padding:10px 18px;border:1.5px solid #fca5a5;border-radius:8px;background:var(--rs);color:var(--r);cursor:pointer;font-size:.88rem}
+.skip-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.skip-dot{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted)}
+.skip-dot.ans{background:var(--p);color:#fff;border-color:var(--p)}
+.skip-dot.cur{border:2px solid var(--o)}
+.res-hero{text-align:center;margin-bottom:28px}
+.score-ring{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:130px;height:130px;border-radius:50%;border:6px solid var(--p);margin-bottom:14px}
+.score-ring .spct{font-size:2rem;font-weight:800;color:var(--p)}
+.score-ring .slbl{font-size:.72rem;color:var(--muted)}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:480px){.score-grid{grid-template-columns:repeat(2,1fr)}}
+.sci{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center}
+.sci .sv{font-size:1.5rem;font-weight:800}
+.sci .sl{font-size:.74rem;color:var(--muted);margin-top:2px}
+.sv-g{color:var(--g)}.sv-r{color:var(--r)}.sv-o{color:var(--o)}
+.res-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.review-list{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ri{padding:15px 18px;border-bottom:1px solid var(--border)}
+.ri:last-child{border-bottom:none}
+.ri-q{font-size:.9rem;font-weight:600;margin-bottom:7px;line-height:1.5}
+.ri-row{display:flex;gap:7px;flex-wrap:wrap;font-size:.8rem;margin-top:4px}
+.badge{padding:2px 8px;border-radius:4px;font-weight:700;font-size:.75rem}
+.bc{background:#d1fae5;color:#065f46}.bw{background:#fee2e2;color:#991b1b}.bs{background:#fef3c7;color:#92400e}
+.ri-e{font-size:.8rem;color:var(--muted);margin-top:6px;line-height:1.5;border-left:3px solid var(--border);padding-left:10px}
+.hist-empty{text-align:center;padding:48px;color:var(--muted)}
+.hist-empty .icon{font-size:3rem;margin-bottom:12px}
+.attempt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.att-mode-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.att-body{flex:1}
+.att-title{font-size:.9rem;font-weight:700}
+.att-meta{font-size:.78rem;color:var(--muted);margin-top:3px}
+.att-score{text-align:right}
+.att-pct{font-size:1.3rem;font-weight:800;color:var(--p)}
+.att-grade{font-size:.75rem;color:var(--muted)}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.filter-row select{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;outline:none}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:500px){.stats-grid{grid-template-columns:1fr}}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-box h3{font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.subj-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.subj-row .sname{font-size:.82rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subj-bar-wrap{width:90px;height:8px;background:var(--border);border-radius:5px;overflow:hidden;flex-shrink:0}
+.subj-bar-fill{height:100%;border-radius:5px;background:var(--p)}
+.subj-pct{font-size:.78rem;font-weight:700;color:var(--p);min-width:36px;text-align:right;flex-shrink:0}
+.big-num{font-size:2.5rem;font-weight:800;color:var(--p)}
+.big-sub{font-size:.8rem;color:var(--muted);margin-top:4px}
+.syll-section{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.syll-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:.95rem}
+.syll-header:hover{background:var(--bg)}
+.sh-icon{font-size:1.1rem;margin-right:10px}
+.syll-body{padding:4px 20px 18px;font-size:.88rem;line-height:1.8;color:#374151;display:none}
+.syll-body.open{display:block}
+.syll-body ul{padding-left:18px}
+.syll-body li{margin-bottom:4px}
+.syll-body h4{font-size:.85rem;font-weight:700;color:var(--pd);margin:10px 0 4px}
+.toggle-icon{font-size:.9rem;color:var(--muted)}
+#loadScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:9px 18px;border-radius:8px;font-size:.85rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="loadScreen">
+  <div class="spinner"></div>
+  <div style="color:var(--muted);font-size:.95rem">Loading 5000+ questions...</div>
+</div>
+
+<div id="loginScreen" class="hidden">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">&#128218;</div>
+      <h1>Kerala PSC CDPO</h1>
+      <p>Question Bank &amp; Assessment Portal</p>
+    </div>
+    <div style="font-size:.85rem;font-weight:600;margin-bottom:10px">Select your account</div>
+    <div class="user-cards">
+      <div class="user-card" id="ucard-sufina" onclick="pickUser('sufina')">
+        <div class="av av-s">SN</div>
+        <div class="uname">Sufina</div>
+      </div>
+      <div class="user-card" id="ucard-sharna" onclick="pickUser('sharna')">
+        <div class="av av-sh">SH</div>
+        <div class="uname">Sharna</div>
+      </div>
+    </div>
+    <div class="lf-group">
+      <label>Password</label>
+      <input type="password" id="pwdInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In &#8594;</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;flex-direction:column;min-height:100vh">
+  <header>
+    <div class="brand">CDPO Prep Portal</div>
+    <div class="spacer"></div>
+    <span id="timerEl" class="hidden"></span>
+    <div class="user-pill" onclick="logout()" title="Click to logout">
+      <div class="av-sm" id="headerAv"></div>
+      <span id="headerName"></span>
+      <span style="opacity:.6;font-size:.75rem"> &#8617;</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="mainTabs">
+    <div class="tab active" data-page="dashPage" onclick="switchTab(this,'dashPage')">&#127968; Home</div>
+    <div class="tab" data-page="studyPage" onclick="switchTab(this,'studyPage')">&#128216; Study</div>
+    <div class="tab" data-page="practicePage" onclick="switchTab(this,'practicePage')">&#127919; Practice</div>
+    <div class="tab" data-page="testPage" onclick="switchTab(this,'testPage')">&#9201; Mock Test</div>
+    <div class="tab" data-page="syllabusPage" onclick="switchTab(this,'syllabusPage')">&#128203; Syllabus</div>
+    <div class="tab" data-page="historyPage" onclick="switchTab(this,'historyPage')">&#128337; History</div>
+    <div class="tab" data-page="statsPage" onclick="switchTab(this,'statsPage')">&#128202; My Stats</div>
+    <div class="tab" id="adminTab" data-page="adminPage" onclick="switchTab(this,'adminPage')">&#128272; Admin</div>
+  </nav>
+
+  <!-- QUIZ OVERLAY -->
+  <div id="quizOverlay" class="hidden" style="flex:1;overflow-y:auto">
+    <div id="quizWrap">
+      <div id="qNavDots" class="skip-bar hidden"></div>
+      <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="qmeta">
+        <span class="qtag" id="qTagEl"></span>
+        <span id="qCtrEl"></span>
+      </div>
+      <div class="qcard">
+        <div class="qnum" id="qNumEl"></div>
+        <div class="qtext" id="qTextEl"></div>
+        <div class="opts" id="optsEl"></div>
+        <button class="reveal-btn hidden" id="revealBtn" onclick="revealAnswer()">Show Answer &amp; Explanation</button>
+        <div class="expl-box hidden" id="explBox"></div>
+      </div>
+      <div class="qnav">
+        <button class="btn-end" onclick="confirmEnd()">End Session</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sec hidden" id="prevBtn" onclick="prevQ()">&#8592; Prev</button>
+          <button class="btn-pri" id="nextBtn" onclick="nextQ()">Next &#8594;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS OVERLAY -->
+  <div id="resultsOverlay" class="hidden" style="flex:1;overflow-y:auto">
+    <div class="page">
+      <div class="res-hero">
+        <div class="score-ring"><span class="spct" id="rPct">-</span><span class="slbl">Score</span></div>
+        <h2 id="rTitle" style="font-size:1.3rem;font-weight:800;margin-bottom:4px"></h2>
+        <p id="rSub" style="color:var(--muted);font-size:.88rem"></p>
+      </div>
+      <div class="score-grid">
+        <div class="sci"><div class="sv sv-g" id="rCorrect">-</div><div class="sl">Correct</div></div>
+        <div class="sci"><div class="sv sv-r" id="rWrong">-</div><div class="sl">Wrong</div></div>
+        <div class="sci"><div class="sv sv-o" id="rSkip">-</div><div class="sl">Skipped</div></div>
+        <div class="sci"><div class="sv" id="rMarks">-</div><div class="sl" id="rMarksLbl">Marks</div></div>
+        <div class="sci"><div class="sv" id="rTime">-</div><div class="sl">Time</div></div>
+        <div class="sci"><div class="sv" id="rAcc">-</div><div class="sl">Accuracy</div></div>
+      </div>
+      <div class="res-actions">
+        <button class="btn-pri" onclick="backToHome()">&#8592; Back to Home</button>
+        <button class="btn-sec" onclick="toggleReview()">Review Answers</button>
+        <button class="btn-sec" onclick="retryWrong()">Retry Wrong</button>
+      </div>
+      <div id="reviewSec" class="hidden">
+        <div class="section-title" style="margin-bottom:12px">Answer Review</div>
+        <div class="review-list" id="reviewList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div style="flex:1;overflow-y:auto">
+
+    <div id="dashPage" class="page">
+      <div class="welcome-banner">
+        <h2 id="welcomeMsg">Welcome back!</h2>
+        <p>Ready to ace the Kerala PSC CDPO exam?</p>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kv" id="kpiAttempts">0</div><div class="kl">Total Attempts</div></div>
+        <div class="kpi"><div class="kv" id="kpiBest">-</div><div class="kl">Best Score</div></div>
+        <div class="kpi"><div class="kv" id="kpiAvg">-</div><div class="kl">Avg Accuracy</div></div>
+        <div class="kpi"><div class="kv" id="kpiWrong">0</div><div class="kl">Drill Bank</div></div>
+      </div>
+      <div class="section-title">Quick Start</div>
+      <div class="mode-grid">
+        <div class="mode-card" onclick="switchTab(document.querySelector('[data-page=studyPage]'),'studyPage')">
+          <div class="mc-icon">&#128216;</div><h3>Study by Topic</h3>
+          <p>Pick a subject and study at your own pace. Answers and explanations shown on demand.</p>
+        </div>
+        <div class="mode-card" onclick="switchTab(document.querySelector('[data-page=practicePage]'),'practicePage')">
+          <div class="mc-icon">&#127919;</div><h3>Practice Quiz</h3>
+          <p>10, 25 or 50 random questions with instant feedback. No timer.</p>
+        </div>
+        <div class="mode-card" onclick="switchTab(document.querySelector('[data-page=testPage]'),'testPage')">
+          <div class="mc-icon">&#9201;</div><h3>Mock Test</h3>
+          <p>100 questions, 90-minute timer, 1/3 negative marking — real exam simulation.</p>
+        </div>
+        <div class="mode-card" onclick="startWrongDrill()">
+          <div class="mc-icon">&#128257;</div><h3>Drill Weak Areas</h3>
+          <p>Re-attempt questions you got wrong. Targeted revision for your weak spots.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="studyPage" class="page hidden">
+      <div class="section-title">Study by Topic</div>
+      <p style="color:var(--muted);font-size:.88rem;margin-bottom:20px">Select a topic below. Answers and explanations appear when you click them.</p>
+      <div class="topic-grid" id="topicGrid"></div>
+      <div id="studyChosen" style="display:none;background:var(--ps);border:1.5px solid var(--p);border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:.9rem">
+        Topic: <b id="studyTopicName"></b> <span style="color:var(--muted)" id="studyTopicCount"></span>
+        <button style="float:right;background:none;border:none;cursor:pointer;color:var(--p);font-size:.85rem" onclick="clearStudyTopic()">Change</button>
+      </div>
+      <button class="start-btn" onclick="startStudy()">Start Studying &#8594;</button>
+    </div>
+
+    <div id="practicePage" class="page hidden">
+      <div class="section-title">Practice Quiz</div>
+      <div class="config-card">
+        <h3>Configure your quiz</h3>
+        <div class="cfg-row">
+          <label>Number of questions</label>
+          <select id="pQCount">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="cfg-row">
+          <label>Subject filter</label>
+          <select id="pSubject"><option value="all">All Subjects</option></select>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startPractice()">Start Practice &#8594;</button>
+    </div>
+
+    <div id="testPage" class="page hidden">
+      <div class="section-title">Mock Test</div>
+      <div class="config-card">
+        <h3>Exam configuration</h3>
+        <div class="cfg-row"><label>Questions</label><b>100 (fixed)</b></div>
+        <div class="cfg-row"><label>Duration</label><b>90 minutes</b></div>
+        <div class="cfg-row"><label>Negative marking</label><b>-1/3 per wrong answer</b></div>
+        <div class="cfg-row">
+          <label>Subject filter</label>
+          <select id="tSubject"><option value="all">All Subjects (Recommended)</option></select>
+        </div>
+      </div>
+      <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:.85rem;line-height:1.6">
+        Each test draws a fresh random set of 100 questions. You can navigate between all questions before submitting. Results are saved automatically.
+      </div>
+      <button class="start-btn" onclick="startTest()">Start Mock Test &#8594;</button>
+    </div>
+
+    <div id="syllabusPage" class="page hidden">
+      <div class="section-title">CDPO Exam Syllabus</div>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px">Kerala PSC — Child Development Project Officer (Category No. 25/2026). Click any section to expand.</p>
+      <div id="syllabusContent"></div>
+    </div>
+
+    <div id="historyPage" class="page hidden">
+      <div class="section-title">Attempt History</div>
+      <div class="filter-row">
+        <select id="histFilter" onchange="renderHistory()">
+          <option value="all">All Modes</option>
+          <option value="test">Mock Test</option>
+          <option value="practice">Practice</option>
+          <option value="study">Study</option>
+          <option value="review">Drill</option>
+        </select>
+        <button class="btn-sec" onclick="clearHistory()" style="font-size:.8rem;padding:7px 12px;color:var(--r);border-color:#fca5a5">Clear History</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+    <div id="statsPage" class="page hidden">
+      <div class="section-title">My Statistics</div>
+      <div id="statsContent"></div>
+    </div>
+
+    <div id="adminPage" class="page hidden">
+      <div id="adminLocked">
+        <div class="section-title">&#128272; Admin Panel</div>
+        <div class="config-card">
+          <h3>Admin Access Required</h3>
+          <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Enter the admin password to view login history for all users.</p>
+          <div class="lf-group"><label>Admin Password</label><input type="password" id="adminPwd" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')unlockAdmin()"></div>
+          <button class="start-btn" onclick="unlockAdmin()">Unlock &#8594;</button>
+          <div class="login-err" id="adminErr"></div>
+        </div>
+      </div>
+      <div id="adminPanel" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div class="section-title" style="margin:0">&#128272; Admin — Login History</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="adminRefreshTime" style="font-size:.75rem;color:var(--muted)"></span>
+            <button class="btn-sec" onclick="renderAdmin()" style="font-size:.8rem;padding:6px 12px">&#8635; Refresh</button>
+            <button class="btn-sec" onclick="lockAdmin()" style="font-size:.8rem;padding:6px 12px;color:var(--r);border-color:#fca5a5">Lock</button>
+          </div>
+        </div>
+        <div id="adminSummary" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px"></div>
+        <div class="filter-row">
+          <select id="adminUserFilter" onchange="renderAdmin()">
+            <option value="all">All Users</option>
+            <option value="sufina">Sufina</option>
+            <option value="sharna">Sharna</option>
+          </select>
+        </div>
+        <div id="adminSessionList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const USERS={sufina:{password:'cdpo',display:'Sufina',av:'SN',avClass:'av-s'},sharna:{password:'cdpo1',display:'Sharna',av:'SH',avClass:'av-sh'}};
+let currentUser=null,pickedUser=null,ALL_Q=[];
+const LETTERS=['A','B','C','D'];
+let sesQ=[],sesAns=[],curIdx=0,sesMode='',startTs=0,timerTick=null,selectedStudyTopic=null;
+let currentSessionId=null,loginTime=null,adminUnlocked=false;
+const ADMIN_PWD='admin@cdpo';
+
+async function boot(){
+  try{
+    const r=await fetch('questions.json');
+    ALL_Q=await r.json();
+    hide('loadScreen');show('loginScreen');
+    buildSubjectDropdowns();buildTopicGrid();buildSyllabus();
+  }catch(e){
+    document.getElementById('loadScreen').innerHTML='<div style="color:#c81e1e;text-align:center;padding:40px"><div style="font-size:2.5rem">!</div><p style="margin-top:12px">Could not load questions.json.<br>Place it in the same folder as index.html.</p></div>';
+  }
+}
+
+function pickUser(u){
+  pickedUser=u;
+  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('ucard-'+u).classList.add('sel');
+  document.getElementById('pwdInput').focus();
+  document.getElementById('loginErr').textContent='';
+}
+
+async function doLogin(){
+  if(!pickedUser){document.getElementById('loginErr').textContent='Please select an account.';return;}
+  const pwd=document.getElementById('pwdInput').value;
+  if(USERS[pickedUser].password!==pwd){document.getElementById('loginErr').textContent='Incorrect password.';return;}
+  currentUser=pickedUser;
+  document.getElementById('pwdInput').value='';
+  hide('loginScreen');
+  const shell=document.getElementById('appShell');shell.style.display='flex';
+  const u=USERS[currentUser];
+  document.getElementById('headerName').textContent=u.display;
+  const av=document.getElementById('headerAv');av.textContent=u.av;av.className='av-sm '+u.avClass;
+  document.getElementById('welcomeMsg').textContent='Welcome back, '+u.display+'!';
+  loginTime=Date.now();
+  recordLogin();
+  await refreshDashboard();
+}
+
+async function logout(){
+  if(!confirm('Log out?'))return;
+  await recordLogout();
+  currentUser=null;pickedUser=null;adminUnlocked=false;stopTimer();hideOverlays();
+  hide('appShell');document.getElementById('appShell').style.display='none';
+  show('loginScreen');
+  document.querySelectorAll('.user-card').forEach(c=>c.classList.remove('sel'));
+  switchTab(document.querySelector('[data-page=dashPage]'),'dashPage');
+}
+
+// ── SUPABASE ──
+const SB_URL='https://lkryywgarelynynkzvhq.supabase.co';
+const SB_KEY='sb_secret_yOlJho7LEJ6H6BuIVriGcA_jvFsWlPF';
+function sbH(extra={}){return Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},extra);}
+async function getAttempts(){try{const r=await fetch(SB_URL+'/rest/v1/attempts?username=eq.'+currentUser+'&order=id.desc&limit=200',{headers:sbH()});return r.ok?await r.json():[];}catch(e){console.error(e);return[];}}
+async function addAttempt(obj){try{await fetch(SB_URL+'/rest/v1/attempts',{method:'POST',headers:sbH({'Prefer':'return=minimal'}),body:JSON.stringify(Object.assign({},obj,{username:currentUser}))});}catch(e){console.error('addAttempt',e);}}
+async function getWrongBank(){try{const r=await fetch(SB_URL+'/rest/v1/wrong_bank?username=eq.'+currentUser,{headers:sbH()});if(!r.ok)return[];const d=await r.json();return d.length?d[0].indices||[]:[]; }catch(e){return[];}}
+async function saveWrongBank(indices){try{await fetch(SB_URL+'/rest/v1/wrong_bank',{method:'POST',headers:sbH({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({username:currentUser,indices})});}catch(e){console.error('saveWrongBank',e);}}
+
+const SUBJ_MAP={
+  'Facts about India':q=>/india/i.test(q.s)&&!/kerala/i.test(q.s),
+  'Facts about Kerala':q=>/kerala/i.test(q.s),
+  'Home Science':q=>/home science|extension|programme dev|nutrition|community nutrition|child development|pre-school|research method/i.test(q.s),
+  'Social Work':q=>/social work|child welfare/i.test(q.s),
+  'Sociology':q=>/sociology/i.test(q.s),
+  'Psychology':q=>/psychology/i.test(q.s),
+  'Indian Polity':q=>/polity|constitution/i.test(q.s),
+};
+function getSubject(q){for(const[n,f]of Object.entries(SUBJ_MAP))if(f(q))return n;return 'General';}
+
+function buildSubjectDropdowns(){
+  const subjects=[...new Set(ALL_Q.map(getSubject))].sort();
+  ['pSubject','tSubject'].forEach(id=>{
+    const sel=document.getElementById(id);
+    subjects.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+  });
+}
+
+const BROAD_TOPICS={
+  'Facts about India':['Section A','Section U','Generated - States & Capitals','Generated - Important Years in History','Generated - National & State Symbols','Generated - Slogans','Generated - Superlatives','Generated - Dams & Rivers','Generated - Classical Arts'],
+  'Facts about Kerala':['Section B','Section V','Generated - Kerala Landmarks'],
+  'Extension & Community Dev':['Section C','Section D'],
+  'Nutrition & Health':['Section E','Section F','Section O','Generated - Nutrition'],
+  'Child Development':['Section G','Section H','Section N','Generated - Child Development','Generated - Developmental Stages','Generated - Immunisation'],
+  'Research Methodology':['Section I'],
+  'Social Work':['Section J','Section R','Generated - Social Work','Generated - Government & Welfare'],
+  'Sociology':['Section K','Section S','Generated - Sociology Concepts'],
+  'Psychology':['Section L','Section M','Section P','Section X','Generated - Psychology Terms','Generated - Psychological Disorders','Generated - Defence Mechanisms','Generated - Thinkers & Theories'],
+  'Indian Polity':['Section T','Generated - Constitution Articles','Generated - Acts & Legislation'],
+  'Society & GK':['Section W','Generated - Abbreviations','Generated - Books & Their Authors','Generated - Famous Firsts','Generated - Father of'],
+};
+const TOPIC_ICONS={'Facts about India':'&#127470;&#127475;','Facts about Kerala':'&#127796;','Extension & Community Dev':'&#128225;','Nutrition & Health':'&#129367;','Child Development':'&#128118;','Research Methodology':'&#128300;','Social Work':'&#129309;','Sociology':'&#128101;','Psychology':'&#129504;','Indian Polity':'&#9878;','Society & GK':'&#128218;'};
+
+function buildTopicGrid(){
+  const counts={};
+  ALL_Q.forEach(q=>{
+    for(const[topic,prefixes]of Object.entries(BROAD_TOPICS)){
+      if(prefixes.some(p=>q.s.startsWith(p))){counts[topic]=(counts[topic]||0)+1;return;}
+    }
+    counts['Society & GK']=(counts['Society & GK']||0)+1;
+  });
+  const grid=document.getElementById('topicGrid');
+  Object.entries(counts).forEach(([name,cnt])=>{
+    const card=document.createElement('div');card.className='topic-card';card.id='tc_'+name;
+    card.innerHTML='<div class="tc-icon">'+(TOPIC_ICONS[name]||'&#128218;')+'</div><div class="tc-name">'+esc(name)+'</div><div class="tc-count">'+cnt+' questions</div>';
+    card.onclick=()=>selectStudyTopic(name,cnt,card);
+    grid.appendChild(card);
+  });
+}
+
+function selectStudyTopic(name,cnt,card){
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('sel'));
+  card.classList.add('sel');selectedStudyTopic=name;
+  document.getElementById('studyChosen').style.display='block';
+  document.getElementById('studyTopicName').textContent=name;
+  document.getElementById('studyTopicCount').textContent='('+cnt+' questions)';
+}
+function clearStudyTopic(){
+  selectedStudyTopic=null;document.getElementById('studyChosen').style.display='none';
+  document.querySelectorAll('.topic-card').forEach(c=>c.classList.remove('sel'));
+}
+
+const SYLLABUS=[
+  {icon:'&#127470;&#127475;',title:'1. Facts about India',items:['Geography — physical features, climate, soils, rivers, famous sites','Demography — economic & social development, poverty alleviation, economy & planning','History of India — period from 1857 to 1947, the national movement']},
+  {icon:'&#127796;',title:'2. Facts about Kerala',items:['Geographical facts — physical features, climate, soils, rivers, famous sites','Kerala Renaissance — important events, movements and leaders:','Brahmananda Swami Sivayogi, Chattampi Swami, Sree Narayana Guru, Vagbhatananda','Thycaud Ayya, Ayya Vaikundar, Poikayil Yohannan (Kumara Guru), Ayyankali','Pandit Karuppan, Mannathu Padmanabhan, V.T. Bhattathiripad, Dr. Palpu','Kumaran Asan, Vakkom Moulavi, Blessed Kuriakose Elias Chavara']},
+  {icon:'&#127968;',title:'3. Home Science',sub:[
+    {h:'Extension Education & Community Development',i:['Definition, meaning, principles; teaching-learning process','Community development programmes','Panchayat Raj administration; voluntary organisations','Poverty alleviation & employment generation','Audio-visual aids — place, role, classification']},
+    {h:'Programme Development & Population Education',i:['Programme development — meaning, scope, principles, cycle','Population education — nature, scope, importance','Sources of population data (census, vital statistics)','Adolescent health; reproductive health care; gender & development','Social issues (alcoholism, suicide, etc.)']},
+    {h:'Nutrition through the Life Cycle',i:['Food groups & recommended allowances','Nutrition in pregnancy, lactation, infancy, pre-school, school age, adolescence','Nutritional status assessment; deficiency diseases; PEM','Mineral, vitamin deficiencies and hypervitaminosis']},
+    {h:'Community Nutrition',i:['Prevalence of malnutrition in India; strategies & intervention programmes','Role of national/international organisations; nutrition education','Food adulteration & toxins; supplementary foods; food fortification']},
+    {h:'Child Development',i:['Fundamentals of growth & development; prenatal development; childbirth','Physical, motor, language, emotional, social, moral, intellectual development','Common childhood ailments; immunisation','Organisations & programmes for child welfare; rights of children']},
+    {h:'Pre-school Education',i:['Types of pre-school; values, aims & objectives of nursery school','Methods of teaching pre-schoolers; curriculum (play, stories, puppet shows)','Readiness for school; health & hygiene; PTA']},
+    {h:'Research Methodology',i:['Meaning & types of research; problem identification; research design','Hypothesis; variables; primary & secondary data; sampling','Data collection, analysis & interpretation; research report']},
+  ]},
+  {icon:'&#129309;',title:'4. Social Work',sub:[
+    {h:'Concepts & Definitions',i:['Social work, social service, social reform, social welfare, social policy','Social work as a profession; values & principles; methods & functions','Remedial / preventive / developmental models']},
+    {h:'Methods of Practice',i:['Social casework; social group work; community organisation','Social work research; social welfare administration; social action']},
+    {h:'Human Behaviour',i:['Human needs, motivation, problems & coping mechanisms','Human growth & development across the lifespan','Learning, socialisation, theories of personality']},
+    {h:'Social Policy',i:['Concept & scope; evolution of social policy in India','Major policies — education, health, shelter, environment, social security','Family/child/women/youth welfare, weaker sections, elderly, disabled']},
+  ]},
+  {icon:'&#128101;',title:'5. Sociology',sub:[
+    {h:'Sociological Thought',i:['Auguste Comte — law of three stages, positivism','Herbert Spencer — theory of evolution, organic analogy','Karl Marx — class struggle, economic determinism']},
+    {h:'Sociological Concepts',i:['Social stratification — caste & class','Socialisation & its agents (family, peer group, school, mass media)','Social control — formal & informal']},
+    {h:'Social System',i:['Family — definition, types, functions, changing functions','Marriage — definition, types, functions']},
+    {h:'Social Problems',i:['Poverty in under-developed/developing countries','Dowry; terrorism']},
+    {h:'Status of Women in India',i:['Women in the workforce (organised / unorganised)','Economic & political empowerment','Government programmes for women\'s development']},
+  ]},
+  {icon:'&#129504;',title:'6. Psychology',sub:[
+    {h:'Introduction',i:['Psychology as a science; methods; perspectives','Sensory processes; perception; memory; thinking','Intelligence — nature-nurture, theories, measurement']},
+    {h:'Biological Basis of Behaviour',i:['Neurons & nerve impulses; synapse; neurotransmitters','Cerebral hemispheres; lobes; fore/mid/hind brain','Endocrine system & hormones; limbic system; genes & behaviour']},
+    {h:'Motivation, Emotion & Stress',i:['Theories & types of motivation and emotion','Stress — reactions, coping, management']},
+    {h:'Developmental Psychology',i:['Lifespan perspective; prenatal/perinatal development','Freud, Erikson, Piaget, Vygotsky, Kohlberg, Bowlby, Bronfenbrenner','Language development; developmental disabilities (ID, autism, LD)']},
+    {h:'Social Psychology',i:['Socialisation; social cognition; attribution; attitudes','Prejudice; social influence; prosocial behaviour; aggression; leadership']},
+    {h:'Personality & Abnormal Behaviour',i:['Psychoanalytic theory & defence mechanisms; neo-Freudians','Type/trait, behavioural, humanistic approaches; personality assessment','Childhood/adolescent disorders — ADHD, conduct disorder, anxiety, depression, child abuse']},
+  ]},
+];
+
+function buildSyllabus(){
+  const el=document.getElementById('syllabusContent');
+  SYLLABUS.forEach(sec=>{
+    const div=document.createElement('div');div.className='syll-section';
+    let body='';
+    if(sec.items)body='<ul>'+sec.items.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>';
+    else if(sec.sub)body=sec.sub.map(ss=>'<h4>'+esc(ss.h)+'</h4><ul>'+ss.i.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>').join('');
+    div.innerHTML='<div class="syll-header" onclick="toggleSyll(this)"><span><span class="sh-icon">'+sec.icon+'</span>'+esc(sec.title)+'</span><span class="toggle-icon">&#9660;</span></div><div class="syll-body">'+body+'</div>';
+    el.appendChild(div);
+  });
+}
+function toggleSyll(h){const b=h.nextElementSibling;b.classList.toggle('open');h.querySelector('.toggle-icon').textContent=b.classList.contains('open')?'&#9650;':'&#9660;';}
+
+async function refreshDashboard(){
+  const [a,wb]=await Promise.all([getAttempts(),getWrongBank()]);
+  document.getElementById('kpiAttempts').textContent=a.length;
+  document.getElementById('kpiWrong').textContent=wb.length;
+  if(!a.length){document.getElementById('kpiBest').textContent='-';document.getElementById('kpiAvg').textContent='-';return;}
+  const pcts=a.map(x=>x.pct);
+  document.getElementById('kpiBest').textContent=Math.max(...pcts).toFixed(1)+'%';
+  document.getElementById('kpiAvg').textContent=(pcts.reduce((s,v)=>s+v,0)/pcts.length).toFixed(1)+'%';
+}
+
+function getPool(subj){return subj==='all'?ALL_Q:ALL_Q.filter(q=>getSubject(q)===subj);}
+
+function startStudy(){
+  if(!selectedStudyTopic){toast('Please select a topic first');return;}
+  const pool=ALL_Q.filter(q=>{
+    for(const[topic,prefixes]of Object.entries(BROAD_TOPICS))
+      if(topic===selectedStudyTopic&&prefixes.some(p=>q.s.startsWith(p)))return true;
+    return false;
+  });
+  if(!pool.length){toast('No questions for this topic');return;}
+  launchSession('study',shuffle(pool).slice(0,Math.min(50,pool.length)));
+}
+
+function startPractice(){
+  const n=parseInt(document.getElementById('pQCount').value);
+  const subj=document.getElementById('pSubject').value;
+  const pool=getPool(subj);
+  if(pool.length<n){toast('Only '+pool.length+' questions available');return;}
+  launchSession('practice',shuffle(pool).slice(0,n));
+}
+
+function startTest(){
+  const subj=document.getElementById('tSubject').value;
+  const pool=getPool(subj);
+  if(pool.length<100){toast('Only '+pool.length+' questions — need at least 100');return;}
+  launchSession('test',shuffle(pool).slice(0,100));
+}
+
+async function startWrongDrill(){
+  const wb=await getWrongBank();
+  if(!wb.length){toast('No wrong answers saved yet. Complete a test or practice first!');return;}
+  const qs=wb.map(idx=>ALL_Q[idx]).filter(Boolean);
+  launchSession('review',shuffle(qs).slice(0,Math.min(50,qs.length)));
+}
+
+async function retryWrong(){await backToHome();startWrongDrill();}
+
+function launchSession(mode,questions){
+  sesMode=mode;sesQ=questions;sesAns=questions.map(()=>({chosen:null}));curIdx=0;startTs=Date.now();
+  hideTabs();hidePages();hideOverlays();show('quizOverlay');
+  const dots=document.getElementById('qNavDots');
+  if(mode==='test'){show('timerEl');startTimer(90*60);dots.classList.remove('hidden');buildNavDots();}
+  else{hide('timerEl');dots.classList.add('hidden');}
+  renderQ();
+}
+
+function startTimer(secs){
+  let rem=secs;
+  const el=document.getElementById('timerEl');el.classList.remove('hidden');
+  timerTick=setInterval(()=>{
+    rem--;
+    el.textContent=(String(Math.floor(rem/60)).padStart(2,'0'))+':'+(String(rem%60).padStart(2,'0'));
+    el.classList.toggle('warn',rem<=300);
+    if(rem<=0){clearInterval(timerTick);finishSession();}
+  },1000);
+}
+function stopTimer(){clearInterval(timerTick);hide('timerEl');}
+
+function buildNavDots(){
+  const wrap=document.getElementById('qNavDots');wrap.innerHTML='';
+  sesQ.forEach((_,i)=>{
+    const d=document.createElement('div');d.className='skip-dot';d.id='dot_'+i;d.textContent=i+1;
+    d.onclick=()=>{curIdx=i;renderQ();};wrap.appendChild(d);
+  });
+}
+function updateNavDots(){
+  sesQ.forEach((_,i)=>{
+    const d=document.getElementById('dot_'+i);if(!d)return;
+    d.className='skip-dot';
+    if(sesAns[i].chosen!==null)d.classList.add('ans');
+    if(i===curIdx)d.classList.add('cur');
+  });
+}
+
+function renderQ(){
+  const q=sesQ[curIdx],a=sesAns[curIdx],total=sesQ.length;
+  document.getElementById('progFill').style.width=(curIdx/total*100)+'%';
+  document.getElementById('qTagEl').textContent=q.s.replace(/^Section [A-Z] - /,'');
+  document.getElementById('qCtrEl').textContent=(curIdx+1)+' / '+total;
+  document.getElementById('qNumEl').textContent='Question '+(curIdx+1);
+  document.getElementById('qTextEl').textContent=q.q;
+  const optsEl=document.getElementById('optsEl');optsEl.innerHTML='';
+  q.o.forEach((opt,i)=>{
+    const btn=document.createElement('button');btn.className='opt';
+    btn.innerHTML='<span class="ol">'+LETTERS[i]+'</span><span>'+esc(opt)+'</span>';
+    btn.onclick=()=>pickOpt(i);optsEl.appendChild(btn);
+  });
+  const revBtn=document.getElementById('revealBtn'),explBox=document.getElementById('explBox');
+  explBox.classList.add('hidden');revBtn.classList.add('hidden');
+  if(a.chosen!==null){applyOptUI(a.chosen,q.a);if(sesMode!=='test')showExpl(q);}
+  else if(sesMode==='study')revBtn.classList.remove('hidden');
+  document.getElementById('nextBtn').textContent=curIdx===total-1?'Finish':'Next';
+  const prevBtn=document.getElementById('prevBtn');
+  (curIdx>0&&sesMode!=='test')?prevBtn.classList.remove('hidden'):prevBtn.classList.add('hidden');
+  if(sesMode==='test')updateNavDots();
+}
+
+function pickOpt(i){
+  const q=sesQ[curIdx],a=sesAns[curIdx];
+  if(a.chosen!==null)return;
+  a.chosen=i;applyOptUI(i,q.a);
+  if(sesMode!=='test')showExpl(q);
+  if(sesMode==='test')updateNavDots();
+}
+
+function applyOptUI(chosen,correct){
+  const btns=document.querySelectorAll('.opt');btns.forEach(b=>b.disabled=true);
+  btns[chosen].classList.add(chosen===correct?'correct':'wrong');
+  if(chosen!==correct)btns[correct].classList.add('show-ok');
+  hide('revealBtn');
+}
+
+function revealAnswer(){
+  const q=sesQ[curIdx];
+  const btns=document.querySelectorAll('.opt');btns.forEach(b=>b.disabled=true);
+  btns[q.a].classList.add('show-ok');hide('revealBtn');showExpl(q);
+}
+
+function showExpl(q){
+  const box=document.getElementById('explBox');
+  box.innerHTML='<b>Answer: '+LETTERS[q.a]+'. '+esc(q.o[q.a])+'</b><br>'+esc(q.e);
+  box.classList.remove('hidden');
+}
+
+function nextQ(){if(curIdx===sesQ.length-1){confirmEnd();return;}curIdx++;renderQ();}
+function prevQ(){if(curIdx>0){curIdx--;renderQ();}}
+
+function confirmEnd(){
+  if(sesMode==='test'){
+    const ua=sesAns.filter(a=>a.chosen===null).length;
+    if(ua>0&&!confirm(ua+' question(s) unanswered. Submit anyway?'))return;
+  }
+  stopTimer();finishSession();
+}
+
+async function finishSession(){
+  const elapsed=Math.floor((Date.now()-startTs)/1000);
+  let correct=0,wrong=0,skip=0;const newWrong=[];
+  sesAns.forEach((a,i)=>{
+    const q=sesQ[i];
+    if(a.chosen===null)skip++;
+    else if(a.chosen===q.a)correct++;
+    else{wrong++;const gi=ALL_Q.indexOf(q);if(gi!==-1)newWrong.push(gi);}
+  });
+  const oldWb=await getWrongBank();
+  await saveWrongBank([...new Set([...oldWb,...newWrong])]);
+  const marks=sesMode==='test'?+(correct-wrong/3).toFixed(2):correct;
+  const pct=+(correct/sesQ.length*100).toFixed(1);
+  await addAttempt({date:new Date().toISOString(),mode:sesMode,subject:sesMode==='study'?(selectedStudyTopic||'Mixed'):'Mixed',total:sesQ.length,correct,wrong,skip,marks,pct,elapsed,answers:sesAns.map((a,i)=>({chosen:a.chosen,correct:sesQ[i].a}))});
+  hide('quizOverlay');show('resultsOverlay');showTabs();
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  document.getElementById('rPct').textContent=pct+'%';
+  document.getElementById('rCorrect').textContent=correct;
+  document.getElementById('rWrong').textContent=wrong;
+  document.getElementById('rSkip').textContent=skip;
+  document.getElementById('rMarks').textContent=sesMode==='test'?marks:correct;
+  document.getElementById('rMarksLbl').textContent=sesMode==='test'?'Marks (-1/3)':'Correct';
+  document.getElementById('rTime').textContent=m+'m '+s+'s';
+  document.getElementById('rAcc').textContent=correct+wrong>0?(correct/(correct+wrong)*100).toFixed(1)+'%':'-';
+  const grade=pct>=80?'Excellent!':pct>=60?'Good work!':pct>=40?'Keep going':'More practice needed';
+  document.getElementById('rTitle').textContent=grade;
+  document.getElementById('rSub').textContent=correct+' correct out of '+sesQ.length+' questions';
+  buildReview();await refreshDashboard();
+}
+
+function buildReview(){
+  const list=document.getElementById('reviewList');list.innerHTML='';
+  sesQ.forEach((q,i)=>{
+    const a=sesAns[i];const st=a.chosen===null?'skip':a.chosen===q.a?'correct':'wrong';
+    const div=document.createElement('div');div.className='ri';
+    div.innerHTML='<div class="ri-q">'+(i+1)+'. '+esc(q.q)+'</div><div class="ri-row"><span class="badge '+(st==='correct'?'bc':st==='wrong'?'bw':'bs')+'">'+st.toUpperCase()+'</span>'+(a.chosen!==null?'<span>Your: <b>'+LETTERS[a.chosen]+'. '+esc(q.o[a.chosen])+'</b></span>':'')+(st!=='correct'?'<span>Correct: <b>'+LETTERS[q.a]+'. '+esc(q.o[q.a])+'</b></span>':'')+'</div><div class="ri-e">'+esc(q.e)+'</div>';
+    list.appendChild(div);
+  });
+}
+
+function toggleReview(){
+  const s=document.getElementById('reviewSec');s.classList.toggle('hidden');
+  if(!s.classList.contains('hidden'))s.scrollIntoView({behavior:'smooth'});
+}
+
+async function renderHistory(){
+  const filter=document.getElementById('histFilter').value;
+  const allAttempts=await getAttempts();
+  const attempts=allAttempts.filter(a=>filter==='all'||a.mode===filter);
+  const el=document.getElementById('historyList');el.innerHTML='';
+  if(!attempts.length){
+    el.innerHTML='<div class="hist-empty"><div class="icon">&#128085;</div><p>No attempts yet'+(filter!=='all'?' for this mode':'')+'.</p></div>';return;
+  }
+  const ICONS={test:'&#9201;',practice:'&#127919;',study:'&#128216;',review:'&#128257;'};
+  const COLORS={test:'#fef3c7',practice:'#d1fae5',study:'#e0e7ff',review:'#fce7f3'};
+  attempts.forEach(a=>{
+    const d=new Date(a.date);
+    const ds=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const grade=a.pct>=80?'Excellent':a.pct>=60?'Good':a.pct>=40?'Average':'Needs Work';
+    const div=document.createElement('div');div.className='attempt-card';
+    div.innerHTML='<div class="att-mode-icon" style="background:'+(COLORS[a.mode]||'#f3f4f6')+'">'+(ICONS[a.mode]||'&#128221;')+'</div><div class="att-body"><div class="att-title">'+capitalize(a.mode)+' — '+(a.subject||'All Subjects')+'</div><div class="att-meta">'+ds+' &nbsp;·&nbsp; '+a.total+' Qs &nbsp;·&nbsp; '+a.correct+'&#10003; '+a.wrong+'&#10007; '+a.skip+'-</div></div><div class="att-score"><div class="att-pct">'+a.pct+'%</div><div class="att-grade">'+grade+'</div></div>';
+    el.appendChild(div);
+  });
+}
+
+async function clearHistory(){
+  if(!confirm('Clear all history for this account?'))return;
+  await Promise.all([
+    fetch(SB_URL+'/rest/v1/attempts?username=eq.'+currentUser,{method:'DELETE',headers:sbH()}),
+    fetch(SB_URL+'/rest/v1/wrong_bank?username=eq.'+currentUser,{method:'DELETE',headers:sbH()})
+  ]);
+  await renderHistory();await refreshDashboard();toast('History cleared');
+}
+
+async function renderStats(){
+  const [attempts,wb]=await Promise.all([getAttempts(),getWrongBank()]);
+  const el=document.getElementById('statsContent');
+  if(!attempts.length){el.innerHTML='<div class="hist-empty"><div class="icon">&#128202;</div><p>No data yet. Complete some sessions first!</p></div>';return;}
+  const total=attempts.length;
+  const avgPct=(attempts.reduce((s,a)=>s+a.pct,0)/total).toFixed(1);
+  const best=Math.max(...attempts.map(a=>a.pct)).toFixed(1);
+  const totalQ=attempts.reduce((s,a)=>s+a.total,0);
+  const totalC=attempts.reduce((s,a)=>s+a.correct,0);
+  const oAcc=totalQ>0?(totalC/totalQ*100).toFixed(1):'-';
+  const modeRows=['test','practice','study','review'].map(m=>{
+    const ma=attempts.filter(a=>a.mode===m);if(!ma.length)return'';
+    const mp=(ma.reduce((s,a)=>s+a.pct,0)/ma.length).toFixed(1);
+    return'<div class="subj-row"><div class="sname">'+capitalize(m)+'</div><div class="subj-bar-wrap"><div class="subj-bar-fill" style="width:'+mp+'%"></div></div><div class="subj-pct">'+mp+'%</div></div>';
+  }).join('');
+  el.innerHTML='<div class="stats-grid"><div class="stat-box"><h3>Overall Performance</h3><div class="big-num">'+avgPct+'%</div><div class="big-sub">Average Score</div><div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:1.2rem;font-weight:800;color:var(--g)">'+best+'%</div><div style="font-size:.75rem;color:var(--muted)">Best Score</div></div><div><div style="font-size:1.2rem;font-weight:800;color:var(--p)">'+oAcc+'%</div><div style="font-size:.75rem;color:var(--muted)">Overall Accuracy</div></div><div><div style="font-size:1.2rem;font-weight:800">'+total+'</div><div style="font-size:.75rem;color:var(--muted)">Sessions</div></div><div><div style="font-size:1.2rem;font-weight:800">'+totalQ+'</div><div style="font-size:.75rem;color:var(--muted)">Qs Attempted</div></div></div></div><div class="stat-box"><h3>By Mode</h3>'+modeRows+'<div style="font-size:.78rem;color:var(--muted);margin-top:8px">'+wb.length+' questions in drill bank</div></div></div>';
+}
+
+function switchTab(tabEl,pageId){
+  if(!tabEl)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(pageId).classList.remove('hidden');
+  hideOverlays();showTabs();
+  if(pageId==='historyPage')renderHistory();
+  if(pageId==='statsPage')renderStats();
+  if(pageId==='adminPage'){if(adminUnlocked)renderAdmin();}
+}
+
+function hideTabs(){document.getElementById('mainTabs').classList.add('hidden');}
+function showTabs(){document.getElementById('mainTabs').classList.remove('hidden');}
+function hidePages(){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));}
+function hideOverlays(){hide('quizOverlay');hide('resultsOverlay');}
+
+async function backToHome(){
+  hideOverlays();hidePages();
+  document.getElementById('dashPage').classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('[data-page=dashPage]').classList.add('active');
+  showTabs();await refreshDashboard();
+  document.getElementById('reviewSec').classList.add('hidden');
+}
+
+function shuffle(arr){return[...arr].sort(()=>Math.random()-.5);}
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function show(id){document.getElementById(id).classList.remove('hidden');}
+function hide(id){document.getElementById(id).classList.add('hidden');}
+let toastT;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),3000);}
+
+// ── LOGIN SESSION TRACKING ──
+async function recordLogin(){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/login_sessions',{
+      method:'POST',headers:sbH({'Prefer':'return=representation'}),
+      body:JSON.stringify({username:currentUser,login_at:new Date().toISOString()})
+    });
+    if(r.ok){const d=await r.json();currentSessionId=d[0]?.id||null;}
+  }catch(e){console.error('recordLogin',e);}
+}
+async function recordLogout(){
+  if(!currentSessionId)return;
+  const dur=Math.floor((Date.now()-(loginTime||Date.now()))/1000);
+  try{
+    await fetch(SB_URL+'/rest/v1/login_sessions?id=eq.'+currentSessionId,{
+      method:'PATCH',headers:sbH({'Prefer':'return=minimal'}),
+      body:JSON.stringify({logout_at:new Date().toISOString(),duration_secs:dur})
+    });
+  }catch(e){console.error('recordLogout',e);}
+  currentSessionId=null;
+}
+
+// ── ADMIN ──
+const ADMIN_PASSWORD='admin@cdpo';
+function unlockAdmin(){
+  const v=document.getElementById('adminPwd').value;
+  if(v!==ADMIN_PASSWORD){document.getElementById('adminErr').textContent='Wrong password.';return;}
+  adminUnlocked=true;
+  document.getElementById('adminPwd').value='';
+  hide('adminLocked');show('adminPanel');
+  renderAdmin();
+}
+function lockAdmin(){
+  adminUnlocked=false;
+  hide('adminPanel');show('adminLocked');
+}
+function fmtDur(secs){
+  if(!secs&&secs!==0)return'active';
+  const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;
+  if(h>0)return h+'h '+m+'m';
+  if(m>0)return m+'m '+s+'s';
+  return s+'s';
+}
+async function renderAdmin(){
+  if(!adminUnlocked)return;
+  const userFilter=document.getElementById('adminUserFilter').value;
+  let url=SB_URL+'/rest/v1/login_sessions?order=id.desc&limit=200';
+  if(userFilter!=='all')url+=('&username=eq.'+userFilter);
+  let sessions=[];
+  try{
+    const r=await fetch(url,{headers:sbH()});
+    if(r.ok)sessions=await r.json();
+  }catch(e){console.error(e);}
+  document.getElementById('adminRefreshTime').textContent='Updated '+new Date().toLocaleTimeString();
+  // summary cards per user
+  const sumEl=document.getElementById('adminSummary');
+  const allSess=userFilter==='all'?sessions:sessions;
+  const ULIST=['sufina','sharna'];
+  let allR=sessions;
+  if(userFilter==='all'){
+    try{const r2=await fetch(SB_URL+'/rest/v1/login_sessions?order=id.desc&limit=200',{headers:sbH()});if(r2.ok)allR=await r2.json();}catch{}
+  }
+  const AV_CLASS={sufina:'av-s',sharna:'av-sh'};
+  const AV_INIT={sufina:'SN',sharna:'SH'};
+  sumEl.innerHTML=ULIST.map(u=>{
+    const us=allR.filter(s=>s.username===u);
+    const totalSecs=us.filter(s=>s.duration_secs).reduce((a,s)=>a+s.duration_secs,0);
+    const lastSeen=us.length?new Date(us[0].login_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+new Date(us[0].login_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'-';
+    return '<div class="stat-box"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'
+      +'<div class="av '+AV_CLASS[u]+'" style="width:36px;height:36px;font-size:.85rem">'+AV_INIT[u]+'</div>'
+      +'<div><div style="font-weight:800;font-size:1rem">'+u.charAt(0).toUpperCase()+u.slice(1)+'</div>'
+      +'<div style="font-size:.75rem;color:var(--muted)">'+us.length+' sessions</div></div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+      +'<div><div style="font-size:1.3rem;font-weight:800;color:var(--p)">'+fmtDur(totalSecs)+'</div><div style="font-size:.73rem;color:var(--muted)">Total Time</div></div>'
+      +'<div><div style="font-size:.82rem;font-weight:700;color:var(--text);margin-top:4px">'+lastSeen+'</div><div style="font-size:.73rem;color:var(--muted)">Last Login</div></div>'
+      +'</div></div>';
+  }).join('');
+  // session list
+  const listEl=document.getElementById('adminSessionList');
+  if(!sessions.length){listEl.innerHTML='<div class="hist-empty"><div class="icon">&#128085;</div><p>No sessions recorded yet.</p></div>';return;}
+  listEl.innerHTML='<div class="review-list">'+sessions.map(s=>{
+    const d=new Date(s.login_at);
+    const ds=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const dur=s.duration_secs?fmtDur(s.duration_secs):'<span style="color:var(--g);font-weight:700">Active now</span>';
+    const ac=AV_CLASS[s.username]||'av-s',ai=AV_INIT[s.username]||s.username.slice(0,2).toUpperCase();
+    return '<div class="ri" style="display:flex;align-items:center;gap:14px">'
+      +'<div class="av '+ac+'" style="width:34px;height:34px;font-size:.75rem;flex-shrink:0">'+ai+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:.88rem;font-weight:700">'+s.username.charAt(0).toUpperCase()+s.username.slice(1)+'</div>'
+      +'<div style="font-size:.78rem;color:var(--muted);margin-top:2px">Logged in: '+ds+'</div>'
+      +'</div>'
+      +'<div style="text-align:right"><div style="font-size:.95rem;font-weight:700">'+dur+'</div>'
+      +'<div style="font-size:.72rem;color:var(--muted)">time spent</div></div>'
+      +'</div>';
+  }).join('')+'</div>';
+}
+
+boot();
+</script>
+</body>
+</html>

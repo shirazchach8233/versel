@@ -17,6 +17,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .screen.active{display:block !important}
 #screen-login.active,#screen-setup.active{display:flex !important}
 
+/* ── PAGE TIMER (time spent on current page) ── */
+.page-timer{position:fixed;top:10px;right:14px;background:#fff;color:var(--primary);font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:20px;box-shadow:0 2px 8px #0003;z-index:200;display:flex;align-items:center;gap:5px;letter-spacing:.2px}
+.page-timer .dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 1.4s infinite}
+
 /* ── NAV ── */
 nav{background:var(--primary);color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px #0002}
 .nav-brand{font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:10px}
@@ -172,6 +176,9 @@ tr:hover td{background:#f8fafc}
 </style>
 </head>
 <body>
+
+<!-- ═══════════════ PAGE TIMER (shown on every screen) ═══════════════ -->
+<div id="page-timer" class="page-timer"><span class="dot"></span><span id="page-timer-label">Page</span>&nbsp;<span id="page-timer-val">0:00</span></div>
 
 <!-- ═══════════════ SCREEN: LOGIN ═══════════════ -->
 <div id="screen-login" class="screen active">
@@ -561,6 +568,9 @@ let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+let pageTimerInterval=null,pageTimerStart=Date.now();
+const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
+  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin'};
 
 const TOPIC_ICONS={
   'Child Development':'👶','Extension & Community Dev':'🌾','Facts about India':'🇮🇳',
@@ -635,7 +645,27 @@ function showScreen(name){
   if(name==='dashboard') loadDashboard();
   if(name==='progress') loadProgress();
   if(name==='admin') loadAdmin();
+  startPageTimer(name);
   window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// PAGE TIMER (time spent on each page/screen)
+// ══════════════════════════════════════════════
+function startPageTimer(name){
+  if(pageTimerInterval) clearInterval(pageTimerInterval);
+  pageTimerStart=Date.now();
+  const lbl=document.getElementById('page-timer-label');
+  if(lbl) lbl.textContent=PAGE_LABELS[name]||name;
+  updatePageTimer();
+  pageTimerInterval=setInterval(updatePageTimer,1000);
+}
+function updatePageTimer(){
+  const el=document.getElementById('page-timer-val');
+  if(!el)return;
+  const elapsed=Math.floor((Date.now()-pageTimerStart)/1000);
+  const m=Math.floor(elapsed/60),s=elapsed%60;
+  el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
 }
 function showNav(){
   document.getElementById('main-nav').style.display='flex';

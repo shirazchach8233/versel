@@ -376,6 +376,7 @@ tr:hover td{background:#f8fafc}
 <!-- ═══════════════ SCREEN: RESULTS ═══════════════ -->
 <div id="screen-results" class="screen">
   <div class="main-wrap" style="max-width:860px">
+    <div id="res-save-warning" class="alert alert-danger" style="display:none">⚠️ This attempt could not be saved to your progress history (connection issue). Your score is shown below, but it won't appear in Progress or Admin records.</div>
     <div class="result-hero">
       <div class="result-pct" id="res-pct">0%</div>
       <div class="result-grade" id="res-grade"></div>
@@ -541,10 +542,12 @@ async function sbGet(table,params=''){
 }
 async function sbPost(table,body,extra={}){
   const r=await fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:sbH({'Prefer':'return=representation',...extra}),body:JSON.stringify(body)});
-  return r.ok?await r.json():null;
+  if(!r.ok){console.error(`sbPost(${table}) failed: ${r.status}`,await r.text().catch(()=>''));return null;}
+  return await r.json();
 }
 async function sbPatch(table,filter,body){
   const r=await fetch(`${SB_URL}/rest/v1/${table}?${filter}`,{method:'PATCH',headers:sbH({'Prefer':'return=minimal'}),body:JSON.stringify(body)});
+  if(!r.ok) console.error(`sbPatch(${table}) failed: ${r.status}`,await r.text().catch(()=>''));
   return r.ok;
 }
 async function sbDelete(table,filter){
@@ -957,17 +960,21 @@ async function submitQuiz(){
   const rawScore=negative?correct-(wrong/3):correct;
   const score=Math.max(0,rawScore);
   const pct=Math.round((score/questions.length)*100*10)/10;
-  // Save to DB
-  await sbPost('quiz_attempts',{
-    user_id:currentUser.id,username:currentUser.username,topic,mode,
+  // Save to DB — quiz_attempts.mode is constrained to 'quiz'/'practice' in the DB,
+  // but the UI uses 'timed'/'practice', so map before saving.
+  const dbMode=mode==='timed'?'quiz':mode;
+  const saved=await sbPost('quiz_attempts',{
+    user_id:currentUser.id,username:currentUser.username,topic,mode:dbMode,
     num_questions:questions.length,started_at:new Date(startTime).toISOString(),
     completed_at:new Date().toISOString(),duration_secs:dur,
     score:Math.round(score*100)/100,correct,wrong,skipped,total:questions.length,percentage:pct
   });
-  showResults(correct,wrong,skipped,score,pct,questions,answers,dur);
+  showResults(correct,wrong,skipped,score,pct,questions,answers,dur,!saved);
 }
 
-function showResults(correct,wrong,skipped,score,pct,questions,answers,dur){
+function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveFailed){
+  const warnEl=document.getElementById('res-save-warning');
+  if(warnEl) warnEl.style.display=saveFailed?'':'none';
   document.getElementById('res-pct').textContent=pct.toFixed(1)+'%';
   const grade=pct>=80?'Excellent! 🏆':pct>=60?'Good! 👍':pct>=40?'Average 📝':'Needs Improvement 📖';
   document.getElementById('res-grade').textContent=grade;

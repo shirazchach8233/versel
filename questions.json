@@ -75970,5 +75970,1301 @@
     "a": 1,
     "e": "Both statements are true according to the notes, but R (the strict definition of altruism) does not by itself explain why real-world prosocial acts tend to be a mixture of motivations — so R is not the correct explanation of A.",
     "s": "Psychology"
+  },
+  {
+    "q": "Which of the following best defines a fish?",
+    "o": [
+      "A warm-blooded aquatic vertebrate with limbs",
+      "An aquatic, gill-bearing vertebrate animal that typically lacks limbs with digits and lives entirely in water",
+      "An invertebrate that lives in both water and on land",
+      "A cold-blooded vertebrate found only in freshwater"
+    ],
+    "a": 1,
+    "e": "A fish is any aquatic, gill-bearing vertebrate animal that typically lacks limbs with digits and lives entirely in water.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the primary function of a fish's gills?",
+    "o": [
+      "Maintaining balance while swimming",
+      "Extracting oxygen directly from the water",
+      "Providing camouflage",
+      "Storing fat reserves"
+    ],
+    "a": 1,
+    "e": "Gills are vertical slits or organs that extract oxygen directly from the water.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fins are best described as:",
+    "o": [
+      "Internal organs for digestion",
+      "Flat, thin appendages used for swimming, steering, and maintaining balance",
+      "Bony plates for protection only",
+      "Sensory organs for detecting light"
+    ],
+    "a": 1,
+    "e": "Fins are flat, thin appendages used for swimming, steering, and maintaining balance.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which statement about fish as vertebrates is correct?",
+    "o": [
+      "They lack any internal skeleton",
+      "They have an internal skeleton with a backbone or spinal cord",
+      "Their skeleton is entirely external",
+      "They have no spinal cord but a simple nerve net"
+    ],
+    "a": 1,
+    "e": "As vertebrates, fish have an internal skeleton with a backbone or spinal cord.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Most fish are described as cold-blooded, meaning:",
+    "o": [
+      "Their body temperature is always below 0°C",
+      "They cannot survive in warm water",
+      "They are ectothermic and their body temperature adapts to the surrounding water",
+      "They generate their own body heat like mammals"
+    ],
+    "a": 2,
+    "e": "Most fish are ectothermic (cold-blooded), meaning their body temperature adapts to the surrounding water.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which of the following fish is identified as an exception to the typical cold-blooded pattern?",
+    "o": [
+      "Cod",
+      "Salmon",
+      "Opah",
+      "Mackerel"
+    ],
+    "a": 2,
+    "e": "While most fish are ectothermic, a few species such as the opah are warm-blooded.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which of the following is an exception to the typical fish characteristic of having protective overlapping scales?",
+    "o": [
+      "Salmon",
+      "Cod",
+      "Sharks and eels",
+      "Mackerel"
+    ],
+    "a": 2,
+    "e": "Most fish have overlapping scales for protection and streamlined swimming, but sharks and eels are exceptions with smooth skin.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "The main constituent of fish flesh, water, typically accounts for about what percentage of its weight?",
+    "o": [
+      "50%",
+      "65%",
+      "80%",
+      "95%"
+    ],
+    "a": 2,
+    "e": "Water is the main constituent of fish flesh, usually accounting for about 80 per cent of the weight.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Water content and fat content in fish generally show what kind of relationship?",
+    "o": [
+      "A direct/positive relationship — both rise together",
+      "An inverse relationship — as fat increases, water content decreases",
+      "No relationship at all",
+      "Both always remain constant regardless of age"
+    ],
+    "a": 1,
+    "e": "Water content and fat content generally have an inverse relationship; as fat increases (or as the fish ages), water content decreases.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Protein content in fish muscle usually falls within which range?",
+    "o": [
+      "5-10%",
+      "15-20%",
+      "25-30%",
+      "35-40%"
+    ],
+    "a": 1,
+    "e": "The amount of protein in fish muscle is usually between 15 and 20 per cent.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fish muscle proteins are divided into myofibrillar, sarcoplasmic, and which third category?",
+    "o": [
+      "Stroma proteins (connective tissue)",
+      "Keratin proteins",
+      "Globulin proteins",
+      "Mucin proteins"
+    ],
+    "a": 0,
+    "e": "Fish proteins are divided into myofibrillar proteins (responsible for muscle contraction), sarcoplasmic proteins, and stroma proteins (connective tissue).",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which two essential amino acids are generally found in high concentrations in fish proteins?",
+    "o": [
+      "Lysine and methionine",
+      "Glycine and alanine",
+      "Tryptophan and histidine",
+      "Valine and leucine"
+    ],
+    "a": 0,
+    "e": "Two essential amino acids, lysine and methionine, are generally found in high concentrations in fish proteins.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which pair correctly contrasts a lean fish and a fatty fish by fat content, per the notes?",
+    "o": [
+      "Cod (under 2% fat) vs salmon/mackerel (up to 25% fat)",
+      "Salmon (under 2% fat) vs cod (up to 25% fat)",
+      "Both cod and salmon are around 10% fat",
+      "Mackerel is leaner than cod"
+    ],
+    "a": 0,
+    "e": "Fat content can vary wildly from lean fish such as cod (under 2% fat) to fatty fish such as salmon or mackerel (up to 25% fat).",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fatty fish are particularly rich in which heart-healthy fatty acids?",
+    "o": [
+      "Omega-6 polyunsaturated fatty acids",
+      "Omega-3 polyunsaturated fatty acids",
+      "Saturated fatty acids only",
+      "Trans fatty acids"
+    ],
+    "a": 1,
+    "e": "Fatty fish are particularly rich in heart-healthy Omega-3 polyunsaturated fatty acids.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which saturated fatty acids are noted as most significant for marine-derived organisms?",
+    "o": [
+      "Palmitic and stearic acids",
+      "Oleic and linoleic acids",
+      "DHA and EPA",
+      "Arachidonic and linolenic acids"
+    ],
+    "a": 0,
+    "e": "Palmitic and stearic acids are the most significant saturated fatty acids (SFA) for marine-derived organisms.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which monounsaturated fatty acid is found as the primary MUFA in many freshwater fish?",
+    "o": [
+      "Palmitoleic acid",
+      "Oleic acid",
+      "Linoleic acid",
+      "Arachidonic acid"
+    ],
+    "a": 1,
+    "e": "Oleic acid is the primary MUFA found in many freshwater fish (alongside palmitoleic acid as another example).",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Approximately what share of fatty acids do PUFAs make up in lean fish versus fatty fish, respectively?",
+    "o": [
+      "About 50% in lean fish and 25% in fatty fish",
+      "About 25% in lean fish and 50% in fatty fish",
+      "About 10% in both",
+      "About 75% in both"
+    ],
+    "a": 0,
+    "e": "PUFAs make up approximately 50% of fatty acids in lean fish and 25% in fatty fish.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "DHA and EPA are major varieties of which fatty acid family?",
+    "o": [
+      "Omega-6 (n-6)",
+      "Omega-3 (n-3)",
+      "Saturated fatty acids",
+      "Trans fats"
+    ],
+    "a": 1,
+    "e": "Omega-3 (n-3) fatty acids' major varieties include DHA and EPA.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which fatty acid is given as a primary example of Omega-6 (n-6)?",
+    "o": [
+      "Arachidonic acid",
+      "Linolenic acid",
+      "DHA",
+      "EPA"
+    ],
+    "a": 0,
+    "e": "A primary example of Omega-6 (n-6) is arachidonic acid.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Carbohydrate content in fish is generally:",
+    "o": [
+      "Negligible, under 0.5%",
+      "Around 10-15%",
+      "Around 20-25%",
+      "Higher than protein content"
+    ],
+    "a": 0,
+    "e": "Carbohydrates are generally found in negligible amounts (under 0.5%) in fish.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Minerals typically make up what proportion of fish composition?",
+    "o": [
+      "1% to 2%",
+      "5% to 10%",
+      "15% to 20%",
+      "25% to 30%"
+    ],
+    "a": 0,
+    "e": "Minerals typically make up 1% to 2% of fish composition.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fish minerals are primarily essential trace elements like calcium, phosphorus, selenium, zinc, and iodine. Which of the following is NOT one of these minerals?",
+    "o": [
+      "Calcium",
+      "Phosphorus",
+      "Iodine",
+      "Vitamin C"
+    ],
+    "a": 3,
+    "e": "Fish minerals primarily consist of essential trace elements like calcium, phosphorus, selenium, zinc, and iodine — vitamin C is a vitamin, not a mineral, and is in fact noted as the one vitamin not well represented in fish muscle compared to lean meat.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which shellfish are noted as particularly high in calcium?",
+    "o": [
+      "Oysters, clams, and shrimp",
+      "Crabs only",
+      "Lobsters only",
+      "Squid only"
+    ],
+    "a": 0,
+    "e": "Oysters, clams, and shrimp are particularly high in calcium.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "How does the sodium content of shellfish compare to that of freshwater or marine fish?",
+    "o": [
+      "Shellfish (120-140 mg/100g) contain significantly more sodium than freshwater or marine fish (60 mg/100g)",
+      "Shellfish contain less sodium than fish",
+      "Both contain identical sodium levels",
+      "Freshwater fish contain more sodium than shellfish"
+    ],
+    "a": 0,
+    "e": "Shellfish (120-140 mg/100g) contain significantly more sodium than freshwater or marine fish (60 mg/100g).",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Crabs are notably rich in which minerals?",
+    "o": [
+      "Sodium, potassium, calcium, and phosphorus",
+      "Only iron",
+      "Only iodine",
+      "Only zinc"
+    ],
+    "a": 0,
+    "e": "Crabs are notably rich in sodium, potassium, calcium, and phosphorus.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which seafood is identified as the richest animal source of zinc?",
+    "o": [
+      "Oysters",
+      "Crabs",
+      "Tuna",
+      "Salmon"
+    ],
+    "a": 0,
+    "e": "Oysters are the richest animal source of zinc.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Molluscs and crustaceans are excellent sources of which trace minerals?",
+    "o": [
+      "Copper and manganese",
+      "Iodine and fluoride",
+      "Sodium and chloride",
+      "Calcium and phosphorus only"
+    ],
+    "a": 0,
+    "e": "Molluscs and crustaceans are excellent sources of copper and manganese.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which type of fish contains more iodine?",
+    "o": [
+      "Marine fish",
+      "Freshwater fish",
+      "Both contain equal amounts",
+      "Neither contains iodine"
+    ],
+    "a": 0,
+    "e": "Marine fish contain more iodine than freshwater fish.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Compared to other types of meat, fish and shellfish generally provide:",
+    "o": [
+      "Much lower selenium concentrations",
+      "Much higher selenium concentrations",
+      "No selenium at all",
+      "The same selenium concentration"
+    ],
+    "a": 1,
+    "e": "Fish and shellfish generally provide much higher selenium concentrations than other types of meat.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fish is an excellent source of which category of vitamins, particularly A, D, E, and B12?",
+    "o": [
+      "Water-soluble vitamins",
+      "Fat-soluble vitamins",
+      "Only B-complex vitamins",
+      "Only vitamin C"
+    ],
+    "a": 1,
+    "e": "Fish is an excellent source of fat-soluble vitamins, particularly Vitamins A, D, E, and B12.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which vitamin is the notable exception when comparing the vitamin content of white fish muscle to lean meat?",
+    "o": [
+      "Vitamin A",
+      "Vitamin D",
+      "Vitamin C",
+      "Vitamin B12"
+    ],
+    "a": 2,
+    "e": "The vitamin content of white fish muscle is similar to that of lean meat, with the exception of vitamin C.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "In lean fish versus fatty fish, where are vitamins primarily found?",
+    "o": [
+      "In the liver (lean fish); throughout the body (fatty fish)",
+      "In the muscle (lean fish); in the liver (fatty fish)",
+      "In the skin in both cases",
+      "In the gills in both cases"
+    ],
+    "a": 0,
+    "e": "In lean fish, vitamins are primarily found in the liver; in fatty fish, vitamins are found throughout the body.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fish liver oils are identified as the richest natural source of which vitamin?",
+    "o": [
+      "Vitamin A",
+      "Vitamin D",
+      "Vitamin C",
+      "Vitamin K"
+    ],
+    "a": 1,
+    "e": "Fish liver oils are identified as the richest natural source of vitamin D. (Vitamin A is also abundant in marine foods and highly concentrated in fish liver oils, but it is vitamin D for which fish liver oil is named the richest natural source.)",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Processed fish products are best defined as:",
+    "o": [
+      "Raw fish sold immediately after catch",
+      "Value-added seafood items created through preservation methods like canning, smoking, salting, or mincing",
+      "Only frozen whole fish",
+      "Fish that has spoiled and been discarded"
+    ],
+    "a": 1,
+    "e": "Processed fish products are value-added seafood items created through preservation methods like canning, smoking, salting, or mincing.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which of these is an example of a mince-based convenience fish product?",
+    "o": [
+      "Fish fingers",
+      "Canned tuna",
+      "Smoked salmon",
+      "Fish sauce"
+    ],
+    "a": 0,
+    "e": "Mince-based convenience foods include ready-to-fry products like fish fingers, cutlets, burgers, and fish balls, often sold frozen.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Surimi is best described as:",
+    "o": [
+      "A whole smoked fish",
+      "An elastic paste made from washed, minced fish meat, used to make imitation crab meat, fish cakes, and fish sausages",
+      "A type of fermented fish sauce",
+      "A canned fish product only"
+    ],
+    "a": 1,
+    "e": "Surimi is minced fish meat that is washed and processed into an elastic paste used to make artificial crab meat, fish cakes, and fish sausages.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which preservation category includes items like smoked salmon and dried sardines?",
+    "o": [
+      "Dried & smoked products",
+      "Fermented products",
+      "Canned & tinned fish",
+      "Mince-based convenience foods"
+    ],
+    "a": 0,
+    "e": "Dried & smoked products extend shelf life and impart rich flavours, as seen in items like smoked salmon and dried sardines.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fish sauce is an example of which category of processed fish product?",
+    "o": [
+      "Canned & tinned fish",
+      "Fermented products & condiments",
+      "Mince-based convenience foods",
+      "Dried & smoked products"
+    ],
+    "a": 1,
+    "e": "Fish waste and whole fish are fermented to create staple condiments like fish sauce, under fermented products & condiments.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "When selecting fresh fish, which of the following is a sign of good quality?",
+    "o": [
+      "Dull, sunken eyes",
+      "Gills that are bright red or pink and free from slime",
+      "Flesh that stays indented when pressed",
+      "A strong ammonia-like smell"
+    ],
+    "a": 1,
+    "e": "Good-quality fish has gills that are bright red or pink and free from slime; eyes should be bright, clear, and bulging; flesh should be firm and spring back when pressed; and odour should be mild, lacking sour or ammonia-like smell.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Fresh, good-quality fish flesh should:",
+    "o": [
+      "Be easily pulled away from the bones",
+      "Be firm, elastic, and spring back when pressed",
+      "Feel soft and mushy",
+      "Have a strong sour smell"
+    ],
+    "a": 1,
+    "e": "Flesh should be firm, elastic, and spring back when pressed; it should not be easily pulled away from the bones.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "For shellfish such as clams, oysters, or mussels, a key freshness check is that:",
+    "o": [
+      "Their shells must be tightly closed",
+      "Their shells must be wide open",
+      "They should have no shell at all",
+      "Their shells should be cracked"
+    ],
+    "a": 0,
+    "e": "Any clams, oysters, or mussels must have tightly closed shells as a freshness check.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Why does fish flesh decay more quickly than many other meats?",
+    "o": [
+      "Because it contains delicate proteins and high moisture, leading to rapid bacterial and enzymatic action",
+      "Because it lacks any moisture",
+      "Because it has no proteins",
+      "Because it is always frozen"
+    ],
+    "a": 0,
+    "e": "Because fish flesh contains delicate proteins and high moisture, it decays very quickly due to bacterial and enzymatic action.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Why should fish be gutted (viscera removed) immediately after catch?",
+    "o": [
+      "To prevent enzymes from accelerating spoilage",
+      "To make the fish heavier",
+      "To improve its colour permanently",
+      "It has no effect on spoilage"
+    ],
+    "a": 0,
+    "e": "Fish should be gutted immediately to prevent enzymes from accelerating spoilage.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the ideal temperature for storing fresh fish, including in walk-in refrigerators?",
+    "o": [
+      "0°C ideally, -2°C to 0°C in walk-in refrigerators",
+      "10°C ideally, 5°C to 10°C in walk-in refrigerators",
+      "-18°C ideally, -20°C to -18°C in walk-in refrigerators",
+      "Room temperature is acceptable"
+    ],
+    "a": 0,
+    "e": "The ideal temperature for storing fresh fish is 0°C; in walk-in refrigerators, it is stored between -2°C and 0°C.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Why should cut fish avoid direct contact with melting ice?",
+    "o": [
+      "It can leach out juices and discolor the flesh",
+      "It freezes the fish too quickly",
+      "It has no effect",
+      "It improves the flavour"
+    ],
+    "a": 0,
+    "e": "Cut fish should not come into direct contact with melting ice, as it can leach out juices and discolor the flesh — instead, wrap it tightly in clingfilm and cover with ice.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Assertion (A): Fatty fish are particularly rich in heart-healthy Omega-3 polyunsaturated fatty acids.\nReason (R): PUFAs make up approximately 50% of fatty acids in lean fish and only 25% in fatty fish.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true, but R is false",
+      "A is false, but R is true"
+    ],
+    "a": 1,
+    "e": "Both statements are true facts from the notes, but R describes the overall PUFA proportion (which is actually higher in lean fish, not fatty fish) and does not explain why fatty fish specifically are rich in Omega-3 — so R is not the correct explanation of A.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Find the statement(s) that are NOT true about fish minerals and selection.\n1. Oysters are the richest animal source of zinc.\n2. Marine fish contain more iodine than freshwater fish.\n3. A fresh fish should have a strong ammonia-like smell.\n4. Good quality fish gills should be bright red or pink.",
+    "o": [
+      "1 and 2",
+      "3 only",
+      "1 and 4",
+      "2 and 3"
+    ],
+    "a": 1,
+    "e": "Statements 1, 2, and 4 are true per the notes. Statement 3 is false — fresh fish should have a mild, fresh 'seaweed' smell, distinctly lacking a sour or ammonia-like smell; an ammonia smell indicates spoilage.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Oilseeds are best defined as:",
+    "o": [
+      "Agricultural products grown primarily for extracting vegetable oil",
+      "Cereal grains grown for direct human consumption only",
+      "Root vegetables rich in starch",
+      "Leafy vegetables rich in fiber"
+    ],
+    "a": 0,
+    "e": "Oilseeds are nutrient-dense agricultural products grown primarily for extracting vegetable oil.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Besides oil, oilseeds are essential in the human diet because they also provide:",
+    "o": [
+      "Concentrated energy, essential fatty acids, and proteins",
+      "Only dietary fiber",
+      "Only water",
+      "Only starch"
+    ],
+    "a": 0,
+    "e": "Oilseeds provide concentrated energy, essential fatty acids, and proteins in the human diet.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "After oil extraction, the remaining residue (oil cake) is primarily used as:",
+    "o": [
+      "A high-protein supplement for livestock",
+      "Fuel for vehicles",
+      "A sweetener",
+      "A textile fiber"
+    ],
+    "a": 0,
+    "e": "After oil extraction, the remaining residue (oil cake) serves as a high-protein supplement for livestock.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which oilseed is often called the 'King of Oilseeds' due to its high protein and oil content?",
+    "o": [
+      "Groundnut (Peanut)",
+      "Soybean",
+      "Sesame",
+      "Sunflower"
+    ],
+    "a": 0,
+    "e": "Groundnut (Peanut) is often called the 'King of Oilseeds,' with high protein and oil content, widely used in Indian cooking.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Rapeseed and Mustard are described in the notes as:",
+    "o": [
+      "Key rabi (winter) crops in India valued for distinct pungent oil also used as a pickle preservative",
+      "Summer (kharif) crops used only for animal feed",
+      "Tropical crops grown only in coastal areas",
+      "Crops with no culinary use"
+    ],
+    "a": 0,
+    "e": "Rapeseed & Mustard are key rabi (winter) crops in India, valued for their distinct pungent oil, which is also used as a pickle preservative.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Soybean is noted as one of the most important oilseeds globally, used for edible oil, protein meals, and processed foods such as:",
+    "o": [
+      "Tofu and soy milk",
+      "Ghee and paneer",
+      "Bread and pasta",
+      "Jam and pickles"
+    ],
+    "a": 0,
+    "e": "Soybean is used for edible oil, protein meals, and processed foods like tofu and soy milk.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Sesame is particularly known for its long shelf life, high calcium content, and use in:",
+    "o": [
+      "Tahini, sweets, and therapeutic Ayurvedic oils",
+      "Only animal feed",
+      "Only industrial lubricants",
+      "Only biofuel production"
+    ],
+    "a": 0,
+    "e": "Sesame is known for its long shelf life, high calcium content, and use in tahini, sweets, and therapeutic Ayurvedic oils.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Sunflower oil is valued for producing a light, heart-healthy cooking oil that is rich in:",
+    "o": [
+      "Polyunsaturated fats",
+      "Saturated fats only",
+      "Trans fats",
+      "Cholesterol"
+    ],
+    "a": 0,
+    "e": "Sunflower produces a light, heart-healthy cooking oil that is rich in polyunsaturated fats.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the typical lipid (fat) content range in oilseeds?",
+    "o": [
+      "18% – 45%",
+      "5% – 10%",
+      "60% – 80%",
+      "2% – 5%"
+    ],
+    "a": 0,
+    "e": "Lipids typically make up 18%–45% of oilseed composition.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Triacylglycerols, the main lipid form in oilseeds, are composed of saturated, monounsaturated, and polyunsaturated fatty acids. Which pair correctly gives an example of each of the latter two types?",
+    "o": [
+      "Monounsaturated e.g. oleic acid; polyunsaturated e.g. linoleic and linolenic acids",
+      "Monounsaturated e.g. palmitic acid; polyunsaturated e.g. stearic acid",
+      "Monounsaturated e.g. DHA; polyunsaturated e.g. EPA",
+      "Monounsaturated e.g. lysine; polyunsaturated e.g. methionine"
+    ],
+    "a": 0,
+    "e": "Triacylglycerols are composed of saturated, monounsaturated (e.g., oleic acid), and polyunsaturated (e.g., linoleic, linolenic) fatty acids.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the typical protein content range in oilseeds?",
+    "o": [
+      "16% – 40%",
+      "5% – 10%",
+      "50% – 70%",
+      "1% – 5%"
+    ],
+    "a": 0,
+    "e": "Proteins typically make up 16%–40% of oilseed composition.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Amino acids in oilseeds provide a robust source of essential proteins, which become highly concentrated where, after oil extraction?",
+    "o": [
+      "In the seed meal",
+      "In the seed coat only",
+      "In the oil itself",
+      "They are destroyed during extraction"
+    ],
+    "a": 0,
+    "e": "Amino acids provide essential proteins that are highly concentrated in the seed meal after oil extraction.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the typical carbohydrate content range in oilseeds?",
+    "o": [
+      "5% – 20%",
+      "30% – 50%",
+      "60% – 80%",
+      "Under 1%"
+    ],
+    "a": 0,
+    "e": "Carbohydrates typically make up 5%–20% of oilseed composition, including simple sugars, starches, and indigestible dietary fibers.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Indigestible dietary fibers found in oilseed carbohydrates include examples such as:",
+    "o": [
+      "Cellulose and hemicellulose",
+      "Lysine and methionine",
+      "Tocopherols and phytosterols",
+      "DHA and EPA"
+    ],
+    "a": 0,
+    "e": "Oilseed carbohydrates include simple sugars, starches, and indigestible dietary fibers such as cellulose and hemicellulose.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the typical mineral content range in oilseeds, and which macroelements are abundant?",
+    "o": [
+      "2%–5%; abundant in potassium, phosphorus, calcium, and magnesium",
+      "20%–30%; abundant in sodium chloride only",
+      "Under 0.5%; no significant minerals",
+      "10%–15%; abundant in iodine only"
+    ],
+    "a": 0,
+    "e": "Minerals make up 2%–5% of oilseed composition, abundant in macroelements (potassium, phosphorus, calcium, magnesium) and microelements (iron, zinc, manganese).",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the typical moisture content range in oilseeds, and to what level must it be reduced for safe long-term storage?",
+    "o": [
+      "5%–10% naturally; must be reduced to below 10% for safe storage",
+      "50%–60% naturally; must be reduced to below 30%",
+      "80%–90% naturally; must be reduced to below 50%",
+      "1%–2% naturally; no reduction needed"
+    ],
+    "a": 0,
+    "e": "Moisture is naturally 5%–10% and must be reduced to under 10% for safe long-term storage and to prevent spoilage.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Phytochemicals found in oilseeds include bioactive compounds such as tocopherols, phytosterols, polyphenols, phospholipids, and:",
+    "o": [
+      "Squalene",
+      "Cellulose",
+      "Lysine",
+      "Hemicellulose"
+    ],
+    "a": 0,
+    "e": "Phytochemicals in oilseeds include tocopherols (Vitamin E), phytosterols, polyphenols, phospholipids, and squalene.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Rapeseed (Canola) is characterized by a high content of which fatty acid, along with health-promoting tocopherols and flavonoids?",
+    "o": [
+      "Oleic acid",
+      "Linoleic acid",
+      "Arachidonic acid",
+      "Palmitic acid"
+    ],
+    "a": 0,
+    "e": "Rapeseed (Canola) is characterized by a high oleic acid content, low saturated fats, and the presence of health-promoting tocopherols and flavonoids.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Soybean's balanced profile is approximately what proportion of oil and protein, respectively?",
+    "o": [
+      "20% oil and 40% protein",
+      "40% oil and 20% protein",
+      "10% oil and 60% protein",
+      "60% oil and 10% protein"
+    ],
+    "a": 0,
+    "e": "Soybean features a highly balanced profile of approximately 20% oil and 40% protein, making it versatile for both edible oil and high-protein animal feed.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Sunflower and Safflower are known for high concentrations of which compounds?",
+    "o": [
+      "Linoleic acid and tocopherols",
+      "Oleic acid and lignans",
+      "Sesamin and sesamolin",
+      "Glucosinolates and tannins"
+    ],
+    "a": 0,
+    "e": "Sunflower & Safflower are known for high concentrations of linoleic acid (polyunsaturated fats) and tocopherols.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Flaxseed is particularly rich in which omega-3 fatty acid, along with lignans?",
+    "o": [
+      "Alpha-linolenic acid",
+      "DHA",
+      "EPA",
+      "Oleic acid"
+    ],
+    "a": 0,
+    "e": "Flaxseed is rich in alpha-linolenic acid (an omega-3 fatty acid) and lignans.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Tocopherols and tocotrienols, found abundantly in seed oils, primarily act as:",
+    "o": [
+      "Powerful antioxidants that protect cells from oxidative stress",
+      "Toxins that must be removed before consumption",
+      "Digestive enzyme inhibitors",
+      "Carbohydrate-binding proteins"
+    ],
+    "a": 0,
+    "e": "Tocopherols and tocotrienols serve as powerful antioxidants, protecting the body's cells from oxidative stress and helping prevent cardiovascular disease.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Phenolic compounds and flavonoids are concentrated heavily in which part of the oilseed?",
+    "o": [
+      "The seed coat (testa)",
+      "The seed meal only",
+      "The oil itself",
+      "The root of the plant"
+    ],
+    "a": 0,
+    "e": "Phenolic compounds and flavonoids are concentrated heavily in the seed coat (testa), offering anti-inflammatory and anti-aging properties.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Phytosterols help lower LDL cholesterol levels by:",
+    "o": [
+      "Blocking cholesterol absorption in the human gut",
+      "Increasing cholesterol production in the liver",
+      "Binding to dietary fiber",
+      "Breaking down dietary fats"
+    ],
+    "a": 0,
+    "e": "Phytosterols are plant sterols that block cholesterol absorption in the human gut, naturally aiding in lowering LDL levels.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Sesamin and sesamolin, known to balance blood pressure and reduce cholesterol, are seed-specific bioactives found in:",
+    "o": [
+      "Sesame (Til)",
+      "Soybean",
+      "Mustard",
+      "Peanut"
+    ],
+    "a": 0,
+    "e": "Sesame (Til) is highly recognized for sesamin and sesamolin, which help balance blood pressure and reduce cholesterol.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Isoflavones, which help manage hormonal balance and support bone health, are packed in which oilseed?",
+    "o": [
+      "Soybean",
+      "Sesame",
+      "Mustard",
+      "Flaxseed"
+    ],
+    "a": 0,
+    "e": "Soybean is packed with isoflavones that help manage hormonal balance, support bone health, and reduce the risk of certain cancers.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Glucosinolates, which possess strong antimicrobial properties and are used to alleviate rheumatic and joint pains, are rich in:",
+    "o": [
+      "Mustard",
+      "Soybean",
+      "Sesame",
+      "Peanut"
+    ],
+    "a": 0,
+    "e": "Mustard is rich in glucosinolates, which possess strong antimicrobial properties and are used to alleviate rheumatic and joint pains.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Resveratrol, the same heart-healthy compound found in grapes, is contained in high amounts in:",
+    "o": [
+      "Peanut (Groundnut)",
+      "Soybean",
+      "Sesame",
+      "Mustard"
+    ],
+    "a": 0,
+    "e": "Peanut (Groundnut) contains high amounts of resveratrol and phytosterols.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Trypsin and protease inhibitors, prevalent in soybeans, cause which problem?",
+    "o": [
+      "They block digestive enzymes, leading to poor protein digestion and pancreatic enlargement",
+      "They cause goiter",
+      "They cause hemolytic effects",
+      "They release toxic hydrogen cyanide"
+    ],
+    "a": 0,
+    "e": "Trypsin & protease inhibitors are prevalent in soybeans and block digestive enzymes, leading to poor protein digestion and pancreatic enlargement.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Phytic acid (phytates) reduces nutrient availability by:",
+    "o": [
+      "Binding to essential minerals like calcium, zinc, iron, and magnesium, making them inaccessible for absorption",
+      "Releasing toxic hydrogen cyanide",
+      "Damaging the intestinal lining",
+      "Impairing thyroid function"
+    ],
+    "a": 0,
+    "e": "Phytic acid binds to essential minerals (calcium, zinc, iron, magnesium), making them inaccessible for absorption.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Glucosinolates, found in rapeseed and canola, can impair thyroid function and cause:",
+    "o": [
+      "Goiter",
+      "Pancreatic enlargement",
+      "Hemolysis",
+      "Reproductive toxicity"
+    ],
+    "a": 0,
+    "e": "Glucosinolates, found in rapeseed and canola, impair thyroid function and can cause goiter.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Gossypol is a toxic polyphenol specific to which oilseed, and what harm can it cause?",
+    "o": [
+      "Cottonseed; it can bind to iron, causing toxicity and reproductive issues in simple-stomached animals",
+      "Soybean; it causes goiter",
+      "Flaxseed; it releases hydrogen cyanide",
+      "Mustard; it impairs thyroid function"
+    ],
+    "a": 0,
+    "e": "Gossypol is a toxic polyphenol specific to cottonseed; it can bind to iron, causing toxicity and reproductive issues in simple-stomached animals.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Tannins, as anti-nutritional factors, primarily act by:",
+    "o": [
+      "Binding to proteins and reducing their digestibility, while astringently affecting taste",
+      "Releasing toxic hydrogen cyanide when metabolized",
+      "Damaging the intestinal lining directly",
+      "Causing goiter"
+    ],
+    "a": 0,
+    "e": "Tannins are polyphenols that bind to proteins and reduce their digestibility, while also astringently affecting taste.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Lectins are anti-nutritional factors that:",
+    "o": [
+      "Are carbohydrate-binding proteins that can damage the intestinal lining and interfere with nutrient assimilation",
+      "Bind to minerals like calcium and zinc",
+      "Cause goiter via thyroid impairment",
+      "Are only found in flaxseed"
+    ],
+    "a": 0,
+    "e": "Lectins are carbohydrate-binding proteins that can damage the intestinal lining and interfere with nutrient assimilation.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Saponins, as anti-nutritional factors, are bitter-tasting compounds that can cause:",
+    "o": [
+      "Interference with normal nutrient absorption and hemolytic effects",
+      "Goiter",
+      "Pancreatic enlargement",
+      "Reproductive toxicity"
+    ],
+    "a": 0,
+    "e": "Saponins are bitter-tasting compounds that can interfere with normal nutrient absorption and cause hemolytic effects.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Cyanogenic glycosides, found in flaxseed, release toxic hydrogen cyanide when:",
+    "o": [
+      "Metabolized",
+      "Stored at room temperature",
+      "Exposed to sunlight",
+      "Mixed with water only"
+    ],
+    "a": 0,
+    "e": "Cyanogenic glycosides, found in flaxseed, release toxic hydrogen cyanide when metabolized.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Thermal treatments such as roasting, boiling, toasting, and extrusion are effective at:",
+    "o": [
+      "Inactivating heat-labile ANFs like trypsin inhibitors and lectins",
+      "Increasing phytic acid content",
+      "Increasing moisture content",
+      "Destroying all proteins"
+    ],
+    "a": 0,
+    "e": "Thermal treatments effectively inactivate heat-labile anti-nutritional factors (ANFs) like trypsin inhibitors and lectins.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Soaking and germination help reduce anti-nutritional factors (ANFs) mainly by:",
+    "o": [
+      "Leaching out water-soluble ANFs and breaking down phytates",
+      "Increasing protein content",
+      "Adding moisture for storage",
+      "Increasing oil yield"
+    ],
+    "a": 0,
+    "e": "Traditional soaking and sprouting can leach out water-soluble ANFs and break down phytates.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Microbial fermentation of oilseeds aids in breaking down complex ANFs, thereby:",
+    "o": [
+      "Increasing mineral bioavailability",
+      "Decreasing protein content",
+      "Increasing moisture content",
+      "Destroying all vitamins"
+    ],
+    "a": 0,
+    "e": "Microbial fermentation breaks down complex ANFs, thereby increasing mineral bioavailability.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Which advanced processing methods are used to destroy toxic compounds without degrading extracted proteins?",
+    "o": [
+      "Solvent extraction, dehulling, and high-energy radiation methods",
+      "Only sun-drying",
+      "Only boiling in water",
+      "Only freezing"
+    ],
+    "a": 0,
+    "e": "Solvent extraction, dehulling, and modern high-energy radiation methods are increasingly used to destroy toxic compounds without degrading extracted proteins.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Processed oilseeds yield two primary categories of products. What are they?",
+    "o": [
+      "Vegetable oils and oilseed meals/cakes",
+      "Flour and bread",
+      "Sugar and starch",
+      "Fiber and textiles only"
+    ],
+    "a": 0,
+    "e": "Processed oilseeds yield two primary categories: Vegetable Oils and Oilseed Meals/Cakes.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Cocoa butter and shea butter are examples of which category of oilseed-derived product?",
+    "o": [
+      "Specialty oils, used in confectionery and cosmetics",
+      "Industrial oils",
+      "Edible cooking oils",
+      "Animal feed"
+    ],
+    "a": 0,
+    "e": "Specialty oils like cocoa butter and shea butter are used in confectionery and cosmetics.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Castor and linseed oils, used to make paints, varnishes, lubricants, and bioplastics, fall under which category?",
+    "o": [
+      "Industrial oils",
+      "Edible oils",
+      "Specialty oils",
+      "Animal feed"
+    ],
+    "a": 0,
+    "e": "Castor and linseed oils are processed into industrial oils to make paints, varnishes, lubricants, and bioplastics.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Oilcakes, rich in protein and fiber, are primarily used as:",
+    "o": [
+      "A primary ingredient in livestock, poultry, and aquaculture feed",
+      "Human cooking oil",
+      "Biofuel only",
+      "Cosmetic ingredients"
+    ],
+    "a": 0,
+    "e": "Oilcakes are rich in protein and fiber, making them a primary ingredient in livestock, poultry, and aquaculture feed.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Defatted soy flours, textured vegetable protein (TVP), protein concentrates, and isolates are examples of:",
+    "o": [
+      "Highly processed plant-meat alternatives",
+      "Industrial oils",
+      "Organic fertilizers",
+      "Specialty cosmetic oils"
+    ],
+    "a": 0,
+    "e": "Defatted soy flours, TVP, protein concentrates, and isolates are highly processed plant-based meat alternatives.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Meals not suitable for animal feed are widely processed into:",
+    "o": [
+      "Organic, nitrogen-rich fertilizers and soil conditioners",
+      "Edible cooking oils",
+      "Industrial paints",
+      "Confectionery products"
+    ],
+    "a": 0,
+    "e": "Meals that are not suitable for feed are widely processed into organic, nitrogen-rich fertilizers and soil conditioners.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "During quality-check sampling of oilseeds, moisture content is ideally tested to be below:",
+    "o": [
+      "8%",
+      "20%",
+      "30%",
+      "50%"
+    ],
+    "a": 0,
+    "e": "Seeds are sampled to test for moisture content, ideally below 8%, along with foreign matter and signs of decay or mould.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "The purpose of sorting and grading oilseeds through vibrating sieves and graders is to:",
+    "o": [
+      "Remove undersized, shriveled, or damaged seeds, ensuring only high-quality, mature seeds proceed",
+      "Increase moisture content",
+      "Add foreign matter for weight",
+      "Reduce protein content intentionally"
+    ],
+    "a": 0,
+    "e": "Sorting & grading removes undersized, shriveled, or damaged seeds, ensuring only high-quality, mature seeds move forward.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "During cleaning, which equipment is used to remove stones, plant stems, dirt, and metallic debris from oilseeds?",
+    "o": [
+      "Air-aspirators, destoners, and industrial magnets",
+      "Roller mills only",
+      "Solvent extractors",
+      "Hermetic silos"
+    ],
+    "a": 0,
+    "e": "Cleaning uses air-aspirators, destoners, and industrial magnets to remove foreign materials and protect downstream processing equipment.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Dehulling, used for seeds like sunflower and soybeans, involves cracking and removing the fibrous seed coats. This process:",
+    "o": [
+      "Reduces bulk and increases the protein concentration of the resulting meal",
+      "Increases moisture content",
+      "Adds oil content directly",
+      "Has no effect on the meal"
+    ],
+    "a": 0,
+    "e": "Dehulling cracks and removes fibrous seed coats (husks), reducing bulk and increasing the protein concentration of the resulting meal.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "In the flaking step, roller mills flatten seed fragments into thin flakes mainly to:",
+    "o": [
+      "Rupture the cell structure and reduce the distance the oil must travel to escape",
+      "Increase moisture content",
+      "Add preservatives",
+      "Remove all protein"
+    ],
+    "a": 0,
+    "e": "Flaking ruptures the cell structure and reduces the distance the oil must travel to escape during pressing.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Conditioning (cooking) of oilseed flakes serves to:",
+    "o": [
+      "Decrease the viscosity of the oil and make the seeds pliable for pressing",
+      "Increase moisture beyond safe limits",
+      "Destroy all nutrients",
+      "Add artificial flavoring"
+    ],
+    "a": 0,
+    "e": "In conditioning (cooking), flakes are heated and moisture is adjusted to decrease the viscosity of the oil and make seeds pliable for pressing.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Mechanical (expeller) pressing is best suited for seeds with:",
+    "o": [
+      "High oil content, such as groundnuts, sunflower, and peanuts",
+      "Low oil content only",
+      "No oil content",
+      "Only soybeans"
+    ],
+    "a": 0,
+    "e": "Mechanical pressing is best for seeds with high oil content (e.g., groundnuts, sunflower, peanuts) and is ideal for unrefined, cold-pressed gourmet oils.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Solvent extraction is best suited for seeds with lower oil content, such as soybeans, and typically uses which chemical solvent?",
+    "o": [
+      "Hexane",
+      "Ethanol",
+      "Acetone",
+      "Chlorine"
+    ],
+    "a": 0,
+    "e": "Solvent extraction is best for lower-oil-content seeds like soybeans (or residual press cake), typically using hexane in countercurrent extractors.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Successful oilseed storage requires strict control of which two factors to prevent rancidity, mold, and pest infestation?",
+    "o": [
+      "Moisture and temperature",
+      "Light and sound",
+      "Pressure and humidity only",
+      "Color and texture"
+    ],
+    "a": 0,
+    "e": "Successful oilseed storage requires strict control of moisture and temperature to prevent rancidity, mold, and pest infestations.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "What is the safe maximum moisture limit specifically cited for sunflower seeds in storage?",
+    "o": [
+      "7%",
+      "15%",
+      "20%",
+      "25%"
+    ],
+    "a": 0,
+    "e": "Safe moisture limits vary slightly by seed; for sunflowers the maximum is 7%, to prevent mold growth and bacterial contamination.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Aeration systems in oilseed storage bins primarily serve to:",
+    "o": [
+      "Cool the seeds and prevent condensation that creates hotspots for mold",
+      "Increase moisture deliberately",
+      "Add oxygen to speed ripening",
+      "Replace the need for cleaning"
+    ],
+    "a": 0,
+    "e": "Aeration systems cool seeds and prevent condensation, which would otherwise create hotspots for mold.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Large-scale oilseed storage typically utilizes which type of structure to protect against environmental changes, rodents, and birds?",
+    "o": [
+      "Vertical steel or reinforced concrete silos",
+      "Open-air wooden crates",
+      "Cardboard boxes",
+      "Plastic bags only"
+    ],
+    "a": 0,
+    "e": "Large-scale storage typically uses vertical steel or reinforced concrete silos, protecting against environmental changes, rodents, and birds.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Hermetic (gas-tight) storage slows oxidation and insect reproduction by:",
+    "o": [
+      "Limiting oxygen and increasing carbon dioxide within the silo",
+      "Increasing oxygen levels",
+      "Adding moisture",
+      "Increasing temperature"
+    ],
+    "a": 0,
+    "e": "Hermetic/gas-tight storage limits oxygen and increases carbon dioxide within the silo, naturally slowing oxidation (rancidity) and insect reproduction.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Assertion (A): Glucosinolates found in rapeseed and canola can impair thyroid function and cause goiter.\nReason (R): Gossypol, a toxic polyphenol, is specific to cottonseed and can cause reproductive issues in simple-stomached animals.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true, but R is false",
+      "A is false, but R is true"
+    ],
+    "a": 1,
+    "e": "Both statements are independently true facts about different anti-nutritional factors — glucosinolates affecting thyroid function versus gossypol affecting iron binding and reproduction — but R does not explain why A occurs, since they describe unrelated ANFs in different oilseeds.",
+    "s": "Nutrition & Health"
+  },
+  {
+    "q": "Find the statement(s) that are TRUE about oilseed processing and storage.\n1. Mechanical pressing is best suited for seeds with high oil content like groundnuts and sunflower.\n2. Solvent extraction typically uses hexane and is best for lower-oil-content seeds like soybeans.\n3. Safe moisture limits are identical for all oilseed types regardless of species.\n4. Hermetic storage works by increasing oxygen levels within the silo.",
+    "o": [
+      "1 and 2",
+      "3 and 4",
+      "1, 2 and 3",
+      "All four"
+    ],
+    "a": 0,
+    "e": "Statements 1 and 2 are true. Statement 3 is false — safe moisture limits vary slightly by seed type (e.g., max 7% for sunflower). Statement 4 is false — hermetic storage works by limiting oxygen and increasing carbon dioxide, not increasing oxygen.",
+    "s": "Nutrition & Health"
   }
 ]

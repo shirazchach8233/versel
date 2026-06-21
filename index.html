@@ -426,6 +426,20 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ═══════════════ SCREEN: REVIEW MISTAKES (past attempt) ═══════════════ -->
+<div id="screen-review" class="screen">
+  <div class="main-wrap" style="max-width:860px">
+    <div class="flex-between mb-16">
+      <div>
+        <div class="page-title" id="review-title" style="margin-bottom:4px">🔍 Review Mistakes</div>
+        <div class="text-muted" id="review-subtitle"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showScreen('progress')">← Back to Progress</button>
+    </div>
+    <div id="review-wronglist"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+</div>
+
 <!-- ═══════════════ SCREEN: ADMIN ═══════════════ -->
 <div id="screen-admin" class="screen">
   <div class="main-wrap">
@@ -592,7 +606,7 @@ let lastActivityAt=Date.now(),inactivityWarned=false,inactivityCheckInterval=nul
 const INACTIVITY_LIMIT_MS=60*60*1000; // auto-logout after 60 minutes of no activity
 const INACTIVITY_WARN_LEAD_MS=60*1000; // warn 1 minute before logout
 const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
-  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin'};
+  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes'};
 
 const TOPIC_ICONS={
   'Child Development':'👶','Extension & Community Dev':'🌾','Facts about India':'🇮🇳',
@@ -662,7 +676,7 @@ function showScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin'};
+  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',review:'nb-progress',admin:'nb-admin'};
   if(map[name]) document.getElementById(map[name])?.classList.add('active');
   // Load screen data
   if(name==='dashboard') loadDashboard();
@@ -878,12 +892,13 @@ async function loadDashboard(){
   if(recent.length===0){
     document.getElementById('dash-recent').innerHTML='<div class="empty-state"><div class="icon">✏️</div>No quizzes yet — take your first quiz!</div>';
   } else {
-    document.getElementById('dash-recent').innerHTML=`<table><thead><tr><th>Topic</th><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>
+    document.getElementById('dash-recent').innerHTML=`<table><thead><tr><th>Topic</th><th>Date</th><th>Score</th><th>Result</th><th></th></tr></thead><tbody>
       ${recent.map(a=>`<tr>
         <td>${a.topic}</td>
         <td>${fmtDate(a.started_at)}</td>
         <td>${(a.percentage||0).toFixed(1)}%</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0)>=50?'Pass':'Fail'}</span></td>
+        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})})'>🔍 Review</button>`:''}</td>
       </tr>`).join('')}
     </tbody></table>`;
   }
@@ -1114,6 +1129,7 @@ async function submitQuiz(){
     user_id:currentUser.id,username:currentUser.username,attempt_id:attemptId,
     question_id:q.id,topic:q.s,
     is_correct:answers[i]===-1?null:answers[i]===q.a,
+    selected_answer:answers[i]===-1?null:answers[i],
     answered_at:new Date().toISOString()
   }));
   if(historyRows.length) await sbPost('question_history',historyRows);
@@ -1214,15 +1230,56 @@ async function loadProgress(){
   if(completed.length===0){
     document.getElementById('prog-history').innerHTML='<div class="empty-state"><div class="icon">✏️</div>No quizzes completed yet.</div>';
   } else {
-    document.getElementById('prog-history').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Time</th></tr></thead><tbody>
+    document.getElementById('prog-history').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Time</th><th></th></tr></thead><tbody>
       ${completed.slice(0,30).map(a=>`<tr>
         <td>${fmtDate(a.started_at)}</td><td>${a.topic}</td>
         <td>${(a.score||0).toFixed(2)}</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0).toFixed(1)}%</span></td>
         <td>${a.correct}</td><td>${a.wrong}</td><td>${fmtTime(a.duration_secs||0)}</td>
+        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})})'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
   }
+}
+
+// ══════════════════════════════════════════════
+// REVIEW MISTAKES (from a past attempt)
+// ══════════════════════════════════════════════
+async function reviewAttempt(attempt){
+  document.getElementById('review-subtitle').textContent=`${attempt.topic} · ${fmtDate(attempt.started_at)} · Scored ${(attempt.percentage||0).toFixed(1)}%`;
+  const listEl=document.getElementById('review-wronglist');
+  listEl.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
+  showScreen('review');
+  await loadQuestions(); // ensure question bank is available (e.g. fresh login restore edge case)
+  let rows=[];
+  try{
+    rows=await sbGet('question_history',`select=*&attempt_id=eq.${attempt.id}&or=(is_correct.eq.false,is_correct.is.null)&order=answered_at.asc`);
+  }catch(e){console.error('reviewAttempt fetch failed',e);}
+  if(!rows.length){
+    listEl.innerHTML='<div class="empty-state"><div class="icon">🎉</div>No wrong or skipped answers found for this attempt.</div>';
+    return;
+  }
+  const keys=['A','B','C','D'];
+  listEl.innerHTML=`<div class="review-list">${rows.map((r,i)=>{
+    const q=allQuestions.find(x=>x.id===r.question_id);
+    if(!q){
+      return `<div class="review-item wrong"><div class="q-meta">Q${i+1}</div><div class="review-q">This question is no longer in the question bank (id: ${r.question_id}).</div></div>`;
+    }
+    const correctIdx=q.a;
+    const skipped=(r.is_correct===null||r.is_correct===undefined);
+    const hasSelected=(r.selected_answer!==null&&r.selected_answer!==undefined);
+    const selIdx=hasSelected?r.selected_answer:null;
+    const cls=skipped?'skipped':'wrong';
+    return `<div class="review-item ${cls}">
+      <div class="q-meta">Q${i+1} · ${q.s}</div>
+      <div class="review-q">${q.q}</div>
+      <div class="review-opts">
+        ${q.o.map((o,oi)=>`<span class="${oi===correctIdx?'badge badge-correct':(selIdx!==null&&oi===selIdx&&oi!==correctIdx)?'badge badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}
+      </div>
+      ${skipped?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">⚠️ Not answered</div>':!hasSelected?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">ℹ️ Your exact answer choice wasn\'t recorded for this older attempt — only that it was wrong.</div>':''}
+      ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${q.e}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
 }
 
 // ══════════════════════════════════════════════

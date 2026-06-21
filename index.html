@@ -415,6 +415,10 @@ tr:hover td{background:#f8fafc}
       </div>
       <div id="prog-topics"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </div>
+    <div class="card mb-16">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Time Spent per Topic</div>
+      <div id="prog-time-topics"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
     <div class="card">
       <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Quiz History</div>
       <div id="prog-history"><div class="loading"><div class="spinner"></div>Loading...</div></div>
@@ -526,6 +530,17 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ═══════════════ MODAL: Inactivity Warning ═══════════════ -->
+<div class="modal-overlay" id="modal-inactivity-warning">
+  <div class="modal">
+    <h3>Still there?</h3>
+    <p style="color:var(--muted);margin-bottom:20px">You'll be logged out in 1 minute due to inactivity.</p>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="stayLoggedIn()">Stay Logged In</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -573,6 +588,9 @@ let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
 let pageTimerInterval=null,pageTimerStart=Date.now();
+let lastActivityAt=Date.now(),inactivityWarned=false,inactivityCheckInterval=null;
+const INACTIVITY_LIMIT_MS=60*60*1000; // auto-logout after 60 minutes of no activity
+const INACTIVITY_WARN_LEAD_MS=60*1000; // warn 1 minute before logout
 const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
   'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin'};
 
@@ -597,6 +615,7 @@ window.addEventListener('load', async()=>{
       await loadQuestions();
       showNav();
       showScreen('dashboard');
+      startInactivityWatch();
       return;
     }catch(e){localStorage.clear();}
   }
@@ -728,17 +747,25 @@ async function doLogin(){
   localStorage.setItem('cdpo_session',JSON.stringify(currentUser));
   loginTime=Date.now();
   localStorage.setItem('cdpo_lt',loginTime);
-  // Record login session
-  const sess=await sbPost('login_sessions',{user_id:u.id,username:u.username,login_at:new Date().toISOString()});
+  // Record login session — browser/OS/device-type are parsed from the user-agent string
+  // (heuristic, regex-based — no MAC address or OS device name: browsers don't expose those to web pages).
+  const ua=parseUserAgent();
+  const ip=await fetchClientIp();
+  const sess=await sbPost('login_sessions',{
+    user_id:u.id,username:u.username,login_at:new Date().toISOString(),
+    ip_address:ip,browser:ua.browser,os:ua.os,device_type:ua.deviceType
+  });
   if(sess&&sess[0]){sessionId=sess[0].id;localStorage.setItem('cdpo_sid',sessionId);}
   // Update last_login
   await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
   await loadQuestions();
   showNav();
   showScreen('dashboard');
+  startInactivityWatch();
 }
 
-async function doLogout(){
+async function doLogout(dueToInactivity){
+  stopInactivityWatch();
   if(sessionId){
     const dur=Math.floor((Date.now()-(loginTime||Date.now()))/1000);
     await sbPatch('login_sessions',`id=eq.${sessionId}`,{logout_at:new Date().toISOString(),duration_secs:dur});
@@ -756,6 +783,72 @@ async function doLogout(){
   document.getElementById('login-user').value='';
   document.getElementById('login-pass').value='';
   showScreen('login');
+  const alertEl=document.getElementById('login-alert');
+  if(dueToInactivity===true){alertEl.textContent='You were logged out after 60 minutes of inactivity.';alertEl.style.display='';}
+  else{alertEl.style.display='none';}
+}
+
+// ══════════════════════════════════════════════
+// INACTIVITY AUTO-LOGOUT (60 min, with 1-min warning)
+// ══════════════════════════════════════════════
+function markActivity(){
+  lastActivityAt=Date.now();
+  if(inactivityWarned){inactivityWarned=false;closeModal('modal-inactivity-warning');}
+}
+['mousemove','keydown','click','scroll','touchstart'].forEach(evt=>{
+  window.addEventListener(evt,markActivity,{passive:true});
+});
+function startInactivityWatch(){
+  lastActivityAt=Date.now();
+  inactivityWarned=false;
+  if(inactivityCheckInterval) clearInterval(inactivityCheckInterval);
+  inactivityCheckInterval=setInterval(()=>{
+    if(!currentUser)return;
+    const idle=Date.now()-lastActivityAt;
+    if(idle>=INACTIVITY_LIMIT_MS) doLogout(true);
+    else if(idle>=INACTIVITY_LIMIT_MS-INACTIVITY_WARN_LEAD_MS && !inactivityWarned){
+      inactivityWarned=true;
+      openModal('modal-inactivity-warning');
+    }
+  },5000);
+}
+function stopInactivityWatch(){
+  if(inactivityCheckInterval) clearInterval(inactivityCheckInterval);
+  inactivityCheckInterval=null;
+}
+function stayLoggedIn(){markActivity();}
+
+// ══════════════════════════════════════════════
+// LOGIN METADATA: browser/OS/device-type (heuristic UA parsing) + IP (via /api/get-ip)
+// ══════════════════════════════════════════════
+function parseUserAgent(){
+  const ua=navigator.userAgent||'';
+  let browser='Unknown',version='';
+  const patterns=[
+    [/Edg\/([\d.]+)/,'Edge'],[/OPR\/([\d.]+)/,'Opera'],[/Chrome\/([\d.]+)/,'Chrome'],
+    [/Firefox\/([\d.]+)/,'Firefox'],[/Version\/([\d.]+).*Safari/,'Safari'],
+    [/MSIE ([\d.]+)/,'IE'],[/Trident.*rv:([\d.]+)/,'IE']
+  ];
+  for(const [re,name] of patterns){const m=ua.match(re);if(m){browser=name;version=m[1];break;}}
+  let os='Unknown';
+  if(/Windows NT 10/.test(ua))os='Windows 10/11';
+  else if(/Windows NT/.test(ua))os='Windows';
+  else if(/Mac OS X/.test(ua))os='macOS';
+  else if(/Android/.test(ua))os='Android';
+  else if(/iPhone|iPad|iPod/.test(ua))os='iOS';
+  else if(/Linux/.test(ua))os='Linux';
+  let deviceType='Desktop';
+  if(/iPad|Tablet/i.test(ua))deviceType='Tablet';
+  else if(/Mobi|iPhone/i.test(ua))deviceType='Mobile';
+  return {browser:version?`${browser} ${version.split('.')[0]}`:browser,os,deviceType};
+}
+async function fetchClientIp(){
+  try{
+    const r=await fetch('/api/get-ip');
+    if(!r.ok)return null;
+    const d=await r.json();
+    return d.ip||null;
+  }catch(e){return null;}
 }
 
 // ══════════════════════════════════════════════
@@ -1075,12 +1168,30 @@ async function loadProgress(){
   const total=completed.length;
   const avg=total?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/total):0;
   const best=total?Math.max(...completed.map(a=>a.percentage||0)):0;
-  const ss=await sbGet('study_sessions',`select=duration_secs&user_id=eq.${currentUser.id}`);
+  const ss=await sbGet('study_sessions',`select=topic,duration_secs&user_id=eq.${currentUser.id}`);
   const secs=ss.reduce((s,x)=>s+(x.duration_secs||0),0);
   document.getElementById('prog-total').textContent=total;
   document.getElementById('prog-avg').textContent=avg+'%';
   document.getElementById('prog-best').textContent=best+'%';
   document.getElementById('prog-time').textContent=fmtTime(secs);
+  // Time spent per topic (study sessions + quiz attempts combined)
+  const timeByTopic={};
+  ss.forEach(s=>{
+    if(!s.topic)return;
+    timeByTopic[s.topic]=timeByTopic[s.topic]||{study:0,quiz:0};
+    timeByTopic[s.topic].study+=s.duration_secs||0;
+  });
+  attempts.forEach(a=>{
+    if(!a.topic)return;
+    timeByTopic[a.topic]=timeByTopic[a.topic]||{study:0,quiz:0};
+    timeByTopic[a.topic].quiz+=a.duration_secs||0;
+  });
+  const timeTopicEntries=Object.entries(timeByTopic).sort((a,b)=>(b[1].study+b[1].quiz)-(a[1].study+a[1].quiz));
+  document.getElementById('prog-time-topics').innerHTML=timeTopicEntries.length?
+    `<div class="table-wrap"><table><thead><tr><th>Topic</th><th>Study Time</th><th>Quiz Time</th><th>Total</th></tr></thead><tbody>
+      ${timeTopicEntries.map(([t,d])=>`<tr><td>${t}</td><td>${fmtTime(d.study)}</td><td>${fmtTime(d.quiz)}</td><td>${fmtTime(d.study+d.quiz)}</td></tr>`).join('')}
+    </tbody></table></div>`
+    :'<div class="empty-state"><div class="icon">⏱️</div>No time data yet.</div>';
   // Topic breakdown
   const byTopic={};
   completed.forEach(a=>{
@@ -1165,12 +1276,16 @@ async function loadAdminUsers(){
 async function loadAdminLogins(){
   const rows=await sbGet('login_sessions','select=*&order=login_at.desc&limit=100');
   if(!rows.length){document.getElementById('adm-logins-table').innerHTML='<div class="empty-state">No login records.</div>';return;}
-  document.getElementById('adm-logins-table').innerHTML=`<table><thead><tr><th>User</th><th>Login Time</th><th>Logout Time</th><th>Duration</th></tr></thead><tbody>
+  document.getElementById('adm-logins-table').innerHTML=`<table><thead><tr><th>User</th><th>Login Time</th><th>Logout Time</th><th>Duration</th><th>IP</th><th>Browser</th><th>OS</th><th>Device</th></tr></thead><tbody>
     ${rows.map(r=>`<tr>
       <td><strong>${r.username||'–'}</strong></td>
       <td>${fmtDate(r.login_at)}</td>
       <td>${r.logout_at?fmtDate(r.logout_at):'<span class="chip chip-green">Active</span>'}</td>
       <td>${r.duration_secs?fmtTime(r.duration_secs):'–'}</td>
+      <td>${r.ip_address||'–'}</td>
+      <td>${r.browser||'–'}</td>
+      <td>${r.os||'–'}</td>
+      <td>${r.device_type||'–'}</td>
     </tr>`).join('')}
   </tbody></table>`;
 }

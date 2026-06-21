@@ -869,15 +869,61 @@ async function studyNav(dir){
 // ══════════════════════════════════════════════
 // QUIZ MODE
 // ══════════════════════════════════════════════
-function startQuiz(){
+function shuffleArr(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+// Per-user question history (cross-quiz): which questions seen, and were they last answered correctly?
+// Lets us (a) avoid repeating a question until the whole pool is exhausted, and (b) resurface past wrong answers.
+async function fetchUserHistory(){
+  const lastSeen=new Map(),lastCorrect=new Map();
+  try{
+    const rows=await sbGet('question_history',`select=question_id,is_correct,answered_at&user_id=eq.${currentUser.id}&order=answered_at.desc`);
+    rows.forEach(r=>{
+      if(!lastSeen.has(r.question_id)) lastSeen.set(r.question_id,new Date(r.answered_at).getTime());
+      if(!lastCorrect.has(r.question_id)) lastCorrect.set(r.question_id,r.is_correct);
+    });
+  }catch(e){console.error('fetchUserHistory failed',e);}
+  return {lastSeen,lastCorrect};
+}
+
+async function startQuiz(){
   const topic=document.getElementById('qs-topic').value;
   const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
   const mode=document.querySelector('input[name="qmode"]:checked').value;
   const negative=document.getElementById('qs-negative').checked;
   let pool = topic==='all'?[...allQuestions]:allQuestions.filter(q=>q.s===topic);
-  // Shuffle
-  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-  const questions=pool.slice(0,Math.min(count,pool.length));
+  // Defensive de-dup by id — guarantees no question can appear twice in one quiz
+  // even if the question bank ever ends up with a duplicate entry.
+  const seenIds=new Set();
+  pool=pool.filter(q=>{if(seenIds.has(q.id))return false;seenIds.add(q.id);return true;});
+
+  const history=await fetchUserHistory();
+  const wrongBucket=[],neverSeenBucket=[],seenOkBucket=[];
+  pool.forEach(q=>{
+    if(history.lastCorrect.get(q.id)===false) wrongBucket.push(q);
+    else if(!history.lastSeen.has(q.id)) neverSeenBucket.push(q);
+    else seenOkBucket.push(q);
+  });
+  // Oldest-seen-first for recycled buckets (once everything has been seen, the longest-unseen
+  // questions come back first); never-seen questions are in random order since there's no recency to rank by.
+  wrongBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
+  seenOkBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
+  shuffleArr(neverSeenBucket);
+
+  // Build the quiz: previously-wrong questions get priority (capped at ~half the quiz so there's
+  // still room for new material), then never-seen questions, then overflow wrong, then oldest-recycled.
+  const wrongCap=Math.max(0,Math.ceil(count/2));
+  const chosen=[];
+  chosen.push(...wrongBucket.slice(0,wrongCap));
+  let remaining=count-chosen.length;
+  if(remaining>0){chosen.push(...neverSeenBucket.slice(0,remaining));remaining=count-chosen.length;}
+  if(remaining>0){chosen.push(...wrongBucket.slice(wrongCap,wrongCap+remaining));remaining=count-chosen.length;}
+  if(remaining>0){chosen.push(...seenOkBucket.slice(0,remaining));remaining=count-chosen.length;}
+  shuffleArr(chosen);
+  const questions=chosen.slice(0,Math.min(count,pool.length));
+
   quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null};
   document.getElementById('quiz-topic-label').textContent=quizState.topic;
   buildPalette();
@@ -969,6 +1015,15 @@ async function submitQuiz(){
     completed_at:new Date().toISOString(),duration_secs:dur,
     score:Math.round(score*100)/100,correct,wrong,skipped,total:questions.length,percentage:pct
   });
+  // Record per-question history (id, correctness) so future quizzes can skip repeats and resurface mistakes.
+  const attemptId=(saved&&saved[0])?saved[0].id:null;
+  const historyRows=questions.map((q,i)=>({
+    user_id:currentUser.id,username:currentUser.username,attempt_id:attemptId,
+    question_id:q.id,topic:q.s,
+    is_correct:answers[i]===-1?null:answers[i]===q.a,
+    answered_at:new Date().toISOString()
+  }));
+  if(historyRows.length) await sbPost('question_history',historyRows);
   showResults(correct,wrong,skipped,score,pct,questions,answers,dur,!saved);
 }
 

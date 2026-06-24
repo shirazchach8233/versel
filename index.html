@@ -434,7 +434,7 @@ tr:hover td{background:#f8fafc}
         <div class="page-title" id="review-title" style="margin-bottom:4px">🔍 Review Mistakes</div>
         <div class="text-muted" id="review-subtitle"></div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="showScreen('progress')">← Back to Progress</button>
+      <button class="btn btn-ghost btn-sm" onclick="showScreen(reviewBackTarget)">← Back</button>
     </div>
     <div id="review-wronglist"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </div>
@@ -455,6 +455,7 @@ tr:hover td{background:#f8fafc}
       <button class="tab-btn" onclick="adminTab('logins')">🔐 Login History</button>
       <button class="tab-btn" onclick="adminTab('quizzes')">📝 Quiz Results</button>
       <button class="tab-btn" onclick="adminTab('study')">📖 Study Sessions</button>
+      <button class="tab-btn" onclick="adminTab('progress')">📈 Progress</button>
     </div>
     <!-- Users tab -->
     <div id="adm-tab-users">
@@ -478,6 +479,39 @@ tr:hover td{background:#f8fafc}
     <div id="adm-tab-study" style="display:none">
       <div style="font-weight:600;margin-bottom:16px">Study Sessions</div>
       <div class="table-wrap"><div id="adm-study-table"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
+    </div>
+    <!-- Per-user progress tab -->
+    <div id="adm-tab-progress" style="display:none">
+      <div style="font-weight:600;margin-bottom:16px">Per-User Progress</div>
+      <div class="table-wrap"><div id="adm-progress-table"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: ADMIN · USER PROGRESS (drill-down) ═══════════════ -->
+<div id="screen-admin-user" class="screen">
+  <div class="main-wrap">
+    <div class="flex-between mb-16">
+      <div class="page-title" id="aup-title" style="margin-bottom:0">📈 User Progress</div>
+      <button class="btn btn-ghost btn-sm" onclick="showScreen('admin')">← Back to Admin</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="aup-total">–</div><div class="stat-label">Total Quizzes</div></div>
+      <div class="stat-card green"><div class="stat-num" id="aup-avg">–</div><div class="stat-label">Average %</div></div>
+      <div class="stat-card orange"><div class="stat-num" id="aup-best">–</div><div class="stat-label">Best Score %</div></div>
+      <div class="stat-card"><div class="stat-num" id="aup-time">–</div><div class="stat-label">Total Study Time</div></div>
+    </div>
+    <div class="card mb-16">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Topic Performance</div>
+      <div id="aup-topics"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+    <div class="card mb-16">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Time Spent per Topic</div>
+      <div id="aup-time-topics"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Quiz History</div>
+      <div id="aup-history"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </div>
   </div>
 </div>
@@ -601,12 +635,14 @@ let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+let adminViewingUser=null; // {id,username,full_name} — which user's progress the admin drill-down screen is showing
+let reviewBackTarget='progress'; // which screen the Review Mistakes "back" button returns to: 'progress' or 'admin-user'
 let pageTimerInterval=null,pageTimerStart=Date.now();
 let lastActivityAt=Date.now(),inactivityWarned=false,inactivityCheckInterval=null;
 const INACTIVITY_LIMIT_MS=60*60*1000; // auto-logout after 60 minutes of no activity
 const INACTIVITY_WARN_LEAD_MS=60*1000; // warn 1 minute before logout
 const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
-  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes'};
+  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes','admin-user':'Admin · User Progress'};
 
 const TOPIC_ICONS={
   'Child Development':'👶','Extension & Community Dev':'🌾','Facts about India':'🇮🇳',
@@ -676,12 +712,14 @@ function showScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',review:'nb-progress',admin:'nb-admin'};
-  if(map[name]) document.getElementById(map[name])?.classList.add('active');
+  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin'};
+  const navHighlight = name==='review' ? (reviewBackTarget==='admin-user'?'nb-admin':'nb-progress') : map[name];
+  if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
   if(name==='dashboard') loadDashboard();
   if(name==='progress') loadProgress();
   if(name==='admin') loadAdmin();
+  if(name==='admin-user') loadAdminUserProgress();
   startPageTimer(name);
   window.scrollTo(0,0);
 }
@@ -898,7 +936,7 @@ async function loadDashboard(){
         <td>${fmtDate(a.started_at)}</td>
         <td>${(a.percentage||0).toFixed(1)}%</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0)>=50?'Pass':'Fail'}</span></td>
-        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})})'>🔍 Review</button>`:''}</td>
+        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"progress")'>🔍 Review</button>`:''}</td>
       </tr>`).join('')}
     </tbody></table>`;
   }
@@ -1179,17 +1217,24 @@ function toggleReview(){
 // PROGRESS
 // ══════════════════════════════════════════════
 async function loadProgress(){
-  const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${currentUser.id}&order=started_at.desc`);
+  await loadProgressFor(currentUser.id,{total:'prog-total',avg:'prog-avg',best:'prog-best',time:'prog-time',timeTopics:'prog-time-topics',topics:'prog-topics',history:'prog-history'},'progress');
+}
+
+// Shared by the student-facing Progress page and the Admin per-user drill-down screen.
+// ids = {total,avg,best,time,timeTopics,topics,history} — DOM element ids to populate.
+// backTo = which screen a "🔍 Review" click from the history table should return to ('progress' or 'admin-user').
+async function loadProgressFor(userId,ids,backTo){
+  const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${userId}&order=started_at.desc`);
   const completed=attempts.filter(a=>a.completed_at);
   const total=completed.length;
   const avg=total?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/total):0;
   const best=total?Math.max(...completed.map(a=>a.percentage||0)):0;
-  const ss=await sbGet('study_sessions',`select=topic,duration_secs&user_id=eq.${currentUser.id}`);
+  const ss=await sbGet('study_sessions',`select=topic,duration_secs&user_id=eq.${userId}`);
   const secs=ss.reduce((s,x)=>s+(x.duration_secs||0),0);
-  document.getElementById('prog-total').textContent=total;
-  document.getElementById('prog-avg').textContent=avg+'%';
-  document.getElementById('prog-best').textContent=best+'%';
-  document.getElementById('prog-time').textContent=fmtTime(secs);
+  document.getElementById(ids.total).textContent=total;
+  document.getElementById(ids.avg).textContent=avg+'%';
+  document.getElementById(ids.best).textContent=best+'%';
+  document.getElementById(ids.time).textContent=fmtTime(secs);
   // Time spent per topic (study sessions + quiz attempts combined)
   const timeByTopic={};
   ss.forEach(s=>{
@@ -1203,7 +1248,7 @@ async function loadProgress(){
     timeByTopic[a.topic].quiz+=a.duration_secs||0;
   });
   const timeTopicEntries=Object.entries(timeByTopic).sort((a,b)=>(b[1].study+b[1].quiz)-(a[1].study+a[1].quiz));
-  document.getElementById('prog-time-topics').innerHTML=timeTopicEntries.length?
+  document.getElementById(ids.timeTopics).innerHTML=timeTopicEntries.length?
     `<div class="table-wrap"><table><thead><tr><th>Topic</th><th>Study Time</th><th>Quiz Time</th><th>Total</th></tr></thead><tbody>
       ${timeTopicEntries.map(([t,d])=>`<tr><td>${t}</td><td>${fmtTime(d.study)}</td><td>${fmtTime(d.quiz)}</td><td>${fmtTime(d.study+d.quiz)}</td></tr>`).join('')}
     </tbody></table></div>`
@@ -1225,18 +1270,18 @@ async function loadProgress(){
       <div class="progress-bar"><div class="progress-fill" style="width:${avg}%;background:${avg>=60?'var(--success)':avg>=40?'var(--warn)':'var(--danger)'}"></div></div>
     </div>`;
   }).join('');
-  document.getElementById('prog-topics').innerHTML=topicHtml||'<div class="empty-state"><div class="icon">📊</div>No quiz data yet.</div>';
+  document.getElementById(ids.topics).innerHTML=topicHtml||'<div class="empty-state"><div class="icon">📊</div>No quiz data yet.</div>';
   // History table
   if(completed.length===0){
-    document.getElementById('prog-history').innerHTML='<div class="empty-state"><div class="icon">✏️</div>No quizzes completed yet.</div>';
+    document.getElementById(ids.history).innerHTML='<div class="empty-state"><div class="icon">✏️</div>No quizzes completed yet.</div>';
   } else {
-    document.getElementById('prog-history').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Time</th><th></th></tr></thead><tbody>
+    document.getElementById(ids.history).innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Time</th><th></th></tr></thead><tbody>
       ${completed.slice(0,30).map(a=>`<tr>
         <td>${fmtDate(a.started_at)}</td><td>${a.topic}</td>
         <td>${(a.score||0).toFixed(2)}</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0).toFixed(1)}%</span></td>
         <td>${a.correct}</td><td>${a.wrong}</td><td>${fmtTime(a.duration_secs||0)}</td>
-        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})})'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
+        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"${backTo}")'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
   }
@@ -1245,7 +1290,8 @@ async function loadProgress(){
 // ══════════════════════════════════════════════
 // REVIEW MISTAKES (from a past attempt)
 // ══════════════════════════════════════════════
-async function reviewAttempt(attempt){
+async function reviewAttempt(attempt,backTo){
+  reviewBackTarget=backTo||'progress';
   document.getElementById('review-subtitle').textContent=`${attempt.topic} · ${fmtDate(attempt.started_at)} · Scored ${(attempt.percentage||0).toFixed(1)}%`;
   const listEl=document.getElementById('review-wronglist');
   listEl.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
@@ -1299,16 +1345,62 @@ async function loadAdmin(){
 }
 
 function adminTab(tab){
-  ['users','logins','quizzes','study'].forEach(t=>{
+  ['users','logins','quizzes','study','progress'].forEach(t=>{
     document.getElementById('adm-tab-'+t).style.display=t===tab?'':'none';
   });
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    const tabs=['users','logins','quizzes','study'];
+    const tabs=['users','logins','quizzes','study','progress'];
     b.classList.toggle('active',tabs[i]===tab);
   });
   if(tab==='logins') loadAdminLogins();
   if(tab==='quizzes') loadAdminQuizzes();
   if(tab==='study') loadAdminStudy();
+  if(tab==='progress') loadAdminProgressTab();
+}
+
+// Per-user progress summary table (one row per user: quizzes taken, avg/best %, total time)
+async function loadAdminProgressTab(){
+  const tableEl=document.getElementById('adm-progress-table');
+  const [users,attempts,studySess,loginSess]=await Promise.all([
+    sbGet('users','select=id,username,full_name&order=full_name.asc'),
+    sbGet('quiz_attempts','select=user_id,percentage,completed_at'),
+    sbGet('study_sessions','select=user_id,duration_secs'),
+    sbGet('login_sessions','select=user_id,duration_secs')
+  ]);
+  if(!users.length){tableEl.innerHTML='<div class="empty-state">No users yet.</div>';return;}
+  const timeByUser={};
+  studySess.forEach(s=>{timeByUser[s.user_id]=(timeByUser[s.user_id]||0)+(s.duration_secs||0);});
+  loginSess.forEach(s=>{timeByUser[s.user_id]=(timeByUser[s.user_id]||0)+(s.duration_secs||0);});
+  const rows=users.map(u=>{
+    const completed=attempts.filter(a=>a.user_id===u.id&&a.completed_at);
+    const quizzesTaken=completed.length;
+    const avgPct=quizzesTaken?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/quizzesTaken):null;
+    const bestPct=quizzesTaken?Math.max(...completed.map(a=>a.percentage||0)):null;
+    const totalSecs=timeByUser[u.id]||0;
+    return {u,quizzesTaken,avgPct,bestPct,totalSecs};
+  });
+  tableEl.innerHTML=`<table><thead><tr><th>Name</th><th>Username</th><th>Quizzes Taken</th><th>Avg %</th><th>Best %</th><th>Total Time</th><th></th></tr></thead><tbody>
+    ${rows.map(r=>`<tr>
+      <td>${r.u.full_name||'–'}</td>
+      <td><strong>${r.u.username}</strong></td>
+      <td>${r.quizzesTaken}</td>
+      <td>${r.avgPct===null?'–':r.avgPct+'%'}</td>
+      <td>${r.bestPct===null?'–':r.bestPct+'%'}</td>
+      <td>${fmtTime(r.totalSecs)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick='viewUserProgress(${JSON.stringify({id:r.u.id,username:r.u.username,full_name:r.u.full_name})})'>📈 View Detail</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function viewUserProgress(user){
+  adminViewingUser=user;
+  showScreen('admin-user');
+}
+
+async function loadAdminUserProgress(){
+  if(!adminViewingUser)return;
+  document.getElementById('aup-title').textContent=`📈 ${adminViewingUser.full_name||adminViewingUser.username}'s Progress`;
+  await loadProgressFor(adminViewingUser.id,{total:'aup-total',avg:'aup-avg',best:'aup-best',time:'aup-time',timeTopics:'aup-time-topics',topics:'aup-topics',history:'aup-history'},'admin-user');
 }
 
 async function loadAdminUsers(){

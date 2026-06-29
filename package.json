@@ -1,0 +1,8 @@
+{
+  "name": "cdpo-quiz-functions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "nodemailer": "^9.0.1"
+  }
+}

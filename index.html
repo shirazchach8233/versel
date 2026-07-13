@@ -236,6 +236,7 @@ tr:hover td{background:#f8fafc}
     <button class="nav-btn" onclick="showScreen('study-setup')" id="nb-study">📖 <span class="hide-sm">Study</span></button>
     <button class="nav-btn" onclick="showScreen('quiz-setup')" id="nb-quiz">✏️ <span class="hide-sm">Quiz</span></button>
     <button class="nav-btn" onclick="showScreen('progress')" id="nb-progress">📊 <span class="hide-sm">Progress</span></button>
+    <button class="nav-btn" onclick="showScreen('revision-setup')" id="nb-revision">🔄 <span class="hide-sm">Revise</span></button>
     <button class="nav-btn" id="nb-admin" onclick="showScreen('admin')" style="display:none">🛠 <span class="hide-sm">Admin</span></button>
     <button class="nav-btn" onclick="doLogout()">↩ <span class="hide-sm">Logout</span></button>
   </div>
@@ -343,6 +344,33 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ═══════════════ SCREEN: REVISION SETUP ═══════════════ -->
+<div id="screen-revision-setup" class="screen">
+  <div class="main-wrap" style="max-width:700px">
+    <div class="page-title">🔄 Revision Test</div>
+    <p style="color:var(--muted);margin-bottom:20px">Quiz yourself on questions you've already seen to check your recall and track improvement.</p>
+    <div class="card">
+      <div class="form-group">
+        <label>Topic</label>
+        <select id="rs-topic" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem">
+          <option value="all">All Topics</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Number of Questions</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="25" checked> 25 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="50"> 50 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="100"> 100 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="all"> All Seen</label>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">ℹ️ Practice mode — no timer, no negative marking</p>
+      <button class="btn btn-primary btn-block" onclick="startRevision()" style="margin-top:8px">Start Revision →</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ SCREEN: QUIZ ═══════════════ -->
 <div id="screen-quiz" class="screen">
   <div class="main-wrap">
@@ -387,8 +415,19 @@ tr:hover td{background:#f8fafc}
         <div class="result-stat"><div class="result-stat-num" id="res-score">0</div><div class="result-stat-lbl">Score</div></div>
       </div>
     </div>
+    <div id="res-hist-section" style="display:none;margin-bottom:20px">
+      <div class="card" style="background:var(--bg);padding:14px 20px">
+        <div style="font-size:.9rem;font-weight:600;color:var(--primary);margin-bottom:10px">📈 Revision Accuracy Comparison</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
+          <div><div style="font-size:1.3rem;font-weight:700;color:var(--muted)" id="res-hist-prev">—</div><div style="font-size:.8rem;color:var(--muted)">Historical avg</div></div>
+          <div><div style="font-size:1.3rem;font-weight:700;color:var(--primary)" id="res-hist-now">—</div><div style="font-size:.8rem;color:var(--muted)">This revision</div></div>
+          <div><div style="font-size:1.3rem;font-weight:700" id="res-hist-delta">—</div><div style="font-size:.8rem;color:var(--muted)">Change</div></div>
+        </div>
+      </div>
+    </div>
     <div class="flex" style="gap:12px;margin-bottom:20px">
-      <button class="btn btn-primary" onclick="showScreen('quiz-setup')">🔁 New Quiz</button>
+      <button class="btn btn-primary" id="res-new-quiz-btn" onclick="showScreen('quiz-setup')">🔁 New Quiz</button>
+      <button class="btn btn-primary" id="res-new-revision-btn" onclick="showScreen('revision-setup')" style="display:none">🔄 New Revision</button>
       <button class="btn btn-ghost" onclick="showScreen('dashboard')">🏠 Dashboard</button>
       <button class="btn btn-ghost" id="res-review-btn" onclick="toggleReview()">👁 Review Answers</button>
     </div>
@@ -704,6 +743,8 @@ function populateTopics(){
   const qs=document.getElementById('qs-topic');
   qs.innerHTML='<option value="all">Full Syllabus (All Topics)</option>'+
     topics.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const rs=document.getElementById('rs-topic');
+  if(rs) rs.innerHTML='<option value="all">All Topics</option>'+topics.map(t=>`<option value="${t}">${t}</option>`).join('');
 }
 
 // ══════════════════════════════════════════════
@@ -714,7 +755,7 @@ function showScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin'};
+  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision'};
   const navHighlight = name==='review' ? (reviewBackTarget==='admin-user'?'nb-admin':'nb-progress') : map[name];
   if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
@@ -1072,11 +1113,38 @@ async function startQuiz(){
   shuffleArr(chosen);
   const questions=chosen.slice(0,Math.min(count,pool.length));
 
-  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null};
+  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
   document.getElementById('quiz-topic-label').textContent=quizState.topic;
   buildPalette();
   renderQuizQuestion();
   if(mode==='timed') startTimer(90*60);
+  showScreen('quiz');
+}
+
+async function startRevision(){
+  const topic=document.getElementById('rs-topic').value;
+  const countVal=document.querySelector('input[name="rcount"]:checked').value;
+  const allHistory=await sbGet('question_history',`select=question_id,is_correct,topic&user_id=eq.${currentUser.id}`);
+  if(!allHistory||!allHistory.length){alert('No previously answered questions found. Try answering some quizzes first!');return;}
+  const history=topic==='all'?allHistory:allHistory.filter(h=>h.topic===topic);
+  if(!history.length){alert(`No previously answered questions found for "${topic}". Try a quiz in this topic first!`);return;}
+  const histMap=new Map();
+  for(const row of history){
+    if(!histMap.has(row.question_id)) histMap.set(row.question_id,{total:0,correct:0});
+    const h=histMap.get(row.question_id);
+    h.total++;
+    if(row.is_correct) h.correct++;
+  }
+  const seenIds=new Set(histMap.keys());
+  let pool=allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic));
+  if(!pool.length){alert('No matching questions found.');return;}
+  shuffleArr(pool);
+  const count=countVal==='all'?pool.length:parseInt(countVal);
+  const questions=pool.slice(0,Math.min(count,pool.length));
+  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode:'practice',negative:false,timerInterval:null,isRevision:true,histMap};
+  document.getElementById('quiz-topic-label').textContent=`🔄 Revision · ${quizState.topic}`;
+  buildPalette();
+  renderQuizQuestion();
   showScreen('quiz');
 }
 
@@ -1204,6 +1272,28 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
     </div>`;
   }).join('');
   document.getElementById('results-review').style.display='none';
+  // Revision accuracy comparison
+  const histSection=document.getElementById('res-hist-section');
+  const newQuizBtn=document.getElementById('res-new-quiz-btn');
+  const newRevBtn=document.getElementById('res-new-revision-btn');
+  if(quizState.isRevision&&quizState.histMap){
+    let histCorrect=0,histTotal=0;
+    for(const q of questions){const h=quizState.histMap.get(q.id);if(h){histCorrect+=h.correct;histTotal+=h.total;}}
+    const histPct=histTotal>0?Math.round(histCorrect/histTotal*100):0;
+    const delta=pct-histPct;
+    document.getElementById('res-hist-prev').textContent=histTotal>0?histPct+'%':'New';
+    document.getElementById('res-hist-now').textContent=pct.toFixed(1)+'%';
+    const deltaEl=document.getElementById('res-hist-delta');
+    deltaEl.textContent=(delta>=0?'+':'')+delta.toFixed(1)+'%';
+    deltaEl.style.color=delta>=0?'var(--success)':'var(--danger)';
+    if(histSection) histSection.style.display='';
+    if(newQuizBtn) newQuizBtn.style.display='none';
+    if(newRevBtn) newRevBtn.style.display='';
+  }else{
+    if(histSection) histSection.style.display='none';
+    if(newQuizBtn) newQuizBtn.style.display='';
+    if(newRevBtn) newRevBtn.style.display='none';
+  }
   showScreen('results');
 }
 

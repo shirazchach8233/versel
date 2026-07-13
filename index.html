@@ -298,7 +298,7 @@ tr:hover td{background:#f8fafc}
       <div class="options" id="study-opts"></div>
       <div id="study-explanation" class="explanation-box" style="display:none"></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-        <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">💬 Ask Claude about this</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">💬 Ask Gemini about this</button>
       </div>
     </div>
     <div class="q-nav">
@@ -309,7 +309,7 @@ tr:hover td{background:#f8fafc}
     <!-- ── Study Chat ── -->
     <div id="study-chat-section" style="display:none;margin-top:12px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:.9rem;font-weight:600;color:var(--primary)">💬 Ask Claude</div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--primary)">💬 Ask Gemini</div>
         <button onclick="toggleStudyChat()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;line-height:1;padding:2px 6px" title="Close">✕</button>
       </div>
       <div id="study-chat-messages" style="min-height:48px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding-right:2px"></div>
@@ -1028,7 +1028,7 @@ function renderStudyQuestion(){
   const chatBtn=document.getElementById('study-chat-toggle');
   if(chatSec) chatSec.style.display='none';
   if(chatMsgs) chatMsgs.innerHTML='';
-  if(chatBtn) chatBtn.textContent='💬 Ask Claude about this';
+  if(chatBtn) chatBtn.textContent='💬 Ask Gemini about this';
   document.getElementById('study-qmeta').textContent=`Question ${currentIdx+1} of ${questions.length}`;
   document.getElementById('study-qtext').textContent=q.q;
   document.getElementById('study-progress-text').textContent=`${currentIdx+1} / ${questions.length} questions`;
@@ -1092,7 +1092,7 @@ function toggleStudyChat(){
   const btn=document.getElementById('study-chat-toggle');
   const open=sec.style.display==='none';
   sec.style.display=open?'':'none';
-  btn.textContent=open?'💬 Close Chat':'💬 Ask Claude about this';
+  btn.textContent=open?'💬 Close Chat':'💬 Ask Gemini about this';
   if(open){
     // Welcome message on first open for this question
     if(!studyChatHistory.length){

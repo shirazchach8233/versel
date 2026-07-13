@@ -1,17 +1,17 @@
-// Vercel serverless function: Gemini-powered chat for Study Mode.
+// Vercel serverless function: NVIDIA/DeepSeek-powered chat for Study Mode.
 // Takes the current question as context + conversation history, returns AI reply.
 //
 // Required environment variable (set in Vercel Project Settings → Environment Variables):
-//   GEMINI_API_KEY   — get one free at https://aistudio.google.com/app/apikey
+//   NVIDIA_API_KEY   — get one at https://build.nvidia.com
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.NVIDIA_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+    return res.status(500).json({ error: 'NVIDIA_API_KEY not configured' });
   }
 
   const { question, options, correctAnswer, explanation, topic, isAnswered, messages } = req.body || {};
@@ -43,35 +43,43 @@ Your role:
 - Write in plain text without bullet symbols or markdown formatting.
 - If asked about something unrelated to this question or CDPO topics, politely redirect.`;
 
-  // Gemini uses "user" / "model" roles (not "assistant")
-  const contents = messages.slice(-12).map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
+  const chatMessages = [
+    { role: 'system', content: systemPrompt },
+    ...messages.slice(-12).map(m => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: m.content
+    }))
+  ];
 
   try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    const apiRes = await fetch(
+      'https://integrate.api.nvidia.com/v1/chat/completions',
       {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'authorization': `Bearer ${apiKey}`
+        },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents,
-          generationConfig: { maxOutputTokens: 600, temperature: 0.7 }
+          model: 'deepseek-ai/deepseek-v4-flash',
+          messages: chatMessages,
+          temperature: 0.7,
+          top_p: 0.95,
+          max_tokens: 600,
+          stream: false
         })
       }
     );
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Gemini API error:', errText);
-      return res.status(502).json({ error: 'Gemini API error', detail: errText });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text();
+      console.error('NVIDIA API error:', errText);
+      return res.status(502).json({ error: 'AI API error', detail: errText });
     }
 
-    const data = await geminiRes.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!reply) return res.status(502).json({ error: 'Empty response from Gemini' });
+    const data = await apiRes.json();
+    const reply = data.choices?.[0]?.message?.content;
+    if (!reply) return res.status(502).json({ error: 'Empty response from AI' });
 
     return res.status(200).json({ reply });
   } catch (err) {

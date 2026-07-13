@@ -297,11 +297,30 @@ tr:hover td{background:#f8fafc}
       <div class="q-text" id="study-qtext"></div>
       <div class="options" id="study-opts"></div>
       <div id="study-explanation" class="explanation-box" style="display:none"></div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+        <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">💬 Ask Claude about this</button>
+      </div>
     </div>
     <div class="q-nav">
       <button class="btn btn-ghost" onclick="studyNav(-1)">← Previous</button>
       <div id="study-nav-info" class="text-muted"></div>
       <button class="btn btn-accent" onclick="studyNav(1)">Next →</button>
+    </div>
+    <!-- ── Study Chat ── -->
+    <div id="study-chat-section" style="display:none;margin-top:12px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:.9rem;font-weight:600;color:var(--primary)">💬 Ask Claude</div>
+        <button onclick="toggleStudyChat()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;line-height:1;padding:2px 6px" title="Close">✕</button>
+      </div>
+      <div id="study-chat-messages" style="min-height:48px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding-right:2px"></div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="study-chat-input" rows="1" placeholder="Ask anything about this question or topic…"
+          style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;resize:none;min-height:42px;max-height:110px;font-family:inherit;line-height:1.5;background:var(--bg);color:var(--text)"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendStudyChat();}"
+          oninput="this.style.height='42px';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
+        <button class="btn btn-primary" id="study-chat-send" onclick="sendStudyChat()" style="padding:10px 18px;white-space:nowrap;flex-shrink:0">Send</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:6px">Enter to send · Shift+Enter for new line</div>
     </div>
   </div>
 </div>
@@ -1002,6 +1021,14 @@ async function startStudy(topic){
 function renderStudyQuestion(){
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
+  // Reset chat for each new question
+  studyChatHistory=[];
+  const chatSec=document.getElementById('study-chat-section');
+  const chatMsgs=document.getElementById('study-chat-messages');
+  const chatBtn=document.getElementById('study-chat-toggle');
+  if(chatSec) chatSec.style.display='none';
+  if(chatMsgs) chatMsgs.innerHTML='';
+  if(chatBtn) chatBtn.textContent='💬 Ask Claude about this';
   document.getElementById('study-qmeta').textContent=`Question ${currentIdx+1} of ${questions.length}`;
   document.getElementById('study-qtext').textContent=q.q;
   document.getElementById('study-progress-text').textContent=`${currentIdx+1} / ${questions.length} questions`;
@@ -1053,6 +1080,81 @@ async function studyNav(dir){
   }
   studyState.currentIdx=newIdx;
   renderStudyQuestion();
+}
+
+// ══════════════════════════════════════════════
+// STUDY CHAT
+// ══════════════════════════════════════════════
+let studyChatHistory=[];
+
+function toggleStudyChat(){
+  const sec=document.getElementById('study-chat-section');
+  const btn=document.getElementById('study-chat-toggle');
+  const open=sec.style.display==='none';
+  sec.style.display=open?'':'none';
+  btn.textContent=open?'💬 Close Chat':'💬 Ask Claude about this';
+  if(open){
+    // Welcome message on first open for this question
+    if(!studyChatHistory.length){
+      const {questions,currentIdx,answered}=studyState;
+      const q=questions[currentIdx];
+      const hint=answered[currentIdx]===undefined
+        ?'I\'ll help you think through it without spoiling the answer.'
+        :'Feel free to ask me to explain the answer or any related concept.';
+      appendChatMsg('ai',`Hi! Ask me anything about this question or the ${q.s} topic. ${hint}`);
+    }
+    setTimeout(()=>document.getElementById('study-chat-input').focus(),50);
+    document.getElementById('study-chat-section').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+
+async function sendStudyChat(){
+  const input=document.getElementById('study-chat-input');
+  const msg=input.value.trim();
+  if(!msg) return;
+  const sendBtn=document.getElementById('study-chat-send');
+  input.value='';
+  input.style.height='42px';
+  appendChatMsg('user',msg);
+  studyChatHistory.push({role:'user',content:msg});
+  sendBtn.disabled=true;
+  sendBtn.textContent='…';
+  const thinking=appendChatMsg('ai','⏳ Thinking…',true);
+  const {questions,currentIdx,answered}=studyState;
+  const q=questions[currentIdx];
+  const isAnswered=answered[currentIdx]!==undefined;
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question:q.q,options:q.o,correctAnswer:q.a,explanation:q.e||'',topic:q.s,isAnswered,messages:studyChatHistory})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'API error');
+    thinking.remove();
+    appendChatMsg('ai',data.reply);
+    studyChatHistory.push({role:'assistant',content:data.reply});
+  }catch(err){
+    thinking.remove();
+    appendChatMsg('ai','⚠️ Couldn\'t connect to Claude. Please try again.');
+  }
+  sendBtn.disabled=false;
+  sendBtn.textContent='Send';
+  document.getElementById('study-chat-input').focus();
+}
+
+function appendChatMsg(role,text,isTemp){
+  const container=document.getElementById('study-chat-messages');
+  const el=document.createElement('div');
+  if(role==='user'){
+    el.style.cssText='align-self:flex-end;background:var(--primary);color:#fff;padding:9px 14px;border-radius:14px 14px 2px 14px;max-width:82%;font-size:.87rem;line-height:1.55;white-space:pre-wrap;word-break:break-word';
+  }else{
+    el.style.cssText='align-self:flex-start;background:var(--bg);border:1px solid var(--border);padding:9px 14px;border-radius:2px 14px 14px 14px;max-width:90%;font-size:.87rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:var(--text)';
+  }
+  el.textContent=text;
+  container.appendChild(el);
+  container.scrollTop=container.scrollHeight;
+  if(isTemp) return el;
 }
 
 // ══════════════════════════════════════════════

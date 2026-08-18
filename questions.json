@@ -117635,5 +117635,499 @@
     "e": "GAIN was established in 2002, launched at the United Nations.",
     "s": "International Agencies",
     "id": "9f1d120d27694539"
+  },
+  {
+    "q": "The sugar/sweetener content of soft drinks generally ranges from:",
+    "o": [
+      "1% to 12% by weight",
+      "15% to 20% by weight",
+      "20% to 30% by weight",
+      "0.1% to 0.5% by weight"
+    ],
+    "a": 0,
+    "e": "The sugar/sweetener content of soft drinks generally ranges from 1% to 12% by weight.",
+    "s": "Nutrition & Health",
+    "id": "fda0706b26ee4855"
+  },
+  {
+    "q": "Red wine is best stored at a temperature of:",
+    "o": [
+      "2°C to 7°C",
+      "15°C to 20°C",
+      "Around 30°C",
+      "10°C to 15°C"
+    ],
+    "a": 1,
+    "e": "Red wine is best stored at 15°C to 20°C.",
+    "s": "Nutrition & Health",
+    "id": "b72950f3b2ac4297"
+  },
+  {
+    "q": "Phytic acid (phytate) strongly chelates which minerals?",
+    "o": [
+      "Sodium and potassium",
+      "Zinc, calcium, and iron",
+      "Magnesium only",
+      "Copper and lead"
+    ],
+    "a": 1,
+    "e": "Phytic acid strongly chelates zinc, calcium, and iron, reducing their bioavailability.",
+    "s": "Nutrition & Health",
+    "id": "676cdaa0ee9d46fc"
+  },
+  {
+    "q": "Assertion (A): Tea is classified as a stimulating beverage. Reason (R): Tea contains antioxidants such as catechins.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true but R is false",
+      "A is false but R is true"
+    ],
+    "a": 1,
+    "e": "Tea is a stimulating beverage (due to caffeine), and it does contain antioxidants like catechins, but the catechins are not what makes it stimulating — so R does not correctly explain A.",
+    "s": "Nutrition & Health",
+    "id": "8003028b4a554749"
+  },
+  {
+    "q": "When white vegetables like cauliflowers or onions are cooked in aluminum or cast-iron pans, the cooking water turns yellow. This color change is caused by:",
+    "o": [
+      "The synthesis of volatile hydrogen sulfide (H2S) gas",
+      "The formation of a flavone–aluminium chelate complex",
+      "Trans-to-cis isomerization of fat-soluble carotenoids",
+      "Enzymatic destruction of vitamin C by ascorbic acid oxidase"
+    ],
+    "a": 1,
+    "e": "Anthoxanthins (flavones) react with aluminium or iron cookware to form a yellow flavone-aluminium chelate complex.",
+    "s": "Nutrition & Health",
+    "id": "daf56550a7204717"
+  },
+  {
+    "q": "Cruciferous vegetables (like cabbage, broccoli, and cauliflower) cooked for more than 5 minutes develop a strong, unpleasant smell due to the formation of:",
+    "o": [
+      "Allyl isothiocyanate",
+      "Diallyl disulfide",
+      "Hydrogen sulfide (H2S)",
+      "Dimethyl sulfide"
+    ],
+    "a": 2,
+    "e": "Cooking cruciferous vegetables beyond 5 minutes decomposes sulfur compounds into hydrogen sulfide (H2S), causing the strong smell.",
+    "s": "Nutrition & Health",
+    "id": "b3c237da59fa401e"
+  },
+  {
+    "q": "What volatile chemical compound serves as the primary tear-inducing irritant when slicing fresh onions?",
+    "o": [
+      "Allyl isothiocyanate",
+      "Propenyl sulphenic acid",
+      "Diallyl thiosulphinate",
+      "Dimethyl sulfide"
+    ],
+    "a": 1,
+    "e": "Slicing onions cleaves S-1-propenyl cysteine sulphoxide, producing propenyl sulphenic acid (which rearranges into the lachrymatory factor) that irritates the eyes.",
+    "s": "Nutrition & Health",
+    "id": "5ab046bc5eee41ee"
+  },
+  {
+    "q": "Tropical vegetables like eggplants, okra, cucumbers, and tomatoes should be stored at refrigeration temperatures between 8°C and 12°C. Storing them below this range causes:",
+    "o": [
+      "Rapid gelation of surface starches",
+      "Chilling injury, resulting in pitting, browning, and decay",
+      "Increased respiration rates from elevated oxygen absorption",
+      "Immediate activation of the myrosinase enzyme system"
+    ],
+    "a": 1,
+    "e": "Storing tropical/chilling-sensitive vegetables below their safe range causes chilling injury: pitting, browning, and decay.",
+    "s": "Nutrition & Health",
+    "id": "eb396c320e624a65"
+  },
+  {
+    "q": "Which brilliant blue therapeutic pigment is found in the protein-rich blue-green algae Spirulina?",
+    "o": [
+      "Lentinan",
+      "Phycocyanin",
+      "Sinigrin",
+      "Alliin"
+    ],
+    "a": 1,
+    "e": "Spirulina contains phycocyanin, a brilliant blue-coloured therapeutic pigment.",
+    "s": "Nutrition & Health",
+    "id": "d67bbbfd25d7479a"
+  },
+  {
+    "q": "Pears and potatoes turn pink when sliced and exposed to air. This discoloration is driven by the conversion of:",
+    "o": [
+      "Sinigrin to allyl isothiocyanate",
+      "Alliin to diallyl thiosulphinate",
+      "Pro-anthocyanin to cyanidin",
+      "Hemicellulose to water-soluble pectinates"
+    ],
+    "a": 2,
+    "e": "Pears and potatoes turn pink on standing due to the conversion of pro-anthocyanin to cyanidin.",
+    "s": "Nutrition & Health",
+    "id": "f841aee3619c4d40"
+  },
+  {
+    "q": "Consider the following statements: 1. Protopectin gives firm texture to unripe fruits. 2. Pectic acid found in overripe fruits forms the firmest gel. Which of the statements given above is/are correct?",
+    "o": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "a": 0,
+    "e": "Protopectin (raw/unripe fruit) does give firm texture. However, pectic acid (found in overripe, very soft fruit) lacks gel-forming ability, so statement 2 is false.",
+    "s": "Nutrition & Health",
+    "id": "3baec4b9fe3149bf"
+  },
+  {
+    "q": "The correct sequence of change in pectic substances during ripening is:",
+    "o": [
+      "Pectin to protopectin to pectinic acid to pectic acid",
+      "Protopectin to pectinic acid to pectin to pectic acid",
+      "Pectic acid to pectin to pectinic acid to protopectin",
+      "Protopectin to pectin to pectic acid to pectinic acid"
+    ],
+    "a": 1,
+    "e": "The ripening sequence of pectic substances is: Protopectin (unripe) → Pectinic acid (slightly ripened) → Pectin (optimum ripe) → Pectic acid (overripe).",
+    "s": "Nutrition & Health",
+    "id": "d55a4fa633a64251"
+  },
+  {
+    "q": "Assertion (A): Addition of citric acid to cut fruits reduces enzymatic browning. Reason (R): Lowering the pH to about 4.0 inhibits phenolase activity, and citric acid also chelates the copper present in the enzyme.",
+    "o": [
+      "Both A and R are true and R is the correct explanation of A",
+      "Both A and R are true but R is NOT the correct explanation of A",
+      "A is true but R is false",
+      "A is false but R is true"
+    ],
+    "a": 0,
+    "e": "Citric acid lowers pH to about 4.0, inhibiting phenolase (polyphenol oxidase) activity, and also chelates the copper cofactor the enzyme needs — both mechanisms correctly explain why citric acid reduces enzymatic browning.",
+    "s": "Nutrition & Health",
+    "id": "6b1400cae72c4e9c"
+  },
+  {
+    "q": "Congeners in alcoholic beverages include all of the following EXCEPT:",
+    "o": [
+      "Methanol",
+      "Fusel oils",
+      "Tannins",
+      "Caffeine"
+    ],
+    "a": 3,
+    "e": "Congeners (byproducts of fermentation/aging that affect flavour) include methanol, fusel oils, and tannins, but not caffeine.",
+    "s": "Nutrition & Health",
+    "id": "56103840c8804673"
+  },
+  {
+    "q": "Find out the statement/statements that are TRUE about the processing of alcoholic beverages. 1. Wine is processed by crushing grapes and fermenting the sugars with yeast. 2. Beer is processed by mashing grains, boiling with hops, and fermenting. 3. Distilled spirits are produced by carbonating fermented liquids. 4. Distillation separates alcohol by exploiting distinct boiling points.",
+    "o": [
+      "1, 2 and 3",
+      "1, 2 and 4",
+      "2, 3 and 4",
+      "All of the above"
+    ],
+    "a": 1,
+    "e": "Statements 1, 2, and 4 are correct. Statement 3 is false — distilled spirits are produced by distilling (not carbonating) fermented liquids.",
+    "s": "Nutrition & Health",
+    "id": "7bca38ae703d4a5a"
+  },
+  {
+    "q": "Assertion (A): Fat-soluble carotenoid pigments (found in carrots and pumpkins) leach rapidly into the surrounding water during normal boiling. Reason (R): Carotenoid molecules contain highly unsaturated structures that can undergo trans-to-cis isomerization when exposed to high heat.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true, but R is false",
+      "A is false, but R is true"
+    ],
+    "a": 3,
+    "e": "Carotenoids are fat-soluble and highly stable to water leaching (insoluble in water protects them) — so Assertion A is false. Reason R is true: carotenoids do undergo trans-to-cis isomerization under intense heat (lightening colour), but this doesn't support the false assertion.",
+    "s": "Nutrition & Health",
+    "id": "24bd79b40fa848b1"
+  },
+  {
+    "q": "DPPH, used to express antioxidant activity of fruits, stands for:",
+    "o": [
+      "Di-phenyl phospho hydrazine",
+      "2,2-Diphenyl-1-picryl hydrazyl",
+      "Dihydroxy phenyl propyl hydrate",
+      "Diphenyl polyphenol hydroxide"
+    ],
+    "a": 1,
+    "e": "DPPH stands for 2,2-diphenyl-1-picrylhydrazyl, a stable free radical used in antioxidant activity (radical scavenging) assays.",
+    "s": "Nutrition & Health",
+    "id": "135f548525cd4a29"
+  },
+  {
+    "q": "An anthocyanin pigment dissolved inside a cell sap vacuole is exposed to a highly acidic environment with a pH below 3.0. What color shift will be observed?",
+    "o": [
+      "It turns a dull greenish-grey to bright green",
+      "It turns a deep purple color",
+      "It shifts into a brilliant crimson/red",
+      "It becomes completely colorless or cream"
+    ],
+    "a": 2,
+    "e": "At acidic pH below 3.0, anthocyanins turn brilliant crimson/red.",
+    "s": "Nutrition & Health",
+    "id": "0949f37fc3ce44a7"
+  },
+  {
+    "q": "Consider the following two statements regarding flavanoids and minerals: Statement I: Anthoxanthins are water-soluble flavonoid compounds that remain white or colorless within acidic environments but turn into a creamy yellow-orange color when exposed to alkaline tap water. Statement II: Capsicum is uniquely poor in Vitamin C, whereas fresh green plantains contain exceptionally high levels of dietary iron. Which of the options below is correct?",
+    "o": [
+      "Both Statement I and Statement II are true",
+      "Both Statement I and Statement II are false",
+      "Statement I is true, but Statement II is false",
+      "Statement I is false, but Statement II is true"
+    ],
+    "a": 2,
+    "e": "Statement I is correct (anthoxanthins are white/colorless in acid, yellow-orange in alkali). Statement II is false — Capsicum is actually exceptionally rich in Vitamin C (not poor), while plantain green is correctly noted for high iron.",
+    "s": "Nutrition & Health",
+    "id": "4ffc1864bfea4e82"
+  },
+  {
+    "q": "Overcooking vegetables belonging to the Brassica family (such as cabbage, broccoli, and cauliflower) generates an off-flavor and a stinky aroma due to the decomposition of compounds into which components?",
+    "o": [
+      "Pheophytin and chlorophyllin",
+      "Hydrogen sulfide (H2S) and dimethyl sulfides",
+      "Allicin and diallyl disulfide",
+      "Potassium bitartrate and phytic acid"
+    ],
+    "a": 1,
+    "e": "Overcooking Brassica (cruciferous) vegetables decomposes sulfur compounds into hydrogen sulfide (H2S) and dimethyl sulfides, causing the off-flavor. (Allicin/diallyl disulfide are Allium/garlic compounds, not Brassica.)",
+    "s": "Nutrition & Health",
+    "id": "a98e7b0402194876"
+  },
+  {
+    "q": "Consider the following two statements: Statement I: Overall food flavor is a complex sensory combination composed of taste inputs (sugars, acids, salts) plus volatile aroma compounds. Statement II: Most common vegetables are highly alkaline with an average pH range spanning from 10.5 to 12.0, while peas and potatoes are highly acidic. Which of the options below is correct?",
+    "o": [
+      "Both Statement I and Statement II are true",
+      "Both Statement I and Statement II are false",
+      "Statement I is true, but Statement II is false",
+      "Statement I is false, but Statement II is true"
+    ],
+    "a": 2,
+    "e": "Statement I is correct. Statement II is false — most vegetables are actually mildly acidic (pH 5.0-5.6), while peas and potatoes are closer to neutral (pH 6.1-6.3), not highly acidic or alkaline.",
+    "s": "Nutrition & Health",
+    "id": "22299447d1654ab2"
+  },
+  {
+    "q": "Assertion (A): Slicing a batch of raw potatoes, brinjals, or plantains and exposing the raw cut surfaces to atmospheric oxygen results in rapid brown discoloration. Reason (R): The application of mild heat treatments splits volatile sugars away from the unstable structure of parent anthocyanidins.",
+    "o": [
+      "Both (A) and (R) are true, and (R) is the correct explanation of (A)",
+      "Both (A) and (R) are true, but (R) is NOT the correct explanation of (A)",
+      "(A) is true, but (R) is false",
+      "(A) is false, but (R) is true"
+    ],
+    "a": 2,
+    "e": "Assertion A is true (enzymatic browning). Reason R is false — browning is caused by the enzyme polyphenolase acting on phenolic compounds to form melanins, not by heat splitting sugars from anthocyanidins.",
+    "s": "Nutrition & Health",
+    "id": "b38790b2b0f54ded"
+  },
+  {
+    "q": "What naturally occurring chemical compound is responsible for the formation of \"wine diamonds\" during the aging process of grapes?",
+    "o": [
+      "Potassium bitartrate",
+      "S-methyl-cysteine sulphoxide",
+      "Thiopropanal-S-oxide",
+      "Calcium oxalate"
+    ],
+    "a": 0,
+    "e": "\"Wine diamonds\" are crystals of potassium bitartrate (cream of tartar), which forms as tartaric acid combines with potassium during aging.",
+    "s": "Nutrition & Health",
+    "id": "40c23524246140e7"
+  },
+  {
+    "q": "When plant cell walls are mechanically damaged or crushed, the enzyme alliinase is released. In garlic, this enzyme acts on sulfur precursors to directly synthesize which pungent flavor compound?",
+    "o": [
+      "Thiopropanal-S-oxide",
+      "Allicin",
+      "Dimethyl sulphide",
+      "Hydrogen sulfide"
+    ],
+    "a": 1,
+    "e": "Alliinase converts alliin into allicin, garlic's characteristic pungent compound, which further decomposes into diallyl disulfide.",
+    "s": "Nutrition & Health",
+    "id": "12bf2c148d59496d"
+  },
+  {
+    "q": "Consider the following two statements regarding vegetable chemistry: Statement I: Vegetable pigments are structurally categorized based on solubility; chlorophylls and carotenoids are water-insoluble plastid pigments, whereas anthocyanins, betalains, and anthoxanthins are water-soluble vacuole pigments. Statement II: Natural chlorophyll pigments naturally manifest within plant chloroplasts in a strict, fixed 3:1 ratio of yellow-green Chlorophyll-a to blue-green Chlorophyll-b. Which of the options below is correct?",
+    "o": [
+      "Both Statement I and Statement II are true",
+      "Both Statement I and Statement II are false",
+      "Statement I is true, but Statement II is false",
+      "Statement I is false, but Statement II is true"
+    ],
+    "a": 2,
+    "e": "Statement I is correct. Statement II is false — the 3:1 ratio is correct, but the colors are swapped: Chlorophyll-a is blue-green and Chlorophyll-b is yellow-green (not the reverse).",
+    "s": "Nutrition & Health",
+    "id": "630ed5ffd7f84eac"
+  },
+  {
+    "q": "Glucose and galactose are absorbed across the apical membrane of the enterocyte via:",
+    "o": [
+      "GLUT5",
+      "GLUT2",
+      "SGLT1",
+      "GLUT4"
+    ],
+    "a": 2,
+    "e": "Glucose and galactose are absorbed across the apical (brush border) membrane via SGLT1, a sodium-dependent secondary active transporter.",
+    "s": "Nutrition & Health",
+    "id": "733ffb724bae44c2"
+  },
+  {
+    "q": "Statement I: Lactase digests lactose into glucose and galactose. Statement II: Maltase digests maltose into glucose and fructose.",
+    "o": [
+      "Both I and II are correct",
+      "Only I is correct",
+      "Only II is correct",
+      "Both I and II are incorrect"
+    ],
+    "a": 1,
+    "e": "Statement I is correct. Statement II is false — maltase digests maltose into glucose + glucose, not glucose + fructose.",
+    "s": "Nutrition & Health",
+    "id": "2fc5ecbb9dc0419d"
+  },
+  {
+    "q": "Fructose is absorbed from the intestinal lumen by:",
+    "o": [
+      "SGLT1",
+      "GLUT5",
+      "GLUT2",
+      "GLUT4"
+    ],
+    "a": 1,
+    "e": "Fructose is absorbed from the intestinal lumen via the GLUT5 transporter, by facilitated diffusion.",
+    "s": "Nutrition & Health",
+    "id": "a8d56dee24f54fae"
+  },
+  {
+    "q": "Assertion (A): GLUT4 increases glucose uptake into muscle and fat cells when insulin is released. Reason (R): GLUT4 is insulin-sensitive and moves to the cell membrane in response to insulin.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true, but R is false",
+      "A is false, but R is true"
+    ],
+    "a": 0,
+    "e": "Both statements are true, and R correctly explains A: GLUT4's insulin-sensitive translocation to the cell membrane is exactly why insulin increases glucose uptake into muscle and fat cells.",
+    "s": "Nutrition & Health",
+    "id": "e4ba0bb61bc94648"
+  },
+  {
+    "q": "Statement I: Sucrose and lactose are more abundant in the diet than maltose. Statement II: Maltose is composed of glucose and fructose.",
+    "o": [
+      "Both I and II are correct",
+      "Only I is correct",
+      "Only II is correct",
+      "Both I and II are incorrect"
+    ],
+    "a": 1,
+    "e": "Statement I is correct — sucrose and lactose are common dietary sugars while maltose is comparatively rare in the diet. Statement II is false — maltose is composed of glucose + glucose, not glucose + fructose.",
+    "s": "Nutrition & Health",
+    "id": "4bc5e10323234917"
+  },
+  {
+    "q": "Salivary α-amylase (ptyalin) breaks which type of bond in starch?",
+    "o": [
+      "α-1,6 glycosidic",
+      "β-1,4 glycosidic",
+      "α-1,4 glycosidic",
+      "Peptide"
+    ],
+    "a": 2,
+    "e": "Salivary alpha-amylase (ptyalin) acts only on alpha-1,4 glycosidic bonds in starch.",
+    "s": "Nutrition & Health",
+    "id": "39e67c52e52a4320"
+  },
+  {
+    "q": "Assertion (A): Riper fruit tends to have a higher glycemic index. Reason (R): A higher amylose content in starch lowers the glycemic index of a food.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "Both A and R are true, but R is NOT the correct explanation of A",
+      "A is true, but R is false",
+      "A is false, but R is true"
+    ],
+    "a": 1,
+    "e": "Assertion A is true — as fruit ripens, starch converts to free sugars, raising its GI. Reason R is also true in general (higher amylose content does lower GI), but it does not explain A, since riper fruit's higher GI comes from starch-to-sugar conversion, not from a change in the amylose content of its remaining starch.",
+    "s": "Nutrition & Health",
+    "id": "018264e86cda42d2"
+  },
+  {
+    "q": "Inulin, a prebiotic that stays in the bowel and helps beneficial bacteria grow, is a polymer of:",
+    "o": [
+      "Glucose",
+      "Fructose",
+      "Galactose",
+      "Ribose"
+    ],
+    "a": 1,
+    "e": "Inulin is a fructan — a polymer of fructose — that acts as a prebiotic, remaining undigested in the bowel to feed beneficial gut bacteria.",
+    "s": "Nutrition & Health",
+    "id": "de6a769cebde483c"
+  },
+  {
+    "q": "Consider the following statements: Statement I: Oligosaccharides yield 3 to 10 monosaccharide units on hydrolysis and occupy the middle position between disaccharides and polysaccharides. Statement II: Oligosaccharides have a high glycaemic impact because they are readily digested by human enzymes. Which of the statements given above is/are correct?",
+    "o": [
+      "Only I is correct",
+      "Only II is correct",
+      "Both I and II are correct",
+      "Neither I nor II is correct"
+    ],
+    "a": 0,
+    "e": "Statement I is correct. Statement II is false — most oligosaccharides (like RFOs) are NOT readily digested by human enzymes (humans lack alpha-galactosidase), which is why they pass undigested to the colon.",
+    "s": "Nutrition & Health",
+    "id": "2edebd68b52b4e31"
+  },
+  {
+    "q": "The stored form of energy in animals, found in the liver and muscles, is:",
+    "o": [
+      "Starch",
+      "Cellulose",
+      "Chitin",
+      "Glycogen"
+    ],
+    "a": 3,
+    "e": "Glycogen is the stored form of energy in animals, held in the liver and muscles.",
+    "s": "Nutrition & Health",
+    "id": "5f29c7a505d047b7"
+  },
+  {
+    "q": "Consider the following statements: Statement I: Raffinose is a trisaccharide composed of galactose, glucose and fructose. Statement II: Stachyose is a pentasaccharide found in soybeans and legumes. Which of the statements given above is/are correct?",
+    "o": [
+      "Only I is correct",
+      "Only II is correct",
+      "Both I and II are correct",
+      "Neither I nor II is correct"
+    ],
+    "a": 0,
+    "e": "Statement I is correct. Statement II is false — stachyose is actually a tetrasaccharide (four sugar units: galactose-galactose-glucose-fructose), not a pentasaccharide.",
+    "s": "Nutrition & Health",
+    "id": "6a67590d4cf8405c"
+  },
+  {
+    "q": "Assertion (A): Dietary fibre is an important source of nutrients for the body. Reason (R): Roughage helps the body get rid of undigested food.",
+    "o": [
+      "Both A and R are true, and R is the correct explanation of A",
+      "A is false, but R is true",
+      "A is true, but R is false",
+      "Both A and R are true, but R is not the correct explanation of A"
+    ],
+    "a": 1,
+    "e": "Assertion A is false — dietary fibre provides no nutrients to the body. Reason R is true — roughage helps eliminate undigested food from the body.",
+    "s": "Nutrition & Health",
+    "id": "99451176cec9413d"
+  },
+  {
+    "q": "Which of the following is the simplest monosaccharide (a triose) and an important intermediate in glycolysis?",
+    "o": [
+      "Ribose",
+      "Glyceraldehyde",
+      "Galactose",
+      "Fructose"
+    ],
+    "a": 1,
+    "e": "Glyceraldehyde is the simplest monosaccharide (a triose, 3-carbon sugar) and serves as an important intermediate in glycolysis.",
+    "s": "Nutrition & Health",
+    "id": "8436e39fc69e409c"
   }
 ]

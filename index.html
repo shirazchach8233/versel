@@ -544,6 +544,7 @@ tr:hover td{background:#f8fafc}
       <button class="tab-btn" onclick="adminTab('quizzes')">📝 Quiz Results</button>
       <button class="tab-btn" onclick="adminTab('study')">📖 Study Sessions</button>
       <button class="tab-btn" onclick="adminTab('progress')">📈 Progress</button>
+      <button class="tab-btn" onclick="adminTab('flags')">🚩 Flags<span id="adm-flags-badge" class="chip-red" style="display:none;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:.72rem"></span></button>
     </div>
     <!-- Users tab -->
     <div id="adm-tab-users">
@@ -572,6 +573,19 @@ tr:hover td{background:#f8fafc}
     <div id="adm-tab-progress" style="display:none">
       <div style="font-weight:600;margin-bottom:16px">Per-User Progress</div>
       <div class="table-wrap"><div id="adm-progress-table"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
+    </div>
+    <!-- Flagged questions tab -->
+    <div id="adm-tab-flags" style="display:none">
+      <div class="flex-between mb-16">
+        <div style="font-weight:600">Flagged Questions</div>
+        <select id="flags-filter" onchange="loadAdminFlags()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)">
+          <option value="pending">Pending</option>
+          <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="table-wrap"><div id="adm-flags-table"><div class="loading"><div class="spinner"></div>Loading...</div></div></div>
     </div>
   </div>
 </div>
@@ -677,6 +691,44 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ═══════════════ MODAL: Flag Question ═══════════════ -->
+<div class="modal-overlay" id="modal-flag-question">
+  <div class="modal">
+    <h3>🚩 Flag this question</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px" id="flag-q-preview"></p>
+    <div id="flag-alert" class="alert alert-danger" style="display:none"></div>
+    <div class="form-group"><label>What's wrong? (optional)</label>
+      <textarea id="flag-reason" rows="3" placeholder="e.g. I think option B is actually correct..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;background:var(--card);color:var(--text);resize:vertical"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-flag-question')">Cancel</button>
+      <button class="btn btn-danger" onclick="submitFlag()">🚩 Flag for Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: Edit Question (admin correction) ═══════════════ -->
+<div class="modal-overlay" id="modal-edit-question">
+  <div class="modal" style="max-width:600px">
+    <h3>✏️ Correct Question</h3>
+    <div id="eq-alert" class="alert alert-danger" style="display:none"></div>
+    <input type="hidden" id="eq-id"/>
+    <div class="form-group"><label>Question</label>
+      <textarea id="eq-q" rows="3" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;background:var(--card);color:var(--text);resize:vertical"></textarea>
+    </div>
+    <div class="form-group"><label>Options (select the radio next to the correct one)</label>
+      <div id="eq-options"></div>
+    </div>
+    <div class="form-group"><label>Explanation</label>
+      <textarea id="eq-e" rows="2" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;background:var(--card);color:var(--text);resize:vertical"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-question')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuestionOverride()">Save Correction &amp; Resolve</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -778,6 +830,23 @@ async function loadQuestions(){
   try{
     const r=await fetch('questions.json');
     const data=await r.json();
+    // Apply any admin-corrected overrides (from flagged-question reviews) on top of the base bank
+    try{
+      const overrides=await sbGet('question_overrides','select=*');
+      if(overrides&&overrides.length){
+        const byId={};
+        overrides.forEach(o=>{byId[o.question_id]=o;});
+        data.forEach(q=>{
+          const ov=byId[q.id];
+          if(ov){
+            if(ov.q!=null) q.q=ov.q;
+            if(ov.o!=null) q.o=ov.o;
+            if(ov.a!=null) q.a=ov.a;
+            if(ov.e!=null) q.e=ov.e;
+          }
+        });
+      }
+    }catch(e){console.error('Failed to load question overrides',e);}
     allQuestions=data;
     // Populate topic selectors
     populateTopics();
@@ -1424,6 +1493,7 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
       </div>
       ${ans===-1?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">⚠️ Not answered</div>':''}
       ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${q.e}</div>`:''}
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick='openFlagModal(${JSON.stringify(q.id)},${JSON.stringify(q.q)},${JSON.stringify(q.s)})'>🚩 Flag as wrong</button></div>
     </div>`;
   }).join('');
   document.getElementById('results-review').style.display='none';
@@ -1571,8 +1641,47 @@ async function reviewAttempt(attempt,backTo){
       </div>
       ${skipped?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">⚠️ Not answered</div>':!hasSelected?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">ℹ️ Your exact answer choice wasn\'t recorded for this older attempt — only that it was wrong.</div>':''}
       ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${q.e}</div>`:''}
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick='openFlagModal(${JSON.stringify(q.id)},${JSON.stringify(q.q)},${JSON.stringify(q.s)})'>🚩 Flag as wrong</button></div>
     </div>`;
   }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════
+// FLAG QUESTION (user-facing)
+// ══════════════════════════════════════════════
+let flagCtx=null;
+function openFlagModal(qid,qtext,topic){
+  flagCtx={id:qid,q:qtext,s:topic};
+  document.getElementById('flag-q-preview').textContent=qtext.length>140?qtext.slice(0,140)+'…':qtext;
+  document.getElementById('flag-reason').value='';
+  document.getElementById('flag-alert').style.display='none';
+  openModal('modal-flag-question');
+}
+async function submitFlag(){
+  if(!flagCtx)return;
+  const alertEl=document.getElementById('flag-alert');
+  alertEl.style.display='none';
+  try{
+    await sbPost('question_flags',{
+      question_id:flagCtx.id,
+      user_id:currentUser?currentUser.id:null,
+      username:currentUser?currentUser.username:null,
+      question_text:flagCtx.q,
+      topic:flagCtx.s,
+      reason:(document.getElementById('flag-reason').value||'').trim()||null
+    });
+    closeModal('modal-flag-question');
+    // Disable/relabel the button(s) for this question on the current screen
+    document.querySelectorAll(`.flag-btn[data-qid="${CSS.escape(flagCtx.id)}"]`).forEach(b=>{
+      b.textContent='🚩 Flagged — thanks!';
+      b.disabled=true;
+      b.classList.add('disabled');
+    });
+  }catch(e){
+    console.error('submitFlag failed',e);
+    alertEl.textContent='Could not submit flag — please try again.';
+    alertEl.style.display='';
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1589,20 +1698,126 @@ async function loadAdmin(){
   document.getElementById('adm-avg').textContent=avgPct+'%';
   document.getElementById('adm-logins').textContent=logins.length;
   loadAdminUsers();
+  // Pending-flags badge
+  try{
+    const pending=await sbGet('question_flags','select=id&status=eq.pending');
+    const badge=document.getElementById('adm-flags-badge');
+    if(pending.length){badge.textContent=pending.length;badge.style.display='';}
+    else{badge.style.display='none';}
+  }catch(e){console.error('flag badge load failed',e);}
 }
 
 function adminTab(tab){
-  ['users','logins','quizzes','study','progress'].forEach(t=>{
+  ['users','logins','quizzes','study','progress','flags'].forEach(t=>{
     document.getElementById('adm-tab-'+t).style.display=t===tab?'':'none';
   });
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    const tabs=['users','logins','quizzes','study','progress'];
+    const tabs=['users','logins','quizzes','study','progress','flags'];
     b.classList.toggle('active',tabs[i]===tab);
   });
   if(tab==='logins') loadAdminLogins();
   if(tab==='quizzes') loadAdminQuizzes();
   if(tab==='study') loadAdminStudy();
   if(tab==='progress') loadAdminProgressTab();
+  if(tab==='flags') loadAdminFlags();
+}
+
+// ── Flagged questions review ──
+async function loadAdminFlags(){
+  const tableEl=document.getElementById('adm-flags-table');
+  tableEl.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
+  const filter=document.getElementById('flags-filter').value;
+  const statusQ=filter==='all'?'':`&status=eq.${filter}`;
+  let rows=[];
+  try{
+    rows=await sbGet('question_flags',`select=*&order=created_at.desc${statusQ}`);
+  }catch(e){console.error('loadAdminFlags failed',e);}
+  if(!rows.length){tableEl.innerHTML='<div class="empty-state">No flags found.</div>';return;}
+  tableEl.innerHTML=`<table><thead><tr><th>Question</th><th>Topic</th><th>Reason</th><th>Reported by</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>
+    ${rows.map(f=>`<tr>
+      <td style="max-width:320px">${(f.question_text||'').length>160?f.question_text.slice(0,160)+'…':(f.question_text||'')}</td>
+      <td>${f.topic||'–'}</td>
+      <td style="max-width:200px">${f.reason?f.reason:'<span class="text-muted">–</span>'}</td>
+      <td>${f.username||'–'}</td>
+      <td>${fmtDate(f.created_at)}</td>
+      <td><span class="${f.status==='pending'?'badge-wrong':f.status==='resolved'?'badge-correct':'chip-gray'}" style="padding:2px 8px;border-radius:10px;font-size:.75rem">${f.status}</span></td>
+      <td style="white-space:nowrap">
+        ${f.status==='pending'?`<button class="btn btn-primary btn-sm" onclick='openEditQuestionModal(${JSON.stringify(f.question_id)})'>✏️ Correct</button>
+        <button class="btn btn-ghost btn-sm" onclick="dismissFlag('${f.id}')">Dismiss</button>`:'<span class="text-muted" style="font-size:.78rem">–</span>'}
+      </td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function dismissFlag(flagId){
+  try{
+    await sbPatch('question_flags',`id=eq.${flagId}`,{status:'dismissed',resolved_at:new Date().toISOString()});
+    loadAdminFlags();
+    loadAdmin();
+  }catch(e){console.error('dismissFlag failed',e);}
+}
+
+function openEditQuestionModal(questionId){
+  const q=allQuestions.find(x=>x.id===questionId);
+  const alertEl=document.getElementById('eq-alert');
+  alertEl.style.display='none';
+  document.getElementById('eq-id').value=questionId;
+  if(!q){
+    alertEl.textContent='This question could not be found in the current bank (id: '+questionId+').';
+    alertEl.style.display='';
+    document.getElementById('eq-q').value='';
+    document.getElementById('eq-options').innerHTML='';
+    document.getElementById('eq-e').value='';
+    openModal('modal-edit-question');
+    return;
+  }
+  document.getElementById('eq-q').value=q.q;
+  document.getElementById('eq-e').value=q.e||'';
+  const keys=['A','B','C','D'];
+  document.getElementById('eq-options').innerHTML=q.o.map((o,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <input type="radio" name="eq-correct" value="${i}" id="eq-opt-radio-${i}" ${i===q.a?'checked':''}/>
+      <label for="eq-opt-radio-${i}" style="font-weight:600;width:16px">${keys[i]}</label>
+      <input type="text" id="eq-opt-${i}" value="${o.replace(/"/g,'&quot;')}" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)"/>
+    </div>`).join('');
+  openModal('modal-edit-question');
+}
+
+async function saveQuestionOverride(){
+  const alertEl=document.getElementById('eq-alert');
+  alertEl.style.display='none';
+  const qid=document.getElementById('eq-id').value;
+  const qtext=document.getElementById('eq-q').value.trim();
+  const explanation=document.getElementById('eq-e').value.trim();
+  const opts=[0,1,2,3].map(i=>{const el=document.getElementById('eq-opt-'+i);return el?el.value.trim():null;});
+  const correctRadio=document.querySelector('input[name="eq-correct"]:checked');
+  if(!qtext||opts.some(o=>!o)||!correctRadio){
+    alertEl.textContent='Please fill in the question, all 4 options, and select the correct answer.';
+    alertEl.style.display='';
+    return;
+  }
+  const correctIdx=parseInt(correctRadio.value,10);
+  try{
+    // Upsert into question_overrides (on_conflict question_id)
+    const r=await fetch(`${SB_URL}/rest/v1/question_overrides?on_conflict=question_id`,{
+      method:'POST',
+      headers:sbH({'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({question_id:qid,q:qtext,o:opts,a:correctIdx,e:explanation||null,updated_by:currentUser?currentUser.username:null,updated_at:new Date().toISOString()})
+    });
+    if(!r.ok) throw new Error('upsert failed: '+r.status);
+    // Mark all pending flags for this question as resolved
+    await sbPatch('question_flags',`question_id=eq.${qid}&status=eq.pending`,{status:'resolved',resolved_at:new Date().toISOString()});
+    // Update in-memory bank so the change is visible immediately without reload
+    const q=allQuestions.find(x=>x.id===qid);
+    if(q){q.q=qtext;q.o=opts;q.a=correctIdx;q.e=explanation||q.e;}
+    closeModal('modal-edit-question');
+    loadAdminFlags();
+    loadAdmin();
+  }catch(e){
+    console.error('saveQuestionOverride failed',e);
+    alertEl.textContent='Could not save correction — please try again.';
+    alertEl.style.display='';
+  }
 }
 
 // Per-user progress summary table (one row per user: quizzes taken, avg/best %, total time)

@@ -195,6 +195,17 @@ tr:hover td{background:#f8fafc}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 
+.syllabus-wrap{max-width:960px}
+.syllabus-title{font-size:1.5rem;color:var(--primary);margin:10px 0}
+.syllabus-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px}
+.syllabus-actions a{text-decoration:none}
+.syllabus-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.syllabus-section summary{padding:20px;cursor:pointer;font-weight:700;color:var(--primary);font-size:1.05rem}
+.syllabus-section summary span{float:right;color:var(--muted);font-size:.85rem;font-weight:500}
+.syllabus-section summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.syllabus-text{padding:0 22px 8px;line-height:1.85;font-size:.95rem;overflow-wrap:anywhere}
+.syllabus-text p{margin-bottom:20px}
+@media(max-width:1100px){nav{height:auto;min-height:58px;flex-wrap:wrap;gap:10px;padding:12px 16px}.nav-links{flex-wrap:wrap}.nav-brand{margin-left:170px}}
 /* Responsive */
 @media(max-width:600px){
   .stats-grid{grid-template-columns:1fr 1fr}
@@ -266,11 +277,33 @@ tr:hover td{background:#f8fafc}
     <button class="nav-btn" onclick="showScreen('quiz-setup')" id="nb-quiz">✏️ <span class="hide-sm">Quiz</span></button>
     <button class="nav-btn" onclick="showScreen('progress')" id="nb-progress">📊 <span class="hide-sm">Progress</span></button>
     <button class="nav-btn" onclick="showScreen('revision-setup')" id="nb-revision">🔄 <span class="hide-sm">Revise</span></button>
+    <button class="nav-btn" onclick="showScreen('syllabus')" id="nb-syllabus" aria-label="Exam syllabus">📋 <span>Syllabus</span></button>
     <button class="nav-btn" id="nb-admin" onclick="showScreen('admin')" style="display:none">🛠 <span class="hide-sm">Admin</span></button>
     <button class="theme-toggle" id="nb-theme" onclick="toggleTheme()" title="Toggle dark mode"><span id="theme-icon">🌙</span></button>
     <button class="nav-btn" onclick="doLogout()">↩ <span class="hide-sm">Logout</span></button>
   </div>
 </nav>
+
+<!-- Syllabus transcribed from the user-provided Kerala PSC PDF. -->
+<div id="screen-syllabus" class="screen">
+  <div class="main-wrap syllabus-wrap">
+    <div class="page-title">📋 Exam Syllabus</div>
+    <div class="card">
+      <div class="text-muted">KERALA PUBLIC SERVICE COMMISSION · Cat. No. 025/2026</div>
+      <h1 class="syllabus-title">Child Development Project Officer</h1>
+      <p class="text-muted">Women and Child Development Department</p>
+      <div class="syllabus-actions"><span class="chip chip-blue">100 marks · 4 subjects</span>
+        <a class="btn btn-primary btn-sm" href="/assets/cdpo-syllabus-025-2026.pdf" target="_blank" rel="noopener">Open original PDF ↗</a>
+        <a class="btn btn-ghost btn-sm" href="/assets/cdpo-syllabus-025-2026.pdf" download="CDPO-Syllabus-025-2026.pdf">Download PDF</a>
+      </div>
+    </div>
+    <p class="text-muted mb-16">Select a subject to read its syllabus. Each subject carries 25 marks. Wording follows the supplied syllabus; the original PDF is available above.</p>
+<details class="syllabus-section" open><summary>Sociology<span>25 marks</span></summary><div class="syllabus-text"><p>Module I – Origin and Development of Sociology Definition of Sociology and Sociological Imagination, Major Contributions of Karl Marx, Emile Durkheim, Max Weber and George Simmel. Expansion of Sociology in the 20 th Century, Structural functionalism, Conflict perspective, Interactionist and Phenomenological Schools of Herbet Blumer, E. Goffman, E. Husserl and A Schutz, Critical theory of Habermas, Integrative theories of A Giddens and Bourdieu, Post-modern and Post- Structural theories of M Foucault, J Derrida.</p><p>Module 2- Sociology in India Scope and significance of Sociology in India, Indological, Marxian and Structural functional perspective in Indian Sociology, Family, Kinship and marriage in India. Structural and functional variations. Joint – nuclear debate in Fmaily studies. Nature of Family, marriage and Kinship in contemporary India. Studies on caste in India. Louis Dumont, Gail Omvedt, Subaltern Perspective of Ambedkar and Kancha Illiah.</p><p>Module – 3 – Globalisation and Development Historical and Social context of globalisation, - Features of globalisation- Social impact and increasing inequalities. Economic development and environmental degradation. Depletion of Natural resources: water, land, minerals- Development induced displacement-Environmental pollution and waste management-Deforestation-Global warming. Gender issues in Development, Gender auditing, Poverty alleviation programmes in India, MNREGS, role of women in Panchayati raj institutions, Kudumbasree- Women empowerment programme in Kerala</p><p>Module 4 – Social Problems Violence against Women, Children and Elderly, Domestic violence, Child Abuse, Pocso Act, Malnutrition, problem of Dowry, Alcoholism, Drug Addiction, Poverty, inequality, Unemployment, violence against minorities and backward communities, Problem of social exclusion and inclusion. Untouchability: historical and social roots. Problems of gender and sexual minorities, Relegious fundamentalism and communalism.</p><p>Module 5 – Social Research Methods Types of research: Different calssifications of research based on: Purpose of Social Research: Exploratory; Descriptive, Explanatory, Methodology: Quantitative, Qualitative and Mixed methods, Outcome: Applied and Basic, action, Participatory. Basic Research Design in sociology: cross sectional; longitudinal, and case study. Types of data: Primary and Secondary Basic steps in research.</p></div></details>
+<details class="syllabus-section"><summary>Psychology<span>25 marks</span></summary><div class="syllabus-text"><p>1. Introduction to psychology: Psychology-approaches to psychology: Structuralism- Behaviourism-Gestalt psychology. Biological-Psychoanalytic-Humanistic-Cognitive approaches-Methods in psychology Observation-Case study-Survey and Experimental methods.</p><p>2. Biological basis of behaviour-Brain and behaviour-neuron-structure of neuron- synapse- neurotransmitters-CNS-cerebral hemisphere-hemispheric specialization, lobes, fore brain, mid brain, hind brain, endocrine system, hormones and behaviour, limbic system - hippocampus, amygdale-Evolution, Genes and Behaviour. Sensory and motor processing- localization of language-localization of perception.</p><p>3. Sensation, attention, perception and consciousness: sensory thresholds-attention-types of attention—models of attention--subliminal perception-colour perception-cues-perception of form-pattern or objects-figure and ground-0 contour-perceptual constancies-size- shape- orientation-brightness illusions-type of illusions-ESP-states of consciousness- biological rhythms-dream and sleep-ASC meditation .</p><p>4. Psychological processes: learning: classical conditioning-operant conditioning-cognitive learning-observational learning-memory: encoding-storage and retrieval process-sensory, a short term and long term memories-chunking- working memory-semantic and episodic memory-explicit and implicit memory-forgetting: decay interference-repression-amnesia- mnemonics-cognitive process-images and concepts-prototypes-language-deductive and inductive reasoning-decision making-problem solving-motivation-need, drive, incentives- biological and psychological motives-hierarchy of needs-extrinsic and intrinsic motives- intelligence-concepts of IQ-Emotional intelligence.</p><p>5. Personality and abnormal behaviour: Approaches to personality-major ideas of Freud’s theory- assessment of personality-self report and projective measures-DSM-ICD classification- normality, abnormality, psychological disorders of childhood and adolescence—ADHD— conduct disorder—oppositional defiant disorder—anxiety disorders-mood disorders- schizophrenia-personality disorders.</p><p>6. Social psychology-Social perception- -Attribution—Impression formation-- Social cognition- Social influence-Conformity-compliance-obedience. Attitudes -Attitudes and behaviour, Attitude formation, Attitude change, Prejudice and discrimination---Pro social behaviour.</p></div></details>
+<details class="syllabus-section"><summary>Home Science<span>25 marks</span></summary><div class="syllabus-text"><p>1. Physiology and Microbiology Digestive system, Cardiovascular system, and Reproductive system. Food microbiology, food poisoning, food spoilage, food borne infections- cholera, dysentery, botulism and salmonellosis, Viral infections- AIDS, Covid 19, Poliomyelitis, Economic importance of mould and yeast</p><p>2. Child development and welfare Factors influencing prenatal development -maternal nutrition, physical and mental health of pregnant women, IUGR, birth process- stages of labour, Types of birth – normal, caesarean, breech and transverse, Pre-mature and LBW babies, neonate- characteristics, abilities and adjustments, reflexes, APGAR test, milestones, Breast feeding – Advantages and disadvantages, Immunization, Feeding the infant, WHO guidelines – Infant and young child feeding, significance of first 1000 days of life, MBFHI, Play-types and significance, Discipline and guidance, Family norms, family planning, sex education, STD, Children with special needs.</p><p>3. Human Nutrition and Dietetics Balanced nutrition, RDA, Fibre, Macronutrients and micronutrients- role in human health, sources, deficiencies, toxicity. Medical nutrition therapy- NCDs, fevers, diarrhea (ORS), Pregnancy, Lactation, preschoolers, school going, adolescents, adults and in old age. Common nutritional problems in the community, Important national and international agencies involved in enhancing population nutrition. Nutritional assessment of children and adults,</p><p>4. Extension Education and Communication Definition, principles, philosophy, formal / informal extension education, poverty alleviation programs of India, Program development-planning executing and evaluation, Communication methods- Journalism/ Community Radio/ TV , Traditional media-folk media, Concept of NGO, CSR, Population- growth, explosion, policies at State and National level, welfare programs for the aged, gender sensitisation</p><p>5. Basic Food Science Food groups, cereals, pulses, nuts, oilseeds, vegetables, fruits, milk and milk products, meat, fish, eggs, poultry, beverages, spices- composition, nutritive contents, processed products, selection and storage, nutrition labelling, FSSAI- objective and role, food preservation, food adulteration, food additives</p></div></details>
+<details class="syllabus-section"><summary>Social Work<span>25 marks</span></summary><div class="syllabus-text"><p>1. Social Work Social Work: Definition, meaning, purpose, goals and objectives - principles and assumptions of social work - basic and auxiliary methods of social work - tools, techniques, skills and abilities of a professional social worker - NASW Code of Ethics and Standards of Practice - Theories of Development: Erikson, Piaget, Kohlberg, Freud - Pregnancy, Childood, Middle Childhood. Adolescence and Old-age: Biopsychosocial Changes, Developemental Tasks &amp; Hazards</p><p>2. WORKING WITH INDIVIDUALS (Social Casework) Social Casework: definition, nature, objectives, relevance and scope of - philosophy, principles and components of social case work - Social Casework Proess: Exploration, Engagement, Assessment and Planning, Implementation, Goal Attainment, Termination and Evaluation - Skills and techniques in social case work - Models of Case Work Practice: Psychodynamic, Behavioural, Psychosocial, General Sytems, Ecological &amp; Humanistic-Existential.</p><p>3. WORKING WITH GROUPS &amp; COMMUNITIES (Social Group Work &amp; Community Organisation) Social Group Work: Definition, objectives, scope, purpose - principles of Group Work - Social Group Process - Intake, Study, goal setting, intervention, evaluation - programme as a tool, principles of programme planning, programme development process - stages of group development - Social Group Work Models - Group worker - role, functions, skills and qualities. Community Organization: Definitions- Objectives, scope, purpose - principles of community organization -Process: Creating discontent, identifying needs, prioritizing needs, designing interventions, mobilizing resources, setting human organization, implementing and evaluating - Models of Community Organization: Social Planning, Locality Development and Social Action, Neighbourhood Development, Systems Change &amp; Structural Change.</p><p>4. SOCIAL WORK ADMINISTRATION Social Work Administration - Concept, As a method, Objectives, Principles and functions - tasks of a Social work administrator - organization, structure and function of CSWB and SSWB and Department of Social Justice - Legislations: Probation of Offender&#x27;s Act, 1956, Juvenile Justice (Care &amp; Protection) Act 2000; Child Labour (Prohibition and Regulation) Amendment Act, 2016; Domestic Violence (Prohibition) Act 2005; POCSO Act 2012; Maintenance and Welfare of Parents and Senior Citizenz Act, 2007, Dowry Prohibition Act, 1961; Sexual Harassment of Women at Workplace (Prevention, Prohibition and Redressal) Act, 2013 (POSH Act) - Roles of Social Worker in Women and Child Protection at LSG level: village level child protection communities &amp; jagratha samiti for women protection. </p><p>5. SOCIAL SECURITY SCHEMES Kerala Social Security Mission: objectives &amp; functions - Schemes: Vayomithram - Srutitharangam - Thalolam - Hunger Free City - Cancer Sureksha - Aswasakiranam - Snehasanthwanam - Prathyasa - Samashwasam Department of Women and Child Development: objectives &amp; functions - Schemes: Supplementary Nutrition Program - Aswasanidhi - First 1000 Days - Mangalya Scheme- Abhayakiranam - Sahayahastham - Education Assistance for Women - headed Families Others: Sampushta Keralam - ICDS - ORC - Nirbhaya.</p></div></details>
+  </div>
+</div>
 
 <!-- ═══════════════ SCREEN: DASHBOARD ═══════════════ -->
 <div id="screen-dashboard" class="screen">
@@ -308,6 +341,7 @@ tr:hover td{background:#f8fafc}
 <div id="screen-study-setup" class="screen">
   <div class="main-wrap">
     <div class="page-title">📖 Study Mode — Choose a Topic</div>
+    <p class="text-muted mb-16">Continue with questions you haven't viewed yet. Study progress is saved for your account in this browser.</p>
     <div class="topic-grid" id="study-topic-grid"></div>
   </div>
 </div>
@@ -388,6 +422,7 @@ tr:hover td{background:#f8fafc}
           Negative Marking (−⅓ per wrong answer)
         </label>
       </div>
+      <p class="text-muted">Quizzes use unseen questions only. If fewer remain, your quiz will be shorter. Use Revision Test to revisit previous questions.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
     </div>
   </div>
@@ -729,6 +764,7 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<script src="question-selection.js"></script>
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -775,6 +811,30 @@ let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+const seenProgressCache=new Map();
+let startingStudy=false,startingQuiz=false;
+
+// Study visits and unfinished quiz visits are local to this account/browser.
+// Completed quiz history remains in Supabase and is merged below.
+function seenProgress(mode){
+  const storageKey=`cdpo_seen_${mode}_${currentUser.id}`;
+  if(!seenProgressCache.has(storageKey)){
+    let ids=[];
+    try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(saved))ids=saved.filter(id=>typeof id==='string');}catch(e){}
+    seenProgressCache.set(storageKey,new Set(ids));
+  }
+  return seenProgressCache.get(storageKey);
+}
+function saveSeenProgress(mode){
+  try{localStorage.setItem(`cdpo_seen_${mode}_${currentUser.id}`,JSON.stringify([...seenProgress(mode)]));}catch(e){console.warn('Progress could not be saved in this browser.');}
+}
+function rememberQuestion(mode,q){
+  const ids=seenProgress(mode);
+  if(!ids.has(q.id)){ids.add(q.id);saveSeenProgress(mode);}
+}
+function clearLoginSession(){
+  ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
+}
 let adminViewingUser=null; // {id,username,full_name} — which user's progress the admin drill-down screen is showing
 let reviewBackTarget='progress'; // which screen the Review Mistakes "back" button returns to: 'progress' or 'admin-user'
 let pageTimerInterval=null,pageTimerStart=Date.now();
@@ -782,7 +842,7 @@ let lastActivityAt=Date.now(),inactivityWarned=false,inactivityCheckInterval=nul
 const INACTIVITY_LIMIT_MS=60*60*1000; // auto-logout after 60 minutes of no activity
 const INACTIVITY_WARN_LEAD_MS=60*1000; // warn 1 minute before logout
 const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
-  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes','admin-user':'Admin · User Progress'};
+  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes','admin-user':'Admin · User Progress',syllabus:'Syllabus'};
 
 const TOPIC_ICONS={
   'Child Development':'👶','Extension & Community Dev':'🌾','Facts about India':'🇮🇳',
@@ -817,7 +877,7 @@ window.addEventListener('load', async()=>{
       showScreen('dashboard');
       startInactivityWatch();
       return;
-    }catch(e){localStorage.clear();}
+    }catch(e){clearLoginSession();}
   }
   // Check if any users with a real password exist (SETUP_REQUIRED = not yet configured)
   const users = await sbGet('users','select=id&password_hash=neq.SETUP_REQUIRED&limit=1');
@@ -858,7 +918,7 @@ function populateTopics(){
   // Study topic grid
   const sg=document.getElementById('study-topic-grid');
   sg.innerHTML=topics.map(t=>{
-    const cnt=allQuestions.filter(q=>q.s===t).length;
+    const cnt=QuestionSelection.unique(allQuestions.filter(q=>q.s===t)).length;
     return `<div class="topic-card" onclick="startStudy('${t.replace(/'/g,"\\'")}')">
       <div class="topic-icon">${TOPIC_ICONS[t]||'📚'}</div>
       <div class="topic-name">${t}</div>
@@ -896,7 +956,7 @@ function showScreen(name){
   document.getElementById('screen-'+name).classList.add('active');
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision'};
+  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision',syllabus:'nb-syllabus'};
   const navHighlight = name==='review' ? (reviewBackTarget==='admin-user'?'nb-admin':'nb-progress') : map[name];
   if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
@@ -1013,7 +1073,7 @@ async function doLogout(dueToInactivity){
     studyState=null;
   }
   currentUser=null;sessionId=null;loginTime=null;
-  localStorage.clear();
+  clearLoginSession();
   document.getElementById('main-nav').style.display='none';
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('login-user').value='';
@@ -1130,19 +1190,33 @@ async function loadDashboard(){
 // STUDY MODE
 // ══════════════════════════════════════════════
 async function startStudy(topic){
-  const qs=allQuestions.filter(q=>q.s===topic);
-  studyState={questions:qs,currentIdx:0,topic,startTime:Date.now(),answered:{}};
-  // Record study session
-  const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
-  if(sess&&sess[0]) studyState.sessionId=sess[0].id;
-  document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic;
-  renderStudyQuestion();
-  showScreen('study');
+  if(startingStudy)return;
+  startingStudy=true;
+  try{
+    const pool=allQuestions.filter(q=>q.s===topic);
+    let qs=QuestionSelection.unseen(pool,allQuestions,seenProgress('study'));
+    if(!qs.length){
+      if(!pool.length){alert('No questions are available for this topic.');return;}
+      if(!confirm('You have studied every question in this topic in this browser. Start this topic again?'))return;
+      const keys=new Set(pool.map(QuestionSelection.key));
+      allQuestions.forEach(q=>{if(keys.has(QuestionSelection.key(q)))seenProgress('study').delete(q.id);});
+      saveSeenProgress('study');
+      qs=QuestionSelection.unique(pool);
+    }
+    studyState={questions:qs,currentIdx:0,topic,startTime:Date.now(),answered:{}};
+    // Record study session
+    const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
+    if(sess&&sess[0]) studyState.sessionId=sess[0].id;
+    document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic;
+    renderStudyQuestion();
+    showScreen('study');
+  }finally{startingStudy=false;}
 }
 
 function renderStudyQuestion(){
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
+  rememberQuestion('study',q);
   // Reset chat for each new question
   studyChatHistory=[];
   const chatSec=document.getElementById('study-chat-section');
@@ -1287,62 +1361,56 @@ function shuffleArr(arr){
   return arr;
 }
 
-// Per-user question history (cross-quiz): which questions seen, and were they last answered correctly?
-// Lets us (a) avoid repeating a question until the whole pool is exhausted, and (b) resurface past wrong answers.
+// Read every page: the API's row cap must not make older questions look unseen.
 async function fetchUserHistory(){
   const lastSeen=new Map(),lastCorrect=new Map();
-  try{
-    const rows=await sbGet('question_history',`select=question_id,is_correct,answered_at&user_id=eq.${currentUser.id}&order=answered_at.desc`);
+  const cutoff=encodeURIComponent(new Date().toISOString());
+  for(let offset=0;;){
+    const params=`select=question_id,is_correct,answered_at&user_id=eq.${encodeURIComponent(currentUser.id)}&answered_at=lte.${cutoff}&order=answered_at.desc,question_id.asc&limit=500&offset=${offset}`;
+    const response=await fetch(`${SB_URL}/rest/v1/question_history?${params}`,{headers:sbH()});
+    if(!response.ok)throw new Error('Question history could not be loaded.');
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw new Error('Invalid question history response.');
+    if(!rows.length)break;
     rows.forEach(r=>{
       if(!lastSeen.has(r.question_id)) lastSeen.set(r.question_id,new Date(r.answered_at).getTime());
       if(!lastCorrect.has(r.question_id)) lastCorrect.set(r.question_id,r.is_correct);
     });
-  }catch(e){console.error('fetchUserHistory failed',e);}
+    offset+=rows.length;
+  }
   return {lastSeen,lastCorrect};
 }
 
 async function startQuiz(){
-  const topic=document.getElementById('qs-topic').value;
-  const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
-  const mode=document.querySelector('input[name="qmode"]:checked').value;
-  const negative=document.getElementById('qs-negative').checked;
-  let pool = topic==='all'?[...allQuestions]:allQuestions.filter(q=>q.s===topic);
-  // Defensive de-dup by id — guarantees no question can appear twice in one quiz
-  // even if the question bank ever ends up with a duplicate entry.
-  const seenIds=new Set();
-  pool=pool.filter(q=>{if(seenIds.has(q.id))return false;seenIds.add(q.id);return true;});
+  if(startingQuiz)return;
+  startingQuiz=true;
+  try{
+    const topic=document.getElementById('qs-topic').value;
+    const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
+    const mode=document.querySelector('input[name="qmode"]:checked').value;
+    const negative=document.getElementById('qs-negative').checked;
+    const pool=QuestionSelection.unique(topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic));
+    if(!pool.length){alert('No questions are available for this topic.');return;}
+    const history=await fetchUserHistory();
+    const seenIds=new Set([...history.lastSeen.keys(),...seenProgress('quiz')]);
+    const unseen=QuestionSelection.unseen(pool,allQuestions,seenIds);
+    if(!unseen.length){
+      alert('You have seen every question in this topic. Use Revision Test to practice them again, or choose another topic.');
+      return;
+    }
+    // Use a shorter quiz near exhaustion instead of filling it with repeats.
+    const questions=shuffleArr(unseen).slice(0,count);
+    if(questions.length<count)alert(`Only ${questions.length} unseen questions remain. This quiz will contain ${questions.length} questions without repeats.`);
 
-  const history=await fetchUserHistory();
-  const wrongBucket=[],neverSeenBucket=[],seenOkBucket=[];
-  pool.forEach(q=>{
-    if(history.lastCorrect.get(q.id)===false) wrongBucket.push(q);
-    else if(!history.lastSeen.has(q.id)) neverSeenBucket.push(q);
-    else seenOkBucket.push(q);
-  });
-  // Oldest-seen-first for recycled buckets (once everything has been seen, the longest-unseen
-  // questions come back first); never-seen questions are in random order since there's no recency to rank by.
-  wrongBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
-  seenOkBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
-  shuffleArr(neverSeenBucket);
-
-  // Build the quiz: previously-wrong questions get priority (capped at ~half the quiz so there's
-  // still room for new material), then never-seen questions, then overflow wrong, then oldest-recycled.
-  const wrongCap=Math.max(0,Math.ceil(count/2));
-  const chosen=[];
-  chosen.push(...wrongBucket.slice(0,wrongCap));
-  let remaining=count-chosen.length;
-  if(remaining>0){chosen.push(...neverSeenBucket.slice(0,remaining));remaining=count-chosen.length;}
-  if(remaining>0){chosen.push(...wrongBucket.slice(wrongCap,wrongCap+remaining));remaining=count-chosen.length;}
-  if(remaining>0){chosen.push(...seenOkBucket.slice(0,remaining));remaining=count-chosen.length;}
-  shuffleArr(chosen);
-  const questions=chosen.slice(0,Math.min(count,pool.length));
-
-  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
-  document.getElementById('quiz-topic-label').textContent=quizState.topic;
-  buildPalette();
-  renderQuizQuestion();
-  if(mode==='timed') startTimer(90*60);
-  showScreen('quiz');
+    if(quizState?.timerInterval)clearInterval(quizState.timerInterval);
+    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
+    document.getElementById('quiz-topic-label').textContent=quizState.topic;
+    buildPalette();
+    renderQuizQuestion();
+    if(mode==='timed') startTimer(90*60);
+    showScreen('quiz');
+  }catch(e){console.error('startQuiz failed',e);alert('Could not load your question history. Please try again before starting a quiz.');}
+  finally{startingQuiz=false;}
 }
 
 async function startRevision(){
@@ -1360,7 +1428,7 @@ async function startRevision(){
     if(row.is_correct) h.correct++;
   }
   const seenIds=new Set(histMap.keys());
-  let pool=allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic));
+  let pool=QuestionSelection.unique(allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic)));
   if(!pool.length){alert('No matching questions found.');return;}
   shuffleArr(pool);
   const count=countVal==='all'?pool.length:parseInt(countVal);
@@ -1388,6 +1456,7 @@ function updatePalette(){
 function renderQuizQuestion(){
   const {questions,answers,currentIdx}=quizState;
   const q=questions[currentIdx];
+  rememberQuestion('quiz',q);
   const total=questions.length;
   document.getElementById('quiz-qmeta').textContent=`Q${currentIdx+1} of ${total} · ${q.s}`;
   document.getElementById('quiz-qtext').textContent=q.q;

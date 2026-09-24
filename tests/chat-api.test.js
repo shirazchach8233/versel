@@ -32,7 +32,7 @@ test('study chat uses the supported NVIDIA model and returns its reply',async()=
     }},res);
     assert.equal(res.statusCode,200);
     assert.equal(res.payload.reply,'Study reply');
-    assert.equal(requestBody.model,'deepseek-ai/deepseek-v4.1-flash');
+    assert.equal(requestBody.model,'microsoft/phi-4-mini-instruct');
   }finally{
     global.fetch=originalFetch;
     if(originalKey===undefined) delete process.env.NVIDIA_API_KEY;

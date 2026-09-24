@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   }
 
   const apiKey = process.env.NVIDIA_API_KEY;
-  const model = process.env.NVIDIA_CHAT_MODEL || 'deepseek-ai/deepseek-v4.1-flash';
+  const model = process.env.NVIDIA_CHAT_MODEL || 'microsoft/phi-4-mini-instruct';
   if (!apiKey) {
     return res.status(500).json({ error: 'NVIDIA_API_KEY not configured' });
   }
@@ -61,12 +61,13 @@ Your role:
           'content-type': 'application/json',
           'authorization': `Bearer ${apiKey}`
         },
+        signal: AbortSignal.timeout(20000),
         body: JSON.stringify({
           model,
           messages: chatMessages,
           temperature: 0.7,
           top_p: 0.95,
-          max_tokens: 600,
+          max_tokens: 400,
           stream: false
         })
       }

@@ -24,7 +24,26 @@
     const seen=seenKeys(bank,seenIds);
     return unique(pool).filter(q=>seen.has(key(q)));
   }
-  const api={key,unique,seenKeys,unseen,viewed};
+  function latestResultsByKey(bank,lastSeen,lastCorrect){
+    const results=new Map();
+    bank.forEach(q=>{
+      if(!lastSeen.has(q.id))return;
+      const k=key(q),at=lastSeen.get(q.id);
+      const previous=results.get(k);
+      if(!previous||at>=previous.at)results.set(k,{at,correct:lastCorrect.get(q.id)});
+    });
+    return results;
+  }
+  function quizEligible(pool,bank,lastSeen,lastCorrect,locallyViewedIds){
+    const results=latestResultsByKey(bank,lastSeen,lastCorrect);
+    const locallyViewed=seenKeys(bank,locallyViewedIds);
+    return unique(pool).filter(q=>{
+      const k=key(q),result=results.get(k);
+      if(result)return result.correct!==true;
+      return !locallyViewed.has(k);
+    });
+  }
+  const api={key,unique,seenKeys,unseen,viewed,latestResultsByKey,quizEligible};
   if(typeof module!=='undefined'&&module.exports) module.exports=api;
   else root.QuestionSelection=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

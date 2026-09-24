@@ -82,12 +82,21 @@ test('study topic tabs report remaining and viewed counts',async()=>{
   assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 viewed'));
 });
 
-test('quiz excludes past wrong answers and text aliases and never pads a short quiz with repeats',async()=>{
-  const a=app();a.setBank([q('a','Old'),q('alias','OLD','Other'),q('b','New'),q('c','Newest')]);
-  a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1]]),lastCorrect:new Map([['a',false]])})");
+test('quiz retries wrong and skipped questions, excludes correct answers and duplicate wording',async()=>{
+  const a=app();a.setBank([q('a','Wrong'),q('alias','WRONG','Other'),q('b','New'),q('c','Correct'),q('d','Skipped')]);
+  a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1],['c',2],['d',3]]),lastCorrect:new Map([['a',false],['c',true],['d',null]])})");
   await a.run('startQuiz()');
-  assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id).sort()')),['b','c']);
-  assert.ok(a.alerts.some(message=>message.includes('2 unseen')));
+  assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id).sort()')),['a','b','d']);
+  assert.ok(a.alerts.some(message=>message.includes('new, wrong, or skipped')));
+});
+
+test('latest result for duplicate wording controls whether it repeats',()=>{
+  const rows=[q('a','Same'),q('alias','SAME','Other'),q('b','Other')];
+  const lastSeen=new Map([['a',1],['alias',2],['b',3]]);
+  const lastCorrect=new Map([['a',false],['alias',true],['b',false]]);
+  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set()).map(x=>x.id),['b']);
+  lastSeen.set('a',4);
+  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set()).map(x=>x.id),['a','b']);
 });
 
 test('abandoned quiz visits are remembered across reload but unviewed questions remain available',async()=>{
@@ -103,9 +112,9 @@ test('abandoned quiz visits are remembered across reload but unviewed questions 
   assert.equal(ids.length,2);assert.ok(!ids.includes(displayed));
 });
 
-test('exhausted quiz directs user to revision instead of silently repeating',async()=>{
+test('quiz stops when every available question was answered correctly',async()=>{
   const a=app();a.setBank([q('a','First')]);
-  a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1]]),lastCorrect:new Map()})");
+  a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1]]),lastCorrect:new Map([['a',true]])})");
   await a.run('startQuiz()');
   assert.equal(a.run('quizState'),null);
   assert.ok(a.alerts[0].includes('Revision Test'));

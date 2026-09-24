@@ -427,7 +427,7 @@ tr:hover td{background:#f8fafc}
           Negative Marking (−⅓ per wrong answer)
         </label>
       </div>
-      <p class="text-muted">Quizzes use unseen questions only. If fewer remain, your quiz will be shorter. Use Revision Test to revisit previous questions.</p>
+      <p class="text-muted">Quizzes use new questions plus questions you previously answered wrong or skipped. Correctly answered questions will not repeat.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
     </div>
   </div>
@@ -1431,15 +1431,14 @@ async function startQuiz(){
     const pool=QuestionSelection.unique(topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic));
     if(!pool.length){alert('No questions are available for this topic.');return;}
     const history=await fetchUserHistory();
-    const seenIds=new Set([...history.lastSeen.keys(),...seenProgress('quiz')]);
-    const unseen=QuestionSelection.unseen(pool,allQuestions,seenIds);
-    if(!unseen.length){
-      alert('You have seen every question in this topic. Use Revision Test to practice them again, or choose another topic.');
+    const eligible=QuestionSelection.quizEligible(pool,allQuestions,history.lastSeen,history.lastCorrect,seenProgress('quiz'));
+    if(!eligible.length){
+      alert('No eligible questions remain in this topic. Correctly answered questions will not repeat; use Revision Test to review them.');
       return;
     }
-    // Use a shorter quiz near exhaustion instead of filling it with repeats.
-    const questions=shuffleArr(unseen).slice(0,count);
-    if(questions.length<count)alert(`Only ${questions.length} unseen questions remain. This quiz will contain ${questions.length} questions without repeats.`);
+    // Use a shorter quiz near exhaustion instead of repeating correct questions.
+    const questions=shuffleArr(eligible).slice(0,count);
+    if(questions.length<count)alert(`Only ${questions.length} eligible questions remain (new, wrong, or skipped). This quiz will contain ${questions.length} questions.`);
 
     if(quizState?.timerInterval)clearInterval(quizState.timerInterval);
     quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};

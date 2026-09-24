@@ -32,7 +32,8 @@ test('study chat uses the supported NVIDIA model and returns its reply',async()=
     }},res);
     assert.equal(res.statusCode,200);
     assert.equal(res.payload.reply,'Study reply');
-    assert.equal(requestBody.model,'microsoft/phi-4-mini-instruct');
+    assert.equal(requestBody.model,'nvidia/nemotron-3.5-lightning-30b-a3b');
+    assert.deepEqual(requestBody.chat_template_kwargs,{enable_thinking:false});
   }finally{
     global.fetch=originalFetch;
     if(originalKey===undefined) delete process.env.NVIDIA_API_KEY;

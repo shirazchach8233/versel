@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   }
 
   const apiKey = process.env.NVIDIA_API_KEY;
-  const model = process.env.NVIDIA_CHAT_MODEL || 'microsoft/phi-4-mini-instruct';
+  const model = process.env.NVIDIA_CHAT_MODEL || 'nvidia/nemotron-3.5-lightning-30b-a3b';
   if (!apiKey) {
     return res.status(500).json({ error: 'NVIDIA_API_KEY not configured' });
   }
@@ -68,6 +68,7 @@ Your role:
           temperature: 0.7,
           top_p: 0.95,
           max_tokens: 400,
+          chat_template_kwargs: { enable_thinking: false },
           stream: false
         })
       }

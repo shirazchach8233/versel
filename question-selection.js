@@ -2,7 +2,8 @@
 (function(root){
   function key(question){
     return question.q.normalize('NFKC').toLowerCase()
-      .replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\s+/g,' ').trim();
+      .replace(/[‘’]/g,"'").replace(/[“”]/g,'"')
+      .replace(/[^\p{L}\p{N}_]+/gu,' ').replace(/\s+/g,' ').trim();
   }
   function unique(questions){
     const keys=new Set(),ids=new Set();

@@ -1,0 +1,539 @@
+{
+  "source_questions": 42000,
+  "existing_questions_before_import": 9087,
+  "existing_duplicate_wording_groups_preserved": 275,
+  "skipped_as_duplicate_of_existing": 203,
+  "skipped_as_duplicate_within_pdf": 14455,
+  "questions_added": 27342,
+  "questions_after_import": 36429,
+  "added_by_topic": {
+    "Home Science - Module 1: Physiology and Microbiology": 1377,
+    "Home Science - Module 2: Child Development and Welfare": 1321,
+    "Home Science - Module 3: Human Nutrition and Dietetics": 1339,
+    "Home Science - Module 4: Extension Education and Communication": 1286,
+    "Home Science - Module 5: Basic Food Science": 1282,
+    "Psychology - Module 1: Introduction to Psychology": 1320,
+    "Psychology - Module 2: Biological Basis of Behaviour": 1339,
+    "Psychology - Module 3: Sensation, Attention, Perception and Consciousness": 1353,
+    "Psychology - Module 4: Psychological Processes": 1298,
+    "Psychology - Module 5: Personality and Abnormal Behaviour": 1319,
+    "Psychology - Module 6: Social Psychology": 1356,
+    "Social Work - Module 1: Concepts, Methods, Ethics and Development": 1262,
+    "Social Work - Module 2: Working with Individuals (Social Casework)": 1264,
+    "Social Work - Module 3: Working with Groups and Communities": 1218,
+    "Social Work - Module 4: Administration and Legislations": 1219,
+    "Social Work - Module 5: Social Security Schemes": 1127,
+    "Sociology - Module 1: Origin and Development of Sociology": 1346,
+    "Sociology - Module 2: Sociology in India": 1351,
+    "Sociology - Module 3: Globalisation and Development": 1359,
+    "Sociology - Module 4: Social Problems": 1255,
+    "Sociology - Module 5: Social Research Methods": 1351
+  },
+  "duplicate_existing_examples": [
+    {
+      "source_number": 250,
+      "existing_ids": [
+        "27604ba688bcde0e"
+      ]
+    },
+    {
+      "source_number": 292,
+      "existing_ids": [
+        "0f26d7d9d5227ff8"
+      ]
+    },
+    {
+      "source_number": 485,
+      "existing_ids": [
+        "d5e263c495f8fdaf"
+      ]
+    },
+    {
+      "source_number": 1040,
+      "existing_ids": [
+        "8f5f2df31a6b7d22"
+      ]
+    },
+    {
+      "source_number": 1071,
+      "existing_ids": [
+        "ce004968839efee2"
+      ]
+    },
+    {
+      "source_number": 1412,
+      "existing_ids": [
+        "6716d56afdff5ad0"
+      ]
+    },
+    {
+      "source_number": 1559,
+      "existing_ids": [
+        "af4655fcc6e5ade5"
+      ]
+    },
+    {
+      "source_number": 1605,
+      "existing_ids": [
+        "9c3d87ed77f818b5"
+      ]
+    },
+    {
+      "source_number": 1769,
+      "existing_ids": [
+        "afed202cd109b0c7"
+      ]
+    },
+    {
+      "source_number": 2500,
+      "existing_ids": [
+        "a9f7863804632208"
+      ]
+    },
+    {
+      "source_number": 3506,
+      "existing_ids": [
+        "6716d56afdff5ad0"
+      ]
+    },
+    {
+      "source_number": 3613,
+      "existing_ids": [
+        "0607ab7378afeddb"
+      ]
+    },
+    {
+      "source_number": 3804,
+      "existing_ids": [
+        "b57d255d260faa39"
+      ]
+    },
+    {
+      "source_number": 3843,
+      "existing_ids": [
+        "889aa0bbacbf53dc"
+      ]
+    },
+    {
+      "source_number": 4189,
+      "existing_ids": [
+        "04f38f78684cb737"
+      ]
+    },
+    {
+      "source_number": 4278,
+      "existing_ids": [
+        "2875555fca12527a"
+      ]
+    },
+    {
+      "source_number": 5150,
+      "existing_ids": [
+        "c7bb491f1061bb53"
+      ]
+    },
+    {
+      "source_number": 5648,
+      "existing_ids": [
+        "d6ac4a4f2f76fc71"
+      ]
+    },
+    {
+      "source_number": 5888,
+      "existing_ids": [
+        "9dfac9be773fafd8"
+      ]
+    },
+    {
+      "source_number": 5982,
+      "existing_ids": [
+        "427c258191edf16d"
+      ]
+    },
+    {
+      "source_number": 6007,
+      "existing_ids": [
+        "820a74a844ce9aa4",
+        "0b336fc33f461eb0"
+      ]
+    },
+    {
+      "source_number": 6243,
+      "existing_ids": [
+        "b7836d28c2cd74c5"
+      ]
+    },
+    {
+      "source_number": 6400,
+      "existing_ids": [
+        "54f5ed01477981eb"
+      ]
+    },
+    {
+      "source_number": 6404,
+      "existing_ids": [
+        "2472dd7df19fe575"
+      ]
+    },
+    {
+      "source_number": 6439,
+      "existing_ids": [
+        "4f61313efaa1ac82"
+      ]
+    },
+    {
+      "source_number": 6627,
+      "existing_ids": [
+        "af164611c5f3f7be"
+      ]
+    },
+    {
+      "source_number": 6734,
+      "existing_ids": [
+        "27604ba688bcde0e"
+      ]
+    },
+    {
+      "source_number": 6756,
+      "existing_ids": [
+        "48f5474dc2e2bfe7"
+      ]
+    },
+    {
+      "source_number": 6969,
+      "existing_ids": [
+        "c7bb491f1061bb53"
+      ]
+    },
+    {
+      "source_number": 7240,
+      "existing_ids": [
+        "6dc7050859eed4f9"
+      ]
+    },
+    {
+      "source_number": 7299,
+      "existing_ids": [
+        "a7b1fda1b73d9df3"
+      ]
+    },
+    {
+      "source_number": 7463,
+      "existing_ids": [
+        "43bc749a1a3bb698"
+      ]
+    },
+    {
+      "source_number": 7545,
+      "existing_ids": [
+        "3585486ec29f2751"
+      ]
+    },
+    {
+      "source_number": 7745,
+      "existing_ids": [
+        "8ac96392ddc3fc8e"
+      ]
+    },
+    {
+      "source_number": 7834,
+      "existing_ids": [
+        "026ed4ba9ac03209"
+      ]
+    },
+    {
+      "source_number": 7918,
+      "existing_ids": [
+        "63069fc7cee60f91"
+      ]
+    },
+    {
+      "source_number": 7938,
+      "existing_ids": [
+        "a21a32b95b222f40"
+      ]
+    },
+    {
+      "source_number": 7997,
+      "existing_ids": [
+        "1aa04db108c727b8"
+      ]
+    },
+    {
+      "source_number": 8037,
+      "existing_ids": [
+        "06a3011c26307890"
+      ]
+    },
+    {
+      "source_number": 8480,
+      "existing_ids": [
+        "4f61313efaa1ac82"
+      ]
+    },
+    {
+      "source_number": 8546,
+      "existing_ids": [
+        "5161989d94afecad"
+      ]
+    },
+    {
+      "source_number": 8723,
+      "existing_ids": [
+        "27604ba688bcde0e"
+      ]
+    },
+    {
+      "source_number": 8874,
+      "existing_ids": [
+        "0f26d7d9d5227ff8"
+      ]
+    },
+    {
+      "source_number": 9064,
+      "existing_ids": [
+        "788718ffc877cdf7"
+      ]
+    },
+    {
+      "source_number": 9581,
+      "existing_ids": [
+        "3be9b2631732d6b5"
+      ]
+    },
+    {
+      "source_number": 9824,
+      "existing_ids": [
+        "02bdfd7309bde290"
+      ]
+    },
+    {
+      "source_number": 9930,
+      "existing_ids": [
+        "afed202cd109b0c7"
+      ]
+    },
+    {
+      "source_number": 10035,
+      "existing_ids": [
+        "28c5b52bce75274e"
+      ]
+    },
+    {
+      "source_number": 10168,
+      "existing_ids": [
+        "41b130824c226654"
+      ]
+    },
+    {
+      "source_number": 10312,
+      "existing_ids": [
+        "35950fa0c903ab2e"
+      ]
+    }
+  ],
+  "duplicate_pdf_question_numbers": [
+    127,
+    130,
+    131,
+    133,
+    136,
+    145,
+    148,
+    153,
+    154,
+    171,
+    174,
+    176,
+    179,
+    192,
+    193,
+    194,
+    195,
+    197,
+    200,
+    202,
+    207,
+    208,
+    209,
+    212,
+    216,
+    220,
+    222,
+    223,
+    224,
+    229,
+    231,
+    233,
+    239,
+    240,
+    242,
+    244,
+    245,
+    246,
+    247,
+    248,
+    252,
+    255,
+    256,
+    259,
+    260,
+    262,
+    263,
+    264,
+    271,
+    275,
+    281,
+    283,
+    284,
+    285,
+    288,
+    296,
+    302,
+    303,
+    308,
+    313,
+    314,
+    317,
+    319,
+    322,
+    323,
+    327,
+    330,
+    331,
+    334,
+    335,
+    336,
+    339,
+    341,
+    342,
+    345,
+    348,
+    352,
+    353,
+    354,
+    358,
+    359,
+    361,
+    363,
+    371,
+    373,
+    374,
+    379,
+    383,
+    386,
+    388,
+    390,
+    394,
+    396,
+    398,
+    402,
+    404,
+    405,
+    408,
+    412,
+    413,
+    416,
+    419,
+    423,
+    425,
+    426,
+    436,
+    438,
+    445,
+    450,
+    452,
+    453,
+    457,
+    460,
+    461,
+    468,
+    469,
+    475,
+    478,
+    480,
+    481,
+    482,
+    487,
+    491,
+    492,
+    496,
+    499,
+    504,
+    508,
+    509,
+    512,
+    517,
+    518,
+    520,
+    523,
+    524,
+    530,
+    531,
+    533,
+    538,
+    539,
+    541,
+    544,
+    547,
+    548,
+    555,
+    557,
+    559,
+    561,
+    568,
+    575,
+    578,
+    581,
+    584,
+    585,
+    595,
+    598,
+    600,
+    607,
+    610,
+    612,
+    615,
+    617,
+    618,
+    624,
+    626,
+    627,
+    632,
+    633,
+    638,
+    640,
+    644,
+    646,
+    653,
+    656,
+    658,
+    660,
+    661,
+    665,
+    666,
+    667,
+    669,
+    671,
+    672,
+    673,
+    675,
+    676,
+    677,
+    681,
+    683,
+    686,
+    689,
+    694,
+    700,
+    701,
+    702,
+    705,
+    708,
+    709,
+    711,
+    715
+  ],
+  "printed_answer_mismatches": 0,
+  "printed_answer_mismatch_examples": []
+}

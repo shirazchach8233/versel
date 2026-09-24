@@ -41,8 +41,8 @@ test('real bank has cross-topic duplicates; selection retains IDs and excludes d
   assert.ok(remaining.every(record=>selection.key(record)!==selection.key(duplicate)));
 });
 
-test('normalizes case, whitespace, Unicode quotes; keeps different question text',()=>{
-  const rows=[q('a','  What is “X”? '),q('b','WHAT  IS "X"?'),q('c','What is Y?')];
+test('normalizes case, whitespace, Unicode quotes and punctuation; keeps different wording',()=>{
+  const rows=[q('a','  What is “X”? '),q('b','WHAT--IS "X"'),q('c','What is Y?')];
   assert.deepEqual(selection.unique(rows).map(x=>x.id),['a','c']);
 });
 

@@ -16,7 +16,7 @@ function app(storage=new Map()){
     localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     window:{addEventListener(){},scrollTo(){}},
     document:{querySelectorAll:()=>[],querySelector:s=>({value:s.includes('qcount')?'25':'practice'}),
-      getElementById:id=>{if(!elements.has(id))elements.set(id,{value:'all',style:{},checked:false});return elements.get(id);}},
+      getElementById:id=>{if(!elements.has(id))elements.set(id,{value:'all',style:{},checked:false,setAttribute(name,value){this[name]=value;}});return elements.get(id);}},
     alert:msg=>alerts.push(msg),confirm:()=>false,
     fetch:async()=>{throw new Error('Unexpected network request');},
     clearInterval(){},setInterval(){return 1;},setTimeout(){},Date,Map,Set
@@ -44,6 +44,7 @@ test('real bank has cross-topic duplicates; selection retains IDs and excludes d
 test('normalizes case, whitespace, Unicode quotes and punctuation; keeps different wording',()=>{
   const rows=[q('a','  What is “X”? '),q('b','WHAT--IS "X"'),q('c','What is Y?')];
   assert.deepEqual(selection.unique(rows).map(x=>x.id),['a','c']);
+  assert.deepEqual(selection.viewed(rows,rows,new Set(['b'])).map(x=>x.id),['a']);
 });
 
 test('study resumes after reload and logout; another account has independent progress',async()=>{
@@ -61,15 +62,24 @@ test('study resumes after reload and logout; another account has independent pro
   assert.equal(next.run('studyState.questions[0].id'),'a');
 });
 
-test('study restarts only after explicit choice once a topic is exhausted',async()=>{
+test('study keeps completed questions out of Remaining and makes them available in Viewed',async()=>{
   const a=app();a.setBank([q('a','First')]);
   await a.run("startStudy('Topic')");
   a.run('studyState=null');
   await a.run("startStudy('Topic')");
   assert.equal(a.run('studyState'),null);
-  a.context.confirm=()=>true;
-  await a.run("startStudy('Topic')");
+  assert.ok(a.alerts.at(-1).includes('Viewed tab'));
+  await a.run("startStudy('Topic','viewed')");
   assert.equal(a.run('studyState.questions[0].id'),'a');
+});
+
+test('study topic tabs report remaining and viewed counts',async()=>{
+  const a=app();a.setBank([q('a','First'),q('b','Second')]);
+  await a.run("startStudy('Topic')");
+  a.run("setStudyView('remaining')");
+  assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 remaining'));
+  a.run("setStudyView('viewed')");
+  assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 viewed'));
 });
 
 test('quiz excludes past wrong answers and text aliases and never pads a short quiz with repeats',async()=>{

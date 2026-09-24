@@ -341,7 +341,12 @@ tr:hover td{background:#f8fafc}
 <div id="screen-study-setup" class="screen">
   <div class="main-wrap">
     <div class="page-title">📖 Study Mode — Choose a Topic</div>
-    <p class="text-muted mb-16">Continue with questions you haven't viewed yet. Study progress is saved for your account in this browser.</p>
+    <p class="text-muted mb-16">Continue with questions you haven't viewed yet, or review questions you have already seen. Study progress is saved for your account in this browser.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px" role="tablist" aria-label="Study question view">
+      <button id="study-tab-remaining" class="btn btn-primary" role="tab" aria-selected="true" onclick="setStudyView('remaining')">📘 Remaining</button>
+      <button id="study-tab-viewed" class="btn btn-ghost" role="tab" aria-selected="false" onclick="setStudyView('viewed')">✅ Viewed</button>
+    </div>
+    <div id="study-view-summary" class="text-muted mb-16"></div>
     <div class="topic-grid" id="study-topic-grid"></div>
   </div>
 </div>
@@ -811,6 +816,7 @@ let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+let studyView='remaining';
 const seenProgressCache=new Map();
 let startingStudy=false,startingQuiz=false;
 
@@ -915,16 +921,7 @@ async function loadQuestions(){
 
 function populateTopics(){
   const topics=[...new Set(allQuestions.map(q=>q.s))].sort();
-  // Study topic grid
-  const sg=document.getElementById('study-topic-grid');
-  sg.innerHTML=topics.map(t=>{
-    const cnt=QuestionSelection.unique(allQuestions.filter(q=>q.s===t)).length;
-    return `<div class="topic-card" onclick="startStudy('${t.replace(/'/g,"\\'")}')">
-      <div class="topic-icon">${TOPIC_ICONS[t]||'📚'}</div>
-      <div class="topic-name">${t}</div>
-      <div class="topic-count">${cnt} questions</div>
-    </div>`;
-  }).join('');
+  renderStudyTopics();
   // Quiz topic select
   const qs=document.getElementById('qs-topic');
   qs.innerHTML='<option value="all">Full Syllabus (All Topics)</option>'+
@@ -961,6 +958,7 @@ function showScreen(name){
   if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
   if(name==='dashboard') loadDashboard();
+  if(name==='study-setup'&&allQuestions.length) renderStudyTopics();
   if(name==='progress') loadProgress();
   if(name==='admin') loadAdmin();
   if(name==='admin-user') loadAdminUserProgress();
@@ -1189,25 +1187,66 @@ async function loadDashboard(){
 // ══════════════════════════════════════════════
 // STUDY MODE
 // ══════════════════════════════════════════════
-async function startStudy(topic){
+function setStudyView(view){
+  if(view!=='remaining'&&view!=='viewed')return;
+  studyView=view;
+  renderStudyTopics();
+}
+
+function studyQuestionsFor(topic,view=studyView){
+  const pool=allQuestions.filter(q=>q.s===topic);
+  const seen=seenProgress('study');
+  return view==='viewed'
+    ? QuestionSelection.viewed(pool,allQuestions,seen)
+    : QuestionSelection.unseen(pool,allQuestions,seen);
+}
+
+function renderStudyTopics(){
+  const grid=document.getElementById('study-topic-grid');
+  if(!grid||!currentUser)return;
+  const topics=[...new Set(allQuestions.map(q=>q.s))].sort();
+  let totalRemaining=0,totalViewed=0;
+  const cards=topics.map(topic=>{
+    const remaining=studyQuestionsFor(topic,'remaining').length;
+    const viewed=studyQuestionsFor(topic,'viewed').length;
+    totalRemaining+=remaining;totalViewed+=viewed;
+    const count=studyView==='viewed'?viewed:remaining;
+    const label=studyView==='viewed'?'viewed':'remaining';
+    return `<div class="topic-card" onclick="startStudy('${topic.replace(/'/g,"\\'")}','${studyView}')">
+      <div class="topic-icon">${TOPIC_ICONS[topic]||'📚'}</div>
+      <div class="topic-name">${topic}</div>
+      <div class="topic-count">${count} ${label}</div>
+    </div>`;
+  });
+  grid.innerHTML=cards.join('');
+  const remainingTab=document.getElementById('study-tab-remaining');
+  const viewedTab=document.getElementById('study-tab-viewed');
+  if(remainingTab){remainingTab.className=`btn ${studyView==='remaining'?'btn-primary':'btn-ghost'}`;remainingTab.setAttribute('aria-selected',studyView==='remaining');}
+  if(viewedTab){viewedTab.className=`btn ${studyView==='viewed'?'btn-primary':'btn-ghost'}`;viewedTab.setAttribute('aria-selected',studyView==='viewed');}
+  const summary=document.getElementById('study-view-summary');
+  if(summary)summary.textContent=studyView==='remaining'
+    ? `${totalRemaining} questions remaining · ${totalViewed} viewed`
+    : `${totalViewed} viewed questions available for review`;
+}
+
+async function startStudy(topic,view=studyView){
   if(startingStudy)return;
   startingStudy=true;
   try{
     const pool=allQuestions.filter(q=>q.s===topic);
-    let qs=QuestionSelection.unseen(pool,allQuestions,seenProgress('study'));
+    const qs=studyQuestionsFor(topic,view);
     if(!qs.length){
       if(!pool.length){alert('No questions are available for this topic.');return;}
-      if(!confirm('You have studied every question in this topic in this browser. Start this topic again?'))return;
-      const keys=new Set(pool.map(QuestionSelection.key));
-      allQuestions.forEach(q=>{if(keys.has(QuestionSelection.key(q)))seenProgress('study').delete(q.id);});
-      saveSeenProgress('study');
-      qs=QuestionSelection.unique(pool);
+      alert(view==='viewed'
+        ? 'You have not viewed any questions in this topic yet.'
+        : 'You have viewed every question in this topic. Open the Viewed tab to review them.');
+      return;
     }
-    studyState={questions:qs,currentIdx:0,topic,startTime:Date.now(),answered:{}};
+    studyState={questions:qs,currentIdx:0,topic,view,startTime:Date.now(),answered:{}};
     // Record study session
     const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
     if(sess&&sess[0]) studyState.sessionId=sess[0].id;
-    document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic;
+    document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic+(view==='viewed'?' · Viewed':'');
     renderStudyQuestion();
     showScreen('study');
   }finally{startingStudy=false;}

@@ -20,7 +20,11 @@
     const seen=seenKeys(bank,seenIds);
     return unique(pool).filter(q=>!seen.has(key(q)));
   }
-  const api={key,unique,seenKeys,unseen};
+  function viewed(pool,bank,seenIds){
+    const seen=seenKeys(bank,seenIds);
+    return unique(pool).filter(q=>seen.has(key(q)));
+  }
+  const api={key,unique,seenKeys,unseen,viewed};
   if(typeof module!=='undefined'&&module.exports) module.exports=api;
   else root.QuestionSelection=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

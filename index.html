@@ -308,6 +308,7 @@ tr:hover td{background:#f8fafc}
 <div id="screen-study-setup" class="screen">
   <div class="main-wrap">
     <div class="page-title">📖 Study Mode — Choose a Topic</div>
+    <p class="text-muted mb-16">Continue with questions you haven't viewed yet. Study progress is saved for your account in this browser.</p>
     <div class="topic-grid" id="study-topic-grid"></div>
   </div>
 </div>
@@ -388,6 +389,7 @@ tr:hover td{background:#f8fafc}
           Negative Marking (−⅓ per wrong answer)
         </label>
       </div>
+      <p class="text-muted">Quizzes use unseen questions only. If fewer remain, your quiz will be shorter. Use Revision Test to revisit previous questions.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
     </div>
   </div>
@@ -729,6 +731,7 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<script src="question-selection.js"></script>
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -775,6 +778,30 @@ let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+const seenProgressCache=new Map();
+let startingStudy=false,startingQuiz=false;
+
+// Study visits and unfinished quiz visits are local to this account/browser.
+// Completed quiz history remains in Supabase and is merged below.
+function seenProgress(mode){
+  const storageKey=`cdpo_seen_${mode}_${currentUser.id}`;
+  if(!seenProgressCache.has(storageKey)){
+    let ids=[];
+    try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(saved))ids=saved.filter(id=>typeof id==='string');}catch(e){}
+    seenProgressCache.set(storageKey,new Set(ids));
+  }
+  return seenProgressCache.get(storageKey);
+}
+function saveSeenProgress(mode){
+  try{localStorage.setItem(`cdpo_seen_${mode}_${currentUser.id}`,JSON.stringify([...seenProgress(mode)]));}catch(e){console.warn('Progress could not be saved in this browser.');}
+}
+function rememberQuestion(mode,q){
+  const ids=seenProgress(mode);
+  if(!ids.has(q.id)){ids.add(q.id);saveSeenProgress(mode);}
+}
+function clearLoginSession(){
+  ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
+}
 let adminViewingUser=null; // {id,username,full_name} — which user's progress the admin drill-down screen is showing
 let reviewBackTarget='progress'; // which screen the Review Mistakes "back" button returns to: 'progress' or 'admin-user'
 let pageTimerInterval=null,pageTimerStart=Date.now();
@@ -817,7 +844,7 @@ window.addEventListener('load', async()=>{
       showScreen('dashboard');
       startInactivityWatch();
       return;
-    }catch(e){localStorage.clear();}
+    }catch(e){clearLoginSession();}
   }
   // Check if any users with a real password exist (SETUP_REQUIRED = not yet configured)
   const users = await sbGet('users','select=id&password_hash=neq.SETUP_REQUIRED&limit=1');
@@ -858,7 +885,7 @@ function populateTopics(){
   // Study topic grid
   const sg=document.getElementById('study-topic-grid');
   sg.innerHTML=topics.map(t=>{
-    const cnt=allQuestions.filter(q=>q.s===t).length;
+    const cnt=QuestionSelection.unique(allQuestions.filter(q=>q.s===t)).length;
     return `<div class="topic-card" onclick="startStudy('${t.replace(/'/g,"\\'")}')">
       <div class="topic-icon">${TOPIC_ICONS[t]||'📚'}</div>
       <div class="topic-name">${t}</div>
@@ -1013,7 +1040,7 @@ async function doLogout(dueToInactivity){
     studyState=null;
   }
   currentUser=null;sessionId=null;loginTime=null;
-  localStorage.clear();
+  clearLoginSession();
   document.getElementById('main-nav').style.display='none';
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('login-user').value='';
@@ -1130,19 +1157,33 @@ async function loadDashboard(){
 // STUDY MODE
 // ══════════════════════════════════════════════
 async function startStudy(topic){
-  const qs=allQuestions.filter(q=>q.s===topic);
-  studyState={questions:qs,currentIdx:0,topic,startTime:Date.now(),answered:{}};
-  // Record study session
-  const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
-  if(sess&&sess[0]) studyState.sessionId=sess[0].id;
-  document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic;
-  renderStudyQuestion();
-  showScreen('study');
+  if(startingStudy)return;
+  startingStudy=true;
+  try{
+    const pool=allQuestions.filter(q=>q.s===topic);
+    let qs=QuestionSelection.unseen(pool,allQuestions,seenProgress('study'));
+    if(!qs.length){
+      if(!pool.length){alert('No questions are available for this topic.');return;}
+      if(!confirm('You have studied every question in this topic in this browser. Start this topic again?'))return;
+      const keys=new Set(pool.map(QuestionSelection.key));
+      allQuestions.forEach(q=>{if(keys.has(QuestionSelection.key(q)))seenProgress('study').delete(q.id);});
+      saveSeenProgress('study');
+      qs=QuestionSelection.unique(pool);
+    }
+    studyState={questions:qs,currentIdx:0,topic,startTime:Date.now(),answered:{}};
+    // Record study session
+    const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
+    if(sess&&sess[0]) studyState.sessionId=sess[0].id;
+    document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic;
+    renderStudyQuestion();
+    showScreen('study');
+  }finally{startingStudy=false;}
 }
 
 function renderStudyQuestion(){
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
+  rememberQuestion('study',q);
   // Reset chat for each new question
   studyChatHistory=[];
   const chatSec=document.getElementById('study-chat-section');
@@ -1287,62 +1328,56 @@ function shuffleArr(arr){
   return arr;
 }
 
-// Per-user question history (cross-quiz): which questions seen, and were they last answered correctly?
-// Lets us (a) avoid repeating a question until the whole pool is exhausted, and (b) resurface past wrong answers.
+// Read every page: the API's row cap must not make older questions look unseen.
 async function fetchUserHistory(){
   const lastSeen=new Map(),lastCorrect=new Map();
-  try{
-    const rows=await sbGet('question_history',`select=question_id,is_correct,answered_at&user_id=eq.${currentUser.id}&order=answered_at.desc`);
+  const cutoff=encodeURIComponent(new Date().toISOString());
+  for(let offset=0;;){
+    const params=`select=question_id,is_correct,answered_at&user_id=eq.${encodeURIComponent(currentUser.id)}&answered_at=lte.${cutoff}&order=answered_at.desc,question_id.asc&limit=500&offset=${offset}`;
+    const response=await fetch(`${SB_URL}/rest/v1/question_history?${params}`,{headers:sbH()});
+    if(!response.ok)throw new Error('Question history could not be loaded.');
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw new Error('Invalid question history response.');
+    if(!rows.length)break;
     rows.forEach(r=>{
       if(!lastSeen.has(r.question_id)) lastSeen.set(r.question_id,new Date(r.answered_at).getTime());
       if(!lastCorrect.has(r.question_id)) lastCorrect.set(r.question_id,r.is_correct);
     });
-  }catch(e){console.error('fetchUserHistory failed',e);}
+    offset+=rows.length;
+  }
   return {lastSeen,lastCorrect};
 }
 
 async function startQuiz(){
-  const topic=document.getElementById('qs-topic').value;
-  const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
-  const mode=document.querySelector('input[name="qmode"]:checked').value;
-  const negative=document.getElementById('qs-negative').checked;
-  let pool = topic==='all'?[...allQuestions]:allQuestions.filter(q=>q.s===topic);
-  // Defensive de-dup by id — guarantees no question can appear twice in one quiz
-  // even if the question bank ever ends up with a duplicate entry.
-  const seenIds=new Set();
-  pool=pool.filter(q=>{if(seenIds.has(q.id))return false;seenIds.add(q.id);return true;});
+  if(startingQuiz)return;
+  startingQuiz=true;
+  try{
+    const topic=document.getElementById('qs-topic').value;
+    const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
+    const mode=document.querySelector('input[name="qmode"]:checked').value;
+    const negative=document.getElementById('qs-negative').checked;
+    const pool=QuestionSelection.unique(topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic));
+    if(!pool.length){alert('No questions are available for this topic.');return;}
+    const history=await fetchUserHistory();
+    const seenIds=new Set([...history.lastSeen.keys(),...seenProgress('quiz')]);
+    const unseen=QuestionSelection.unseen(pool,allQuestions,seenIds);
+    if(!unseen.length){
+      alert('You have seen every question in this topic. Use Revision Test to practice them again, or choose another topic.');
+      return;
+    }
+    // Use a shorter quiz near exhaustion instead of filling it with repeats.
+    const questions=shuffleArr(unseen).slice(0,count);
+    if(questions.length<count)alert(`Only ${questions.length} unseen questions remain. This quiz will contain ${questions.length} questions without repeats.`);
 
-  const history=await fetchUserHistory();
-  const wrongBucket=[],neverSeenBucket=[],seenOkBucket=[];
-  pool.forEach(q=>{
-    if(history.lastCorrect.get(q.id)===false) wrongBucket.push(q);
-    else if(!history.lastSeen.has(q.id)) neverSeenBucket.push(q);
-    else seenOkBucket.push(q);
-  });
-  // Oldest-seen-first for recycled buckets (once everything has been seen, the longest-unseen
-  // questions come back first); never-seen questions are in random order since there's no recency to rank by.
-  wrongBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
-  seenOkBucket.sort((a,b)=>history.lastSeen.get(a.id)-history.lastSeen.get(b.id));
-  shuffleArr(neverSeenBucket);
-
-  // Build the quiz: previously-wrong questions get priority (capped at ~half the quiz so there's
-  // still room for new material), then never-seen questions, then overflow wrong, then oldest-recycled.
-  const wrongCap=Math.max(0,Math.ceil(count/2));
-  const chosen=[];
-  chosen.push(...wrongBucket.slice(0,wrongCap));
-  let remaining=count-chosen.length;
-  if(remaining>0){chosen.push(...neverSeenBucket.slice(0,remaining));remaining=count-chosen.length;}
-  if(remaining>0){chosen.push(...wrongBucket.slice(wrongCap,wrongCap+remaining));remaining=count-chosen.length;}
-  if(remaining>0){chosen.push(...seenOkBucket.slice(0,remaining));remaining=count-chosen.length;}
-  shuffleArr(chosen);
-  const questions=chosen.slice(0,Math.min(count,pool.length));
-
-  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
-  document.getElementById('quiz-topic-label').textContent=quizState.topic;
-  buildPalette();
-  renderQuizQuestion();
-  if(mode==='timed') startTimer(90*60);
-  showScreen('quiz');
+    if(quizState?.timerInterval)clearInterval(quizState.timerInterval);
+    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
+    document.getElementById('quiz-topic-label').textContent=quizState.topic;
+    buildPalette();
+    renderQuizQuestion();
+    if(mode==='timed') startTimer(90*60);
+    showScreen('quiz');
+  }catch(e){console.error('startQuiz failed',e);alert('Could not load your question history. Please try again before starting a quiz.');}
+  finally{startingQuiz=false;}
 }
 
 async function startRevision(){
@@ -1360,7 +1395,7 @@ async function startRevision(){
     if(row.is_correct) h.correct++;
   }
   const seenIds=new Set(histMap.keys());
-  let pool=allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic));
+  let pool=QuestionSelection.unique(allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic)));
   if(!pool.length){alert('No matching questions found.');return;}
   shuffleArr(pool);
   const count=countVal==='all'?pool.length:parseInt(countVal);
@@ -1388,6 +1423,7 @@ function updatePalette(){
 function renderQuizQuestion(){
   const {questions,answers,currentIdx}=quizState;
   const q=questions[currentIdx];
+  rememberQuestion('quiz',q);
   const total=questions.length;
   document.getElementById('quiz-qmeta').textContent=`Q${currentIdx+1} of ${total} · ${q.s}`;
   document.getElementById('quiz-qtext').textContent=q.q;

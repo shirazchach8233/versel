@@ -1,4 +1,4 @@
-// Vercel serverless function: NVIDIA/DeepSeek-powered chat for Study Mode.
+// Vercel serverless function: NVIDIA-hosted AI chat for Study Mode.
 // Takes the current question as context + conversation history, returns AI reply.
 //
 // Required environment variable (set in Vercel Project Settings → Environment Variables):
@@ -10,6 +10,7 @@ module.exports = async (req, res) => {
   }
 
   const apiKey = process.env.NVIDIA_API_KEY;
+  const model = process.env.NVIDIA_CHAT_MODEL || 'deepseek-ai/deepseek-v4.1-flash';
   if (!apiKey) {
     return res.status(500).json({ error: 'NVIDIA_API_KEY not configured' });
   }
@@ -61,7 +62,7 @@ Your role:
           'authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'deepseek-ai/deepseek-v4-flash',
+          model,
           messages: chatMessages,
           temperature: 0.7,
           top_p: 0.95,
@@ -73,17 +74,24 @@ Your role:
 
     if (!apiRes.ok) {
       const errText = await apiRes.text();
-      console.error('NVIDIA API error:', errText);
-      return res.status(502).json({ error: 'AI API error', detail: errText });
+      console.error('[api/chat] NVIDIA request failed', {
+        model,
+        status: apiRes.status,
+        detail: errText.slice(0, 1000)
+      });
+      return res.status(502).json({ error: 'The AI assistant is temporarily unavailable. Please try again.' });
     }
 
     const data = await apiRes.json();
     const reply = data.choices?.[0]?.message?.content;
-    if (!reply) return res.status(502).json({ error: 'Empty response from AI' });
+    if (!reply) {
+      console.error('[api/chat] NVIDIA returned an empty response', { model });
+      return res.status(502).json({ error: 'The AI assistant returned an empty response. Please try again.' });
+    }
 
     return res.status(200).json({ reply });
   } catch (err) {
-    console.error('chat.js error:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('[api/chat] request failed', { model, error: err.message });
+    return res.status(500).json({ error: 'The AI assistant could not be reached. Please try again.' });
   }
 };

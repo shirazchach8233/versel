@@ -23,12 +23,13 @@ async function callOpenAI({ apiKey, model, systemPrompt, messages }) {
       'content-type': 'application/json',
       'authorization': `Bearer ${apiKey}`
     },
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(25000),
     body: JSON.stringify({
       model,
       instructions: systemPrompt,
       input: messages,
-      max_output_tokens: 400
+      max_output_tokens: 400,
+      store: false
     })
   });
   const requestId = response.headers?.get?.('x-request-id') || null;
@@ -128,7 +129,8 @@ Your role:
   const chatMessages = [{ role: 'system', content: systemPrompt }, ...conversation];
 
   if (openAIKey) {
-    const model = process.env.OPENAI_CHAT_MODEL || 'gpt-5-mini';
+    // A small non-reasoning model responds quickly to short study questions.
+    const model = process.env.OPENAI_CHAT_MODEL || 'gpt-4.1-mini';
     try {
       const reply = await callOpenAI({ apiKey: openAIKey, model, systemPrompt, messages: conversation });
       return res.status(200).json({ reply, provider: 'openai' });

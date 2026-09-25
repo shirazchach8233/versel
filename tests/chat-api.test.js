@@ -36,7 +36,7 @@ test('study chat uses OpenAI Responses API as the primary provider',async()=>{
     const res=response();await chatHandler(request(),res);
     assert.equal(res.statusCode,200);assert.deepEqual(res.payload,{reply:'OpenAI reply',provider:'openai'});
     assert.equal(url,'https://api.openai.com/v1/responses');assert.equal(authorization,'Bearer openai-test-key');
-    assert.equal(body.model,'gpt-5-mini');assert.equal(body.input[0].content,'Please explain');assert.match(body.instructions,/Kerala PSC/);
+    assert.equal(body.model,'gpt-4.1-mini');assert.equal(body.store,false);assert.equal(body.input[0].content,'Please explain');assert.match(body.instructions,/Kerala PSC/);
   }finally{restoreEnvironment(original);}
 });
 

@@ -30,6 +30,11 @@ function app(storage=new Map()){
   return {context,alerts,storage,run:code=>vm.runInContext(code,context),setBank:rows=>{context.testBank=rows;vm.runInContext('allQuestions=testBank',context);}};
 }
 
+test('quiz setup offers 200 and 300 question options',()=>{
+  const counts=[...html.matchAll(/name="qcount" value="(\d+)"/g)].map(match=>Number(match[1]));
+  assert.deepEqual(counts,[25,50,75,100,200,300]);
+});
+
 test('real bank has cross-topic duplicates; selection retains IDs and excludes duplicate text',()=>{
   const unique=selection.unique(bank);
   assert.ok(unique.length<bank.length);

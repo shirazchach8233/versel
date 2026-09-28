@@ -80,8 +80,12 @@ test('study chat reports a configuration error when no provider key exists',asyn
   }finally{restoreEnvironment(original);}
 });
 
-test('study chat UI uses provider-neutral labels',()=>{
+test('study AI UI opens a complete explanation and uses provider-neutral labels',()=>{
   const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
-  assert.match(html,/Ask AI about this/);assert.match(html,/>💬 Ask AI</);
+  assert.match(html,/✨ Explain with AI/);assert.match(html,/>✨ AI Explanation</);
+  assert.match(html,/function requestStudyExplanation\(\)/);
+  assert.match(html,/Explain this entire question in detail/);
+  assert.match(html,/if\(!studyChatHistory\.length\) requestStudyExplanation\(\)/);
+  assert.doesNotMatch(html,/Ask AI about this/);
   assert.doesNotMatch(html,/Ask (?:Gemini|Claude)/);assert.doesNotMatch(html,/connect to Claude/);
 });

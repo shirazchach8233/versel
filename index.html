@@ -367,7 +367,7 @@ tr:hover td{background:#f8fafc}
       <div class="options" id="study-opts"></div>
       <div id="study-explanation" class="explanation-box" style="display:none"></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-        <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">💬 Ask AI about this</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">✨ Explain with AI</button>
       </div>
     </div>
     <div class="q-nav">
@@ -378,12 +378,12 @@ tr:hover td{background:#f8fafc}
     <!-- ── Study Chat ── -->
     <div id="study-chat-section" style="display:none;margin-top:12px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:.9rem;font-weight:600;color:var(--primary)">💬 Ask AI</div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--primary)">✨ AI Explanation</div>
         <button onclick="toggleStudyChat()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;line-height:1;padding:2px 6px" title="Close">✕</button>
       </div>
       <div id="study-chat-messages" style="min-height:48px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding-right:2px"></div>
       <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea id="study-chat-input" rows="1" placeholder="Ask anything about this question or topic…"
+        <textarea id="study-chat-input" rows="1" placeholder="Ask a follow-up about this explanation…"
           style="flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;resize:none;min-height:42px;max-height:110px;font-family:inherit;line-height:1.5;background:var(--bg);color:var(--text)"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendStudyChat();}"
           oninput="this.style.height='42px';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
@@ -1263,7 +1263,11 @@ function renderStudyQuestion(){
   const chatBtn=document.getElementById('study-chat-toggle');
   if(chatSec) chatSec.style.display='none';
   if(chatMsgs) chatMsgs.innerHTML='';
-  if(chatBtn) chatBtn.textContent='💬 Ask AI about this';
+  studyChatRequestToken++;
+  studyChatLoading=false;
+  if(chatBtn) chatBtn.textContent='✨ Explain with AI';
+  const chatSend=document.getElementById('study-chat-send');
+  if(chatSend){chatSend.disabled=false;chatSend.textContent='Send';}
   document.getElementById('study-qmeta').textContent=`Question ${currentIdx+1} of ${questions.length}`;
   document.getElementById('study-qtext').textContent=q.q;
   document.getElementById('study-progress-text').textContent=`${currentIdx+1} / ${questions.length} questions`;
@@ -1321,23 +1325,17 @@ async function studyNav(dir){
 // STUDY CHAT
 // ══════════════════════════════════════════════
 let studyChatHistory=[];
+let studyChatLoading=false;
+let studyChatRequestToken=0;
 
 function toggleStudyChat(){
   const sec=document.getElementById('study-chat-section');
   const btn=document.getElementById('study-chat-toggle');
   const open=sec.style.display==='none';
   sec.style.display=open?'':'none';
-  btn.textContent=open?'💬 Close Chat':'💬 Ask AI about this';
+  btn.textContent=open?'✕ Close Explanation':'✨ Explain with AI';
   if(open){
-    // Welcome message on first open for this question
-    if(!studyChatHistory.length){
-      const {questions,currentIdx,answered}=studyState;
-      const q=questions[currentIdx];
-      const hint=answered[currentIdx]===undefined
-        ?'I\'ll help you think through it without spoiling the answer.'
-        :'Feel free to ask me to explain the answer or any related concept.';
-      appendChatMsg('ai',`Hi! Ask me anything about this question or the ${q.s} topic. ${hint}`);
-    }
+    if(!studyChatHistory.length) requestStudyExplanation();
     setTimeout(()=>document.getElementById('study-chat-input').focus(),50);
     document.getElementById('study-chat-section').scrollIntoView({behavior:'smooth',block:'nearest'});
   }
@@ -1346,18 +1344,34 @@ function toggleStudyChat(){
 async function sendStudyChat(){
   const input=document.getElementById('study-chat-input');
   const msg=input.value.trim();
-  if(!msg) return;
-  const sendBtn=document.getElementById('study-chat-send');
+  if(!msg||studyChatLoading) return;
   input.value='';
   input.style.height='42px';
-  appendChatMsg('user',msg);
+  await requestStudyAI(msg,{showUser:true,loadingText:'⏳ Thinking…'});
+}
+
+function requestStudyExplanation(){
+  const {answered,currentIdx}=studyState;
+  const answeredAlready=answered[currentIdx]!==undefined;
+  const prompt=answeredAlready
+    ?'Explain this entire question in detail. Explain what it is testing, define the important concepts, then explain why the correct answer is right and why each other option is not correct. Add a useful Kerala PSC exam memory tip.'
+    :'Explain this entire question in detail without revealing which option is correct. Explain what it is testing, define the important concepts, and explain the meaning and relevance of every option so I can work out the answer myself. Add a useful Kerala PSC exam memory tip.';
+  return requestStudyAI(prompt,{showUser:false,loadingText:'✨ Preparing a complete explanation…'});
+}
+
+async function requestStudyAI(msg,{showUser=true,loadingText='⏳ Thinking…'}={}){
+  if(studyChatLoading) return;
+  studyChatLoading=true;
+  const sendBtn=document.getElementById('study-chat-send');
+  if(showUser) appendChatMsg('user',msg);
   studyChatHistory.push({role:'user',content:msg});
   sendBtn.disabled=true;
   sendBtn.textContent='…';
-  const thinking=appendChatMsg('ai','⏳ Thinking…',true);
+  const thinking=appendChatMsg('ai',loadingText,true);
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
   const isAnswered=answered[currentIdx]!==undefined;
+  const requestToken=studyChatRequestToken;
   try{
     const res=await fetch('/api/chat',{
       method:'POST',
@@ -1366,16 +1380,23 @@ async function sendStudyChat(){
     });
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'API error');
+    if(requestToken!==studyChatRequestToken) return;
     thinking.remove();
     appendChatMsg('ai',data.reply);
     studyChatHistory.push({role:'assistant',content:data.reply});
   }catch(err){
+    if(requestToken!==studyChatRequestToken) return;
     thinking.remove();
+    if(studyChatHistory.at(-1)?.role==='user'&&studyChatHistory.at(-1)?.content===msg) studyChatHistory.pop();
     appendChatMsg('ai',`⚠️ ${err.message||'The AI assistant could not be reached. Please try again.'}`);
+  }finally{
+    if(requestToken===studyChatRequestToken){
+      studyChatLoading=false;
+      sendBtn.disabled=false;
+      sendBtn.textContent='Send';
+      document.getElementById('study-chat-input').focus();
+    }
   }
-  sendBtn.disabled=false;
-  sendBtn.textContent='Send';
-  document.getElementById('study-chat-input').focus();
 }
 
 function appendChatMsg(role,text,isTemp){

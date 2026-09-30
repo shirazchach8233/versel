@@ -791,6 +791,14 @@ async function sbPost(table,body,extra={}){
   if(!r.ok){console.error(`sbPost(${table}) failed: ${r.status}`,await r.text().catch(()=>''));return null;}
   return await r.json();
 }
+async function sbUpsertIgnore(table,body,onConflict,{keepalive=false}={}){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?on_conflict=${onConflict}`,{
+    method:'POST',headers:sbH({'Prefer':'resolution=ignore-duplicates,return=minimal'}),
+    body:JSON.stringify(body),keepalive
+  });
+  if(!r.ok){console.error(`sbUpsertIgnore(${table}) failed: ${r.status}`,await r.text().catch(()=>''));return false;}
+  return true;
+}
 async function sbPatch(table,filter,body){
   const r=await fetch(`${SB_URL}/rest/v1/${table}?${filter}`,{method:'PATCH',headers:sbH({'Prefer':'return=minimal'}),body:JSON.stringify(body)});
   if(!r.ok) console.error(`sbPatch(${table}) failed: ${r.status}`,await r.text().catch(()=>''));
@@ -820,10 +828,11 @@ let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negati
 let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
 let studyView='remaining';
 const seenProgressCache=new Map();
+const studyServerProgressCache=new Map();
 let startingStudy=false,startingQuiz=false;
 
-// Study visits and unfinished quiz visits are local to this account/browser.
-// Completed quiz history remains in Supabase and is merged below.
+// Local progress makes navigation instant and works offline. Study progress is
+// also synchronized to Supabase so it follows the user across browsers/devices.
 function seenProgress(mode){
   const storageKey=`cdpo_seen_${mode}_${currentUser.id}`;
   if(!seenProgressCache.has(storageKey)){
@@ -839,6 +848,58 @@ function saveSeenProgress(mode){
 function rememberQuestion(mode,q){
   const ids=seenProgress(mode);
   if(!ids.has(q.id)){ids.add(q.id);saveSeenProgress(mode);}
+  if(mode==='study') persistStudyQuestion(q);
+}
+function serverStudyProgress(){
+  if(!studyServerProgressCache.has(currentUser.id)) studyServerProgressCache.set(currentUser.id,new Set());
+  return studyServerProgressCache.get(currentUser.id);
+}
+async function persistStudyQuestion(q){
+  if(!currentUser||!q)return false;
+  const serverIds=serverStudyProgress();
+  if(serverIds.has(q.id))return true;
+  serverIds.add(q.id);
+  const ok=await sbUpsertIgnore('study_question_history',{
+    user_id:currentUser.id,question_id:q.id,topic:q.s,viewed_at:new Date().toISOString()
+  },'user_id,question_id',{keepalive:true});
+  if(!ok)serverIds.delete(q.id);
+  return ok;
+}
+async function fetchStudyProgress(){
+  const ids=new Set();
+  for(let offset=0;;){
+    const params=`select=question_id&user_id=eq.${encodeURIComponent(currentUser.id)}&order=question_id.asc&limit=500&offset=${offset}`;
+    const response=await fetch(`${SB_URL}/rest/v1/study_question_history?${params}`,{headers:sbH()});
+    if(!response.ok)throw new Error(`Study progress could not be loaded (${response.status}).`);
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw new Error('Invalid study progress response.');
+    rows.forEach(row=>{if(typeof row.question_id==='string')ids.add(row.question_id);});
+    if(!rows.length)break;
+    offset+=rows.length;
+  }
+  return ids;
+}
+async function loadStudyProgress(){
+  if(!currentUser)return false;
+  const localIds=seenProgress('study');
+  try{
+    const serverIds=await fetchStudyProgress();
+    studyServerProgressCache.set(currentUser.id,serverIds);
+    const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
+    const missing=[...localIds].filter(id=>!serverIds.has(id));
+    for(let start=0;start<missing.length;start+=500){
+      const rows=missing.slice(start,start+500).map(id=>({
+        user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
+      }));
+      if(rows.length&&await sbUpsertIgnore('study_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+    }
+    serverIds.forEach(id=>localIds.add(id));
+    saveSeenProgress('study');
+    return true;
+  }catch(error){
+    console.error('[study-progress] sync failed',error);
+    return false;
+  }
 }
 function clearLoginSession(){
   ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
@@ -881,6 +942,7 @@ window.addEventListener('load', async()=>{
       sessionId=localStorage.getItem('cdpo_sid');
       loginTime=parseInt(localStorage.getItem('cdpo_lt')||Date.now());
       await loadQuestions();
+      await loadStudyProgress();
       showNav();
       showScreen('dashboard');
       startInactivityWatch();
@@ -1055,6 +1117,7 @@ async function doLogin(){
   // Update last_login
   await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
   await loadQuestions();
+  await loadStudyProgress();
   showNav();
   showScreen('dashboard');
   startInactivityWatch();

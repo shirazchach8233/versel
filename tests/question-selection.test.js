@@ -8,7 +8,7 @@ const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
 const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
 const q=(id,text,topic='Topic')=>({id,q:text,s:topic,o:['A','B','C','D'],a:0,e:''});
 
-function app(storage=new Map()){
+function app(storage=new Map(),remoteStudyIds=new Set()){
   const alerts=[];
   const elements=new Map();
   const context=vm.createContext({
@@ -18,13 +18,24 @@ function app(storage=new Map()){
     document:{querySelectorAll:()=>[],querySelector:s=>({value:s.includes('qcount')?'25':'practice'}),
       getElementById:id=>{if(!elements.has(id))elements.set(id,{value:'all',style:{},checked:false,setAttribute(name,value){this[name]=value;}});return elements.get(id);}},
     alert:msg=>alerts.push(msg),confirm:()=>false,
-    fetch:async()=>{throw new Error('Unexpected network request');},
+    fetch:async url=>{
+      if(String(url).includes('/study_question_history?')){
+        const parsed=new URL(String(url));
+        const offset=Number(parsed.searchParams.get('offset')||0);
+        const limit=Number(parsed.searchParams.get('limit')||500);
+        const rows=[...remoteStudyIds].slice(offset,offset+limit).map(question_id=>({question_id}));
+        return {ok:true,status:200,json:async()=>rows};
+      }
+      throw new Error('Unexpected network request');
+    },
     clearInterval(){},setInterval(){return 1;},setTimeout(){},Date,Map,Set
   });
   vm.runInContext(script,context);
+  context.testStudyUpsert=async(table,rows)=>{(Array.isArray(rows)?rows:[rows]).forEach(row=>remoteStudyIds.add(row.question_id));return true;};
   vm.runInContext(`currentUser={id:'student-1',username:'student'};
     showScreen=()=>{};buildPalette=()=>{};
     sbPost=async()=>[{id:'session'}];
+    sbUpsertIgnore=testStudyUpsert;
     renderStudyQuestion=()=>rememberQuestion('study',studyState.questions[studyState.currentIdx]);
     renderQuizQuestion=()=>rememberQuestion('quiz',quizState.questions[quizState.currentIdx]);`,context);
   return {context,alerts,storage,run:code=>vm.runInContext(code,context),setBank:rows=>{context.testBank=rows;vm.runInContext('allQuestions=testBank',context);}};
@@ -65,6 +76,28 @@ test('study resumes after reload and logout; another account has independent pro
   next.run("currentUser={id:'student-2'}");
   await next.run("startStudy('Topic')");
   assert.equal(next.run('studyState.questions[0].id'),'a');
+});
+
+test('study progress syncs across browsers and prevents viewed questions from repeating',async()=>{
+  const remote=new Set();
+  const rows=[q('a','First'),q('b','Second')];
+  const first=app(new Map(),remote);first.setBank(rows);
+  await first.run('loadStudyProgress()');
+  await first.run('persistStudyQuestion(testBank[0])');
+  assert.deepEqual([...remote],['a']);
+
+  const otherBrowser=app(new Map(),remote);otherBrowser.setBank(rows);
+  await otherBrowser.run('loadStudyProgress()');
+  await otherBrowser.run("startStudy('Topic')");
+  assert.deepEqual(Array.from(otherBrowser.run('studyState.questions.map(q=>q.id)')),['b']);
+});
+
+test('existing local study progress is migrated to the server',async()=>{
+  const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a','b'])]]);
+  const remote=new Set(['a']);
+  const a=app(storage,remote);a.setBank([q('a','First'),q('b','Second')]);
+  assert.equal(await a.run('loadStudyProgress()'),true);
+  assert.deepEqual([...remote].sort(),['a','b']);
 });
 
 test('study keeps completed questions out of Remaining and makes them available in Viewed',async()=>{

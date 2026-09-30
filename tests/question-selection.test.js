@@ -8,7 +8,7 @@ const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
 const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
 const q=(id,text,topic='Topic')=>({id,q:text,s:topic,o:['A','B','C','D'],a:0,e:''});
 
-function app(storage=new Map(),remoteStudyIds=new Set()){
+function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set()){
   const alerts=[];
   const elements=new Map();
   const context=vm.createContext({
@@ -26,16 +26,27 @@ function app(storage=new Map(),remoteStudyIds=new Set()){
         const rows=[...remoteStudyIds].slice(offset,offset+limit).map(question_id=>({question_id}));
         return {ok:true,status:200,json:async()=>rows};
       }
+      if(String(url).includes('/quiz_question_history?')){
+        const parsed=new URL(String(url));
+        const offset=Number(parsed.searchParams.get('offset')||0);
+        const limit=Number(parsed.searchParams.get('limit')||500);
+        const rows=[...remoteQuizIds].slice(offset,offset+limit).map(question_id=>({question_id}));
+        return {ok:true,status:200,json:async()=>rows};
+      }
       throw new Error('Unexpected network request');
     },
     clearInterval(){},setInterval(){return 1;},setTimeout(){},Date,Map,Set
   });
   vm.runInContext(script,context);
-  context.testStudyUpsert=async(table,rows)=>{(Array.isArray(rows)?rows:[rows]).forEach(row=>remoteStudyIds.add(row.question_id));return true;};
+  context.testProgressUpsert=async(table,rows)=>{
+    const target=table==='quiz_question_history'?remoteQuizIds:remoteStudyIds;
+    (Array.isArray(rows)?rows:[rows]).forEach(row=>target.add(row.question_id));
+    return true;
+  };
   vm.runInContext(`currentUser={id:'student-1',username:'student'};
     showScreen=()=>{};buildPalette=()=>{};
     sbPost=async()=>[{id:'session'}];
-    sbUpsertIgnore=testStudyUpsert;
+    sbUpsertIgnore=testProgressUpsert;
     renderStudyQuestion=()=>rememberQuestion('study',studyState.questions[studyState.currentIdx]);
     renderQuizQuestion=()=>rememberQuestion('quiz',quizState.questions[quizState.currentIdx]);`,context);
   return {context,alerts,storage,run:code=>vm.runInContext(code,context),setBank:rows=>{context.testBank=rows;vm.runInContext('allQuestions=testBank',context);}};
@@ -137,17 +148,28 @@ test('latest result for duplicate wording controls whether it repeats',()=>{
   assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set()).map(x=>x.id),['a','b']);
 });
 
-test('abandoned quiz visits are remembered across reload but unviewed questions remain available',async()=>{
-  const storage=new Map(),rows=[q('a','First'),q('b','Second'),q('c','Third')];
-  const first=app(storage);first.setBank(rows);
+test('abandoned quiz visits sync across browsers but unviewed questions remain available',async()=>{
+  const remoteQuizIds=new Set(),rows=[q('a','First'),q('b','Second'),q('c','Third')];
+  const first=app(new Map(),new Set(),remoteQuizIds);first.setBank(rows);
+  await first.run('loadQuizProgress()');
   first.run('fetchUserHistory=async()=>({lastSeen:new Map(),lastCorrect:new Map()})');
   await first.run('startQuiz()');
   const displayed=first.run('quizState.questions[0].id');
-  const next=app(storage);next.setBank(rows);
+  assert.ok(remoteQuizIds.has(displayed));
+  const next=app(new Map(),new Set(),remoteQuizIds);next.setBank(rows);
+  await next.run('loadQuizProgress()');
   next.run('fetchUserHistory=async()=>({lastSeen:new Map(),lastCorrect:new Map()})');
   await next.run('startQuiz()');
   const ids=Array.from(next.run('quizState.questions.map(q=>q.id)'));
   assert.equal(ids.length,2);assert.ok(!ids.includes(displayed));
+});
+
+test('existing local quiz progress is migrated to the server',async()=>{
+  const storage=new Map([['cdpo_seen_quiz_student-1',JSON.stringify(['a','b'])]]);
+  const remoteQuizIds=new Set(['a']);
+  const a=app(storage,new Set(),remoteQuizIds);a.setBank([q('a','First'),q('b','Second')]);
+  assert.equal(await a.run('loadQuizProgress()'),true);
+  assert.deepEqual([...remoteQuizIds].sort(),['a','b']);
 });
 
 test('quiz stops when every available question was answered correctly',async()=>{
@@ -172,6 +194,7 @@ test('history reads beyond 1000 rows and honors lower server caps',async()=>{
 
 test('a failed later history page blocks the quiz instead of treating old questions as new',async()=>{
   const a=app();a.setBank([q('a','First')]);
+  a.run('quizProgressLoadedUsers.add(currentUser.id)');
   let calls=0;
   a.context.fetch=async()=>++calls===1?{ok:true,json:async()=>[{question_id:'old',answered_at:'2026-09-24',is_correct:false}]}:{ok:false};
   await a.run('startQuiz()');
@@ -182,6 +205,7 @@ test('a failed later history page blocks the quiz instead of treating old questi
 
 test('repeated start clicks cannot create overlapping quizzes',async()=>{
   const a=app();a.setBank([q('a','First')]);
+  a.run('quizProgressLoadedUsers.add(currentUser.id)');
   let release,calls=0;
   a.context.fetch=()=>{calls++;return new Promise(resolve=>{release=()=>resolve({ok:true,json:async()=>[]});});};
   const pending=a.run('startQuiz()');

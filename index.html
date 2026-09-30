@@ -829,6 +829,8 @@ let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
 let studyView='remaining';
 const seenProgressCache=new Map();
 const studyServerProgressCache=new Map();
+const quizServerProgressCache=new Map();
+const quizProgressLoadedUsers=new Set();
 let startingStudy=false,startingQuiz=false;
 
 // Local progress makes navigation instant and works offline. Study progress is
@@ -849,6 +851,7 @@ function rememberQuestion(mode,q){
   const ids=seenProgress(mode);
   if(!ids.has(q.id)){ids.add(q.id);saveSeenProgress(mode);}
   if(mode==='study') persistStudyQuestion(q);
+  if(mode==='quiz') persistQuizQuestion(q);
 }
 function serverStudyProgress(){
   if(!studyServerProgressCache.has(currentUser.id)) studyServerProgressCache.set(currentUser.id,new Set());
@@ -901,6 +904,59 @@ async function loadStudyProgress(){
     return false;
   }
 }
+function serverQuizProgress(){
+  if(!quizServerProgressCache.has(currentUser.id)) quizServerProgressCache.set(currentUser.id,new Set());
+  return quizServerProgressCache.get(currentUser.id);
+}
+async function persistQuizQuestion(q){
+  if(!currentUser||!q)return false;
+  const serverIds=serverQuizProgress();
+  if(serverIds.has(q.id))return true;
+  serverIds.add(q.id);
+  const ok=await sbUpsertIgnore('quiz_question_history',{
+    user_id:currentUser.id,question_id:q.id,topic:q.s,viewed_at:new Date().toISOString()
+  },'user_id,question_id',{keepalive:true});
+  if(!ok)serverIds.delete(q.id);
+  return ok;
+}
+async function fetchQuizProgress(){
+  const ids=new Set();
+  for(let offset=0;;){
+    const params=`select=question_id&user_id=eq.${encodeURIComponent(currentUser.id)}&order=question_id.asc&limit=500&offset=${offset}`;
+    const response=await fetch(`${SB_URL}/rest/v1/quiz_question_history?${params}`,{headers:sbH()});
+    if(!response.ok)throw new Error(`Quiz progress could not be loaded (${response.status}).`);
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw new Error('Invalid quiz progress response.');
+    rows.forEach(row=>{if(typeof row.question_id==='string')ids.add(row.question_id);});
+    if(!rows.length)break;
+    offset+=rows.length;
+  }
+  return ids;
+}
+async function loadQuizProgress(){
+  if(!currentUser)return false;
+  const localIds=seenProgress('quiz');
+  try{
+    const serverIds=await fetchQuizProgress();
+    quizServerProgressCache.set(currentUser.id,serverIds);
+    const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
+    const missing=[...localIds].filter(id=>!serverIds.has(id));
+    for(let start=0;start<missing.length;start+=500){
+      const rows=missing.slice(start,start+500).map(id=>({
+        user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
+      }));
+      if(rows.length&&await sbUpsertIgnore('quiz_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+    }
+    serverIds.forEach(id=>localIds.add(id));
+    saveSeenProgress('quiz');
+    quizProgressLoadedUsers.add(currentUser.id);
+    return true;
+  }catch(error){
+    quizProgressLoadedUsers.delete(currentUser.id);
+    console.error('[quiz-progress] sync failed',error);
+    return false;
+  }
+}
 function clearLoginSession(){
   ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
 }
@@ -943,6 +999,7 @@ window.addEventListener('load', async()=>{
       loginTime=parseInt(localStorage.getItem('cdpo_lt')||Date.now());
       await loadQuestions();
       await loadStudyProgress();
+      await loadQuizProgress();
       showNav();
       showScreen('dashboard');
       startInactivityWatch();
@@ -1118,6 +1175,7 @@ async function doLogin(){
   await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
   await loadQuestions();
   await loadStudyProgress();
+  await loadQuizProgress();
   showNav();
   showScreen('dashboard');
   startInactivityWatch();
@@ -1510,6 +1568,9 @@ async function startQuiz(){
   if(startingQuiz)return;
   startingQuiz=true;
   try{
+    if(!quizProgressLoadedUsers.has(currentUser.id)&&!await loadQuizProgress()){
+      throw new Error('Quiz progress could not be synchronized.');
+    }
     const topic=document.getElementById('qs-topic').value;
     const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
     const mode=document.querySelector('input[name="qmode"]:checked').value;
@@ -1657,8 +1718,8 @@ async function submitQuiz(){
     selected_answer:answers[i]===-1?null:answers[i],
     answered_at:new Date().toISOString()
   }));
-  if(historyRows.length) await sbPost('question_history',historyRows);
-  showResults(correct,wrong,skipped,score,pct,questions,answers,dur,!saved);
+  const historySaved=!historyRows.length||await sbPost('question_history',historyRows);
+  showResults(correct,wrong,skipped,score,pct,questions,answers,dur,!saved||!historySaved);
 }
 
 function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveFailed){

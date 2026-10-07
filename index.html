@@ -825,7 +825,7 @@ let sessionId=null;
 let loginTime=null;
 let allQuestions=[];
 let quizState=null; // {questions,answers,currentIdx,startTime,topic,mode,negative,timerInterval}
-let studyState=null; // {questions,currentIdx,topic,startTime,sessionId}
+let studyState=null; // {questions,currentIdx,topic,startTime,sessionId,lastSyncedViewed}
 let studyView='remaining';
 const seenProgressCache=new Map();
 const studyServerProgressCache=new Map();
@@ -846,6 +846,23 @@ function seenProgress(mode){
 }
 function saveSeenProgress(mode){
   try{localStorage.setItem(`cdpo_seen_${mode}_${currentUser.id}`,JSON.stringify([...seenProgress(mode)]));}catch(e){console.warn('Progress could not be saved in this browser.');}
+}
+function syncStudySessionProgress(ns=studyState){
+  if(!ns?.sessionId)return;
+  const viewed=Math.max(ns.lastSyncedViewed||0,Math.min((ns.currentIdx||0)+1,ns.questions?.length||0));
+  if(!viewed||ns.lastSyncedViewed===viewed)return ns.progressSyncPromise||Promise.resolve(true);
+  ns.lastSyncedViewed=viewed;
+  const dur=Math.floor((Date.now()-ns.startTime)/1000);
+  ns.progressSyncPromise=(ns.progressSyncPromise||Promise.resolve()).catch(()=>false).then(async()=>{
+    const payload={duration_secs:Math.floor((Date.now()-ns.startTime)/1000),questions_viewed:viewed};
+    for(let attempt=0;attempt<2;attempt++){
+      if(await sbPatch('study_sessions',`id=eq.${ns.sessionId}`,payload))return true;
+      if(attempt===0)await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    if(ns.lastSyncedViewed===viewed)ns.lastSyncedViewed=null;
+    return false;
+  });
+  return ns.progressSyncPromise;
 }
 function rememberQuestion(mode,q){
   const ids=seenProgress(mode);
@@ -1189,8 +1206,8 @@ async function doLogout(dueToInactivity){
   }
   // End any active study session
   if(studyState?.sessionId){
-    const dur=Math.floor((Date.now()-studyState.startTime)/1000);
-    await sbPatch('study_sessions',`id=eq.${studyState.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:dur,questions_viewed:studyState.currentIdx+1});
+    await syncStudySessionProgress(studyState);
+    await sbPatch('study_sessions',`id=eq.${studyState.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:Math.floor((Date.now()-studyState.startTime)/1000),questions_viewed:studyState.lastSyncedViewed||studyState.currentIdx+1});
     studyState=null;
   }
   currentUser=null;sessionId=null;loginTime=null;
@@ -1379,6 +1396,7 @@ function renderStudyQuestion(){
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
   rememberQuestion('study',q);
+  syncStudySessionProgress();
   // Reset chat for each new question
   studyChatHistory=[];
   const chatSec=document.getElementById('study-chat-section');
@@ -1428,15 +1446,15 @@ async function studyNav(dir){
   if(newIdx<0){
     // End session
     if(ns.sessionId){
-      const dur=Math.floor((Date.now()-ns.startTime)/1000);
-      await sbPatch('study_sessions',`id=eq.${ns.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:dur,questions_viewed:ns.currentIdx+1});
+      await syncStudySessionProgress(ns);
+      await sbPatch('study_sessions',`id=eq.${ns.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:Math.floor((Date.now()-ns.startTime)/1000),questions_viewed:ns.lastSyncedViewed||ns.currentIdx+1});
     }
     showScreen('study-setup');return;
   }
   if(newIdx>=ns.questions.length){
     if(ns.sessionId){
-      const dur=Math.floor((Date.now()-ns.startTime)/1000);
-      await sbPatch('study_sessions',`id=eq.${ns.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:dur,questions_viewed:ns.questions.length});
+      await syncStudySessionProgress(ns);
+      await sbPatch('study_sessions',`id=eq.${ns.sessionId}`,{ended_at:new Date().toISOString(),duration_secs:Math.floor((Date.now()-ns.startTime)/1000),questions_viewed:ns.lastSyncedViewed||ns.questions.length});
     }
     showScreen('study-setup');return;
   }

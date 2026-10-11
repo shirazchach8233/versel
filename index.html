@@ -205,6 +205,29 @@ tr:hover td{background:#f8fafc}
 .syllabus-section summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 .syllabus-text{padding:0 22px 8px;line-height:1.85;font-size:.95rem;overflow-wrap:anywhere}
 .syllabus-text p{margin-bottom:20px}
+.module-progress-card{padding:24px}
+.module-progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.module-progress-title{font-weight:700;color:var(--primary);font-size:1.05rem}
+.module-progress-summary{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:24px;padding:20px;background:var(--bg);border:1px solid var(--border);border-radius:12px;margin-bottom:20px}
+.module-progress-ring{--progress:0;--ring-color:var(--accent);width:116px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--ring-color) calc(var(--progress)*1%),var(--border) 0);position:relative}
+.module-progress-ring::before{content:"";position:absolute;inset:12px;border-radius:50%;background:var(--card)}
+.module-progress-ring-value{position:relative;text-align:center;font-size:1.45rem;font-weight:800;color:var(--primary);line-height:1.1}
+.module-progress-ring-value span{display:block;font-size:.68rem;font-weight:600;color:var(--muted);margin-top:4px}
+.module-progress-summary-copy strong{display:block;font-size:1.15rem;color:var(--text);margin-bottom:6px}
+.module-progress-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.module-progress-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.module-subject{--module-color:var(--accent);border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--card)}
+.module-subject-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.module-subject-name{font-weight:700;color:var(--primary)}
+.module-subject-score{font-size:.8rem;font-weight:700;color:var(--module-color)}
+.module-progress-row{margin-bottom:15px}
+.module-progress-row:last-child{margin-bottom:0}
+.module-progress-label{display:grid;grid-template-columns:34px 1fr auto;align-items:start;gap:8px;margin-bottom:7px}
+.module-number{font-size:.72rem;font-weight:800;color:var(--module-color);padding-top:2px}
+.module-name{font-size:.84rem;font-weight:600;line-height:1.35}
+.module-count{font-size:.74rem;color:var(--muted);white-space:nowrap}
+.module-bar{height:9px;background:var(--border);border-radius:99px;overflow:hidden}
+.module-bar-fill{height:100%;width:0;background:var(--module-color);border-radius:inherit;transition:width .45s ease}
 @media(max-width:1100px){nav{height:auto;min-height:58px;flex-wrap:wrap;gap:10px;padding:12px 16px}.nav-links{flex-wrap:wrap}.nav-brand{margin-left:170px}}
 /* Responsive */
 @media(max-width:600px){
@@ -212,6 +235,13 @@ tr:hover td{background:#f8fafc}
   .result-stats{grid-template-columns:1fr 1fr}
   .nav-links .nav-btn span.hide-sm{display:none}
   .main-wrap{padding:16px 12px}
+  .module-progress-card{padding:18px}
+  .module-progress-head{display:block}
+  .module-progress-head .btn{margin-top:12px}
+  .module-progress-summary{grid-template-columns:1fr;text-align:center}
+  .module-progress-ring{margin:0 auto}
+  .module-progress-meta{justify-content:center}
+  .module-progress-groups{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -330,6 +360,16 @@ tr:hover td{background:#f8fafc}
         <div class="text-muted">Test yourself under exam conditions</div>
       </div>
     </div>
+    <section class="card module-progress-card" aria-labelledby="module-progress-heading">
+      <div class="module-progress-head">
+        <div>
+          <div class="module-progress-title" id="module-progress-heading">Syllabus Study Progress</div>
+          <div class="text-muted" style="margin-top:4px">Questions viewed in Study Mode across every official module</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('syllabus')">View syllabus</button>
+      </div>
+      <div id="dash-module-progress"><div class="loading"><div class="spinner"></div>Loading progress...</div></div>
+    </section>
     <div class="card">
       <div class="flex-between mb-16"><div style="font-weight:700;color:var(--primary)">Recent Quiz Attempts</div></div>
       <div id="dash-recent"><div class="loading"><div class="spinner"></div>Loading...</div></div>
@@ -1002,6 +1042,88 @@ const TOPIC_ICONS={
   'International Agencies':'🌍'
 };
 
+const SYLLABUS_SUBJECT_ORDER=['Sociology','Psychology','Home Science','Social Work'];
+const SYLLABUS_SUBJECT_COLORS={
+  'Sociology':'#8b5cf6','Psychology':'#0ea5e9','Home Science':'#f59e0b','Social Work':'#22c55e'
+};
+
+function escapeDashboardHtml(value){
+  return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+
+function renderDashboardModuleProgress(){
+  const target=document.getElementById('dash-module-progress');
+  if(!target)return;
+  const seen=seenProgress('study');
+  const modules=allQuestions.reduce((rows,q)=>{
+    const match=q.s.match(/^(.+?) - Module (\d+): (.+)$/);
+    if(!match)return rows;
+    const [,subject,moduleNumber,title]=match;
+    let row=rows.find(item=>item.topic===q.s);
+    if(!row){
+      row={subject,moduleNumber:Number(moduleNumber),title,topic:q.s,total:0,viewed:0};
+      rows.push(row);
+    }
+    row.total++;
+    if(seen.has(q.id))row.viewed++;
+    return rows;
+  },[]).sort((a,b)=>SYLLABUS_SUBJECT_ORDER.indexOf(a.subject)-SYLLABUS_SUBJECT_ORDER.indexOf(b.subject)||a.moduleNumber-b.moduleNumber);
+
+  if(!modules.length){
+    target.innerHTML='<div class="empty-state"><div class="icon">📚</div>Module progress will appear when the syllabus question bank is available.</div>';
+    return;
+  }
+
+  const totalQuestions=modules.reduce((sum,module)=>sum+module.total,0);
+  const viewedQuestions=modules.reduce((sum,module)=>sum+module.viewed,0);
+  const overallPct=totalQuestions?Math.round(viewedQuestions/totalQuestions*100):0;
+  const startedModules=modules.filter(module=>module.viewed>0).length;
+  const completedModules=modules.filter(module=>module.viewed===module.total).length;
+  const groups=SYLLABUS_SUBJECT_ORDER.map(subject=>({subject,modules:modules.filter(module=>module.subject===subject)})).filter(group=>group.modules.length);
+
+  target.innerHTML=`
+    <div class="module-progress-summary">
+      <div class="module-progress-ring" style="--progress:${overallPct}" role="img" aria-label="${overallPct}% of syllabus questions viewed">
+        <div class="module-progress-ring-value">${overallPct}%<span>viewed</span></div>
+      </div>
+      <div class="module-progress-summary-copy">
+        <strong>${viewedQuestions.toLocaleString()} of ${totalQuestions.toLocaleString()} questions studied</strong>
+        <div class="text-muted">Each bar shows how much of that syllabus module you have covered in Study Mode.</div>
+        <div class="module-progress-meta">
+          <span class="chip chip-blue">${startedModules} of ${modules.length} modules started</span>
+          <span class="chip chip-green">${completedModules} completed</span>
+        </div>
+      </div>
+    </div>
+    <div class="module-progress-groups">
+      ${groups.map(group=>{
+        const subjectTotal=group.modules.reduce((sum,module)=>sum+module.total,0);
+        const subjectViewed=group.modules.reduce((sum,module)=>sum+module.viewed,0);
+        const subjectPct=subjectTotal?Math.round(subjectViewed/subjectTotal*100):0;
+        const color=SYLLABUS_SUBJECT_COLORS[group.subject]||'var(--accent)';
+        return `<div class="module-subject" style="--module-color:${color}">
+          <div class="module-subject-head">
+            <div class="module-subject-name">${escapeDashboardHtml(group.subject)}</div>
+            <div class="module-subject-score">${subjectPct}% viewed</div>
+          </div>
+          ${group.modules.map(module=>{
+            const pct=module.total?Math.round(module.viewed/module.total*100):0;
+            return `<div class="module-progress-row">
+              <div class="module-progress-label">
+                <span class="module-number">M${module.moduleNumber}</span>
+                <span class="module-name">${escapeDashboardHtml(module.title)}</span>
+                <span class="module-count">${module.viewed.toLocaleString()} / ${module.total.toLocaleString()}</span>
+              </div>
+              <div class="module-bar" role="progressbar" aria-label="${escapeDashboardHtml(group.subject)} module ${module.moduleNumber}: ${pct}% viewed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+                <div class="module-bar-fill" style="width:${pct}%"></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
@@ -1292,6 +1414,7 @@ async function loadDashboard(){
   const h=new Date().getHours();
   const g=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
   document.getElementById('dash-greeting').textContent=`${g}, ${currentUser.full_name||currentUser.username}! 👋`;
+  renderDashboardModuleProgress();
   const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${currentUser.id}&order=started_at.desc&limit=50`);
   const total=attempts.length;
   const completed=attempts.filter(a=>a.completed_at);

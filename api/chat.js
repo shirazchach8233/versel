@@ -115,7 +115,14 @@ async function callOpenRouter({ apiKey, model, chatMessages }) {
   }
   const data = await response.json();
   const reply = data.choices?.[0]?.message?.content;
-  if (!reply) throw new Error('OpenRouter returned an empty response');
+  // Some upstream safety wrappers can return metadata as content instead of
+  // the actual answer. Treat that as a failed provider response so the next
+  // free-model route can be tried.
+  if (!reply || /^user\s+safety\s*:\s*(safe|unsafe)\s*$/i.test(reply.trim())) {
+    const error = new Error('OpenRouter returned no usable explanation');
+    error.context = { provider: 'openrouter', model, responseType: typeof reply };
+    throw error;
+  }
   console.log('[api/chat] provider success', { provider: 'openrouter', model, durationMs: Date.now() - startedAt });
   return reply;
 }

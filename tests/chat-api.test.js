@@ -69,6 +69,22 @@ test('study chat retries OpenRouter through its free-model router after a rate l
   }finally{restoreEnvironment(original);}
 });
 
+test('study chat ignores an upstream safety label and tries another free route',async()=>{
+  const original=preserveEnvironment();
+  process.env.OPENROUTER_API_KEY='openrouter-test-key';delete process.env.OPENROUTER_MODEL;delete process.env.OPENAI_API_KEY;delete process.env.NVIDIA_API_KEY;
+  const models=[];
+  global.fetch=async(_url,options)=>{
+    models.push(JSON.parse(options.body).model);
+    const content=models.length===1?'User Safety: safe':'Useful explanation';
+    return {ok:true,json:async()=>({choices:[{message:{content}}]})};
+  };
+  try{
+    const res=response();await chatHandler(request(),res);
+    assert.equal(res.statusCode,200);assert.equal(res.payload.reply,'Useful explanation');assert.equal(res.payload.model,'openrouter/free');
+    assert.deepEqual(models,['google/gemma-4-26b-a4b-it:free','openrouter/free']);
+  }finally{restoreEnvironment(original);}
+});
+
 test('study chat falls back to NVIDIA when OpenAI fails',async()=>{
   const original=preserveEnvironment();
   const calls=[];

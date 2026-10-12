@@ -2374,12 +2374,26 @@ async function loadAdminQuizzes(){
 async function loadAdminStudy(){
   const rows=await sbGet('study_sessions','select=*&order=started_at.desc&limit=100');
   if(!rows.length){document.getElementById('adm-study-table').innerHTML='<div class="empty-state">No study sessions yet.</div>';return;}
-  document.getElementById('adm-study-table').innerHTML=`<table><thead><tr><th>User</th><th>Topic</th><th>Date</th><th>Questions Viewed</th><th>Duration</th></tr></thead><tbody>
+  const history=[];
+  for(let offset=0;;offset+=1000){
+    const batch=await sbGet('study_question_history',`select=user_id,topic,question_id&limit=1000&offset=${offset}`);
+    if(!batch.length)break;
+    history.push(...batch);
+    if(batch.length<1000)break;
+  }
+  const topicTotals=new Map();
+  (history||[]).forEach(item=>{
+    const key=`${item.user_id}|${item.topic||''}`;
+    if(!topicTotals.has(key))topicTotals.set(key,new Set());
+    if(item.question_id)topicTotals.get(key).add(item.question_id);
+  });
+  document.getElementById('adm-study-table').innerHTML=`<table><thead><tr><th>User</th><th>Topic</th><th>Date</th><th>Session Questions</th><th>Total Topic Viewed</th><th>Duration</th></tr></thead><tbody>
     ${rows.map(r=>`<tr>
       <td><strong>${r.username||'–'}</strong></td>
       <td>${r.topic}</td>
       <td>${fmtDate(r.started_at)}</td>
       <td>${r.questions_viewed||0}</td>
+      <td>${topicTotals.get(`${r.user_id}|${r.topic||''}`)?.size||0}</td>
       <td>${fmtTime(r.duration_secs||0)}</td>
     </tr>`).join('')}
   </tbody></table>`;

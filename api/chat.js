@@ -23,13 +23,13 @@ async function callOpenAI({ apiKey, model, systemPrompt, messages }) {
       'content-type': 'application/json',
       'authorization': `Bearer ${apiKey}`
     },
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(15000),
     body: JSON.stringify({
       model,
       instructions: systemPrompt,
       input: messages,
       // Complete explanations need room for the answer, every option, and the memory aid.
-      max_output_tokens: 1200,
+      max_output_tokens: 1000,
       store: false
     })
   });
@@ -58,14 +58,14 @@ async function callNvidia({ apiKey, model, chatMessages, attempt }) {
       'content-type': 'application/json',
       'authorization': `Bearer ${apiKey}`
     },
-    signal: AbortSignal.timeout(12000),
+    signal: AbortSignal.timeout(8000),
     body: JSON.stringify({
       model,
       messages: chatMessages,
       temperature: 0.7,
       top_p: 0.95,
       // Keep the fallback provider from cutting off detailed explanations.
-      max_tokens: 1200,
+      max_tokens: 900,
       chat_template_kwargs: { enable_thinking: false },
       stream: false
     })
@@ -152,6 +152,9 @@ Your role:
         return res.status(200).json({ reply, provider: 'nvidia' });
       } catch (error) {
         logProviderFailure(error);
+        // A provider timeout is unlikely to recover within the same request.
+        // Stop immediately so the client can show the saved explanation quickly.
+        if (/abort|timeout/i.test(error?.message || '')) break;
       }
     }
   }

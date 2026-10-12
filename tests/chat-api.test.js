@@ -14,12 +14,12 @@ const request=()=>({method:'POST',body:{
 }});
 
 function preserveEnvironment(){
-  return {fetch:global.fetch,openAIKey:process.env.OPENAI_API_KEY,openAIModel:process.env.OPENAI_CHAT_MODEL,nvidiaKey:process.env.NVIDIA_API_KEY,nvidiaModel:process.env.NVIDIA_CHAT_MODEL};
+  return {fetch:global.fetch,openRouterKey:process.env.OPENROUTER_API_KEY,openRouterModel:process.env.OPENROUTER_MODEL,openAIKey:process.env.OPENAI_API_KEY,openAIModel:process.env.OPENAI_CHAT_MODEL,nvidiaKey:process.env.NVIDIA_API_KEY,nvidiaModel:process.env.NVIDIA_CHAT_MODEL};
 }
 
 function restoreEnvironment(original){
   global.fetch=original.fetch;
-  for(const [name,value] of [['OPENAI_API_KEY',original.openAIKey],['OPENAI_CHAT_MODEL',original.openAIModel],['NVIDIA_API_KEY',original.nvidiaKey],['NVIDIA_CHAT_MODEL',original.nvidiaModel]]){
+  for(const [name,value] of [['OPENROUTER_API_KEY',original.openRouterKey],['OPENROUTER_MODEL',original.openRouterModel],['OPENAI_API_KEY',original.openAIKey],['OPENAI_CHAT_MODEL',original.openAIModel],['NVIDIA_API_KEY',original.nvidiaKey],['NVIDIA_CHAT_MODEL',original.nvidiaModel]]){
     if(value===undefined)delete process.env[name];else process.env[name]=value;
   }
 }
@@ -38,6 +38,18 @@ test('study chat uses OpenAI Responses API as the primary provider',async()=>{
     assert.equal(url,'https://api.openai.com/v1/responses');assert.equal(authorization,'Bearer openai-test-key');
     assert.equal(body.model,'gpt-4.1-mini');assert.equal(body.store,false);assert.equal(body.input[0].content,'Please explain');assert.match(body.instructions,/Kerala PSC/);
     assert.equal(body.max_output_tokens,1000);
+  }finally{restoreEnvironment(original);}
+});
+
+test('study chat uses the configured free OpenRouter model first',async()=>{
+  const original=preserveEnvironment();
+  process.env.OPENROUTER_API_KEY='openrouter-test-key';delete process.env.OPENAI_API_KEY;delete process.env.NVIDIA_API_KEY;
+  let url,body;
+  global.fetch=async(requestUrl,options)=>{url=requestUrl;body=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{message:{content:'Free model reply'}}]})};};
+  try{
+    const res=response();await chatHandler(request(),res);
+    assert.equal(res.statusCode,200);assert.equal(res.payload.reply,'Free model reply');assert.equal(res.payload.provider,'openrouter');
+    assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(body.model,'google/gemma-4-26b-a4b-it:free');assert.equal(body.max_tokens,900);
   }finally{restoreEnvironment(original);}
 });
 

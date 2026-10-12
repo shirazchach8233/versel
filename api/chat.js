@@ -3,6 +3,7 @@
 // Required: OPENAI_API_KEY and/or NVIDIA_API_KEY. Keep both server-side only.
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const NVIDIA_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 function extractOpenAIReply(data) {
@@ -87,6 +88,38 @@ async function callNvidia({ apiKey, model, chatMessages, attempt }) {
   return reply;
 }
 
+async function callOpenRouter({ apiKey, model, chatMessages }) {
+  const startedAt = Date.now();
+  const response = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'authorization': `Bearer ${apiKey}`,
+      'http-referer': 'https://cdpo.vercel.app',
+      'x-title': 'CDPO Quiz Platform'
+    },
+    signal: AbortSignal.timeout(10000),
+    body: JSON.stringify({
+      model,
+      messages: chatMessages,
+      temperature: 0.3,
+      max_tokens: 900,
+      stream: false
+    })
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    const error = new Error(`OpenRouter returned ${response.status}`);
+    error.context = { provider: 'openrouter', model, status: response.status, detail: detail.slice(0, 1000) };
+    throw error;
+  }
+  const data = await response.json();
+  const reply = data.choices?.[0]?.message?.content;
+  if (!reply) throw new Error('OpenRouter returned an empty response');
+  console.log('[api/chat] provider success', { provider: 'openrouter', model, durationMs: Date.now() - startedAt });
+  return reply;
+}
+
 function logProviderFailure(error) {
   console.error('[api/chat] provider failed', { ...(error.context || {}), error: error.message });
 }
@@ -94,9 +127,10 @@ function logProviderFailure(error) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
   const openAIKey = process.env.OPENAI_API_KEY;
   const nvidiaKey = process.env.NVIDIA_API_KEY;
-  if (!openAIKey && !nvidiaKey) return res.status(500).json({ error: 'No AI provider is configured.' });
+  if (!openRouterKey && !openAIKey && !nvidiaKey) return res.status(500).json({ error: 'No AI provider is configured.' });
 
   const { question, options, correctAnswer, explanation, topic, isAnswered, messages } = req.body || {};
   if (!question || !Array.isArray(messages)) return res.status(400).json({ error: 'Missing required fields' });
@@ -132,6 +166,16 @@ Your role:
     content: message.content
   }));
   const chatMessages = [{ role: 'system', content: systemPrompt }, ...conversation];
+
+  if (openRouterKey) {
+    const model = process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free';
+    try {
+      const reply = await callOpenRouter({ apiKey: openRouterKey, model, chatMessages });
+      return res.status(200).json({ reply, provider: 'openrouter', model });
+    } catch (error) {
+      logProviderFailure(error);
+    }
+  }
 
   if (openAIKey) {
     // A small non-reasoning model responds quickly to short study questions.

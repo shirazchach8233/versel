@@ -168,12 +168,17 @@ Your role:
   const chatMessages = [{ role: 'system', content: systemPrompt }, ...conversation];
 
   if (openRouterKey) {
-    const model = process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free';
-    try {
-      const reply = await callOpenRouter({ apiKey: openRouterKey, model, chatMessages });
-      return res.status(200).json({ reply, provider: 'openrouter', model });
-    } catch (error) {
-      logProviderFailure(error);
+    const configuredModel = process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free';
+    // Free model capacity changes frequently. If the pinned model is busy or
+    // rate-limited, let OpenRouter select another currently available free model.
+    const openRouterModels = [...new Set([configuredModel, 'openrouter/free'])];
+    for (const model of openRouterModels) {
+      try {
+        const reply = await callOpenRouter({ apiKey: openRouterKey, model, chatMessages });
+        return res.status(200).json({ reply, provider: 'openrouter', model });
+      } catch (error) {
+        logProviderFailure(error);
+      }
     }
   }
 

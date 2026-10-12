@@ -154,7 +154,7 @@ Your role:
         logProviderFailure(error);
         // A provider timeout is unlikely to recover within the same request.
         // Stop immediately so the client can show the saved explanation quickly.
-        if (/abort|timeout/i.test(error?.message || '')) break;
+        if (error?.name === 'AbortError' || error?.name === 'TimeoutError') break;
       }
     }
   }

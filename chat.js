@@ -57,7 +57,7 @@ Your role:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
+        max_tokens: 1200,
         system: systemPrompt,
         messages: messages.slice(-12), // keep last 12 turns to avoid token overflow
       }),

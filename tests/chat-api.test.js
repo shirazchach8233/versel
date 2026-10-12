@@ -37,6 +37,7 @@ test('study chat uses OpenAI Responses API as the primary provider',async()=>{
     assert.equal(res.statusCode,200);assert.deepEqual(res.payload,{reply:'OpenAI reply',provider:'openai'});
     assert.equal(url,'https://api.openai.com/v1/responses');assert.equal(authorization,'Bearer openai-test-key');
     assert.equal(body.model,'gpt-4.1-mini');assert.equal(body.store,false);assert.equal(body.input[0].content,'Please explain');assert.match(body.instructions,/Kerala PSC/);
+    assert.equal(body.max_output_tokens,1200);
   }finally{restoreEnvironment(original);}
 });
 
@@ -47,7 +48,7 @@ test('study chat falls back to NVIDIA when OpenAI fails',async()=>{
   global.fetch=async(url,options)=>{
     calls.push(url);
     if(url.includes('openai.com'))return {ok:false,status:429,headers:{get:()=> 'req_rate'},text:async()=> 'rate limited'};
-    const body=JSON.parse(options.body);assert.equal(body.model,'nvidia/nemotron-3.5-lightning-30b-a3b');
+    const body=JSON.parse(options.body);assert.equal(body.model,'nvidia/nemotron-3.5-lightning-30b-a3b');assert.equal(body.max_tokens,1200);
     return {ok:true,json:async()=>({choices:[{message:{content:'Fallback reply'}}]})};
   };
   try{

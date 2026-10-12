@@ -28,7 +28,8 @@ async function callOpenAI({ apiKey, model, systemPrompt, messages }) {
       model,
       instructions: systemPrompt,
       input: messages,
-      max_output_tokens: 400,
+      // Complete explanations need room for the answer, every option, and the memory aid.
+      max_output_tokens: 1200,
       store: false
     })
   });
@@ -63,7 +64,8 @@ async function callNvidia({ apiKey, model, chatMessages, attempt }) {
       messages: chatMessages,
       temperature: 0.7,
       top_p: 0.95,
-      max_tokens: 400,
+      // Keep the fallback provider from cutting off detailed explanations.
+      max_tokens: 1200,
       chat_template_kwargs: { enable_thinking: false },
       stream: false
     })

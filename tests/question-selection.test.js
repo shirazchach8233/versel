@@ -131,7 +131,7 @@ test('study topic tabs report remaining and viewed counts',async()=>{
   assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 viewed'));
 });
 
-test('Viewed Quiz only uses questions opened in Study Mode',async()=>{
+test('Revise Studied Items only uses questions opened in Study Mode',async()=>{
   const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a'])]]);
   const a=app(storage);a.setBank([q('a','Viewed'),q('b','Not viewed'),q('c','Other','Other Topic')]);
   a.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
@@ -190,7 +190,7 @@ test('quiz stops when every available question was answered correctly',async()=>
   a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1]]),lastCorrect:new Map([['a',true]])})");
   await a.run('startQuiz()');
   assert.equal(a.run('quizState'),null);
-  assert.ok(a.alerts[0].includes('Viewed Quiz'));
+  assert.ok(a.alerts[0].includes('Revise Studied Items'));
 });
 
 test('history reads beyond 1000 rows and honors lower server caps',async()=>{

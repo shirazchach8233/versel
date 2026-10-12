@@ -131,6 +131,15 @@ test('study topic tabs report remaining and viewed counts',async()=>{
   assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 viewed'));
 });
 
+test('Viewed Quiz only uses questions opened in Study Mode',async()=>{
+  const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a'])]]);
+  const a=app(storage);a.setBank([q('a','Viewed'),q('b','Not viewed'),q('c','Other','Other Topic')]);
+  a.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
+  await a.run('startRevision()');
+  assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id)')),['a']);
+  assert.ok(a.run('quizState.topic').includes('All Viewed Items'));
+});
+
 test('quiz retries wrong and skipped questions, excludes correct answers and duplicate wording',async()=>{
   const a=app();a.setBank([q('a','Wrong'),q('alias','WRONG','Other'),q('b','New'),q('c','Correct'),q('d','Skipped')]);
   a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1],['c',2],['d',3]]),lastCorrect:new Map([['a',false],['c',true],['d',null]])})");
@@ -177,7 +186,7 @@ test('quiz stops when every available question was answered correctly',async()=>
   a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1]]),lastCorrect:new Map([['a',true]])})");
   await a.run('startQuiz()');
   assert.equal(a.run('quizState'),null);
-  assert.ok(a.alerts[0].includes('Revision Test'));
+  assert.ok(a.alerts[0].includes('Viewed Quiz'));
 });
 
 test('history reads beyond 1000 rows and honors lower server caps',async()=>{

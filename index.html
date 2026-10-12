@@ -306,7 +306,7 @@ tr:hover td{background:#f8fafc}
     <button class="nav-btn" onclick="showScreen('study-setup')" id="nb-study">📖 <span class="hide-sm">Study</span></button>
     <button class="nav-btn" onclick="showScreen('quiz-setup')" id="nb-quiz">✏️ <span class="hide-sm">Quiz</span></button>
     <button class="nav-btn" onclick="showScreen('progress')" id="nb-progress">📊 <span class="hide-sm">Progress</span></button>
-    <button class="nav-btn" onclick="showScreen('revision-setup')" id="nb-revision">🔄 <span class="hide-sm">Revise</span></button>
+    <button class="nav-btn" onclick="showScreen('revision-setup')" id="nb-revision">🧠 <span class="hide-sm">Viewed Quiz</span></button>
     <button class="nav-btn" onclick="showScreen('syllabus')" id="nb-syllabus" aria-label="Exam syllabus">📋 <span>Syllabus</span></button>
     <button class="nav-btn" id="nb-admin" onclick="showScreen('admin')" style="display:none">🛠 <span class="hide-sm">Admin</span></button>
     <button class="theme-toggle" id="nb-theme" onclick="toggleTheme()" title="Toggle dark mode"><span id="theme-icon">🌙</span></button>
@@ -475,11 +475,11 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN: REVISION SETUP ═══════════════ -->
+<!-- ═══════════════ SCREEN: VIEWED QUIZ SETUP ═══════════════ -->
 <div id="screen-revision-setup" class="screen">
   <div class="main-wrap" style="max-width:700px">
-    <div class="page-title">🔄 Revision Test</div>
-    <p style="color:var(--muted);margin-bottom:20px">Quiz yourself on questions you've already seen to check your recall and track improvement.</p>
+    <div class="page-title">🧠 Viewed Items Quiz</div>
+    <p style="color:var(--muted);margin-bottom:20px">Quiz yourself only on questions you have already opened in Study Mode. New or unviewed questions will never be included.</p>
     <div class="card">
       <div class="form-group">
         <label>Topic</label>
@@ -496,8 +496,8 @@ tr:hover td{background:#f8fafc}
           <label style="cursor:pointer"><input type="radio" name="rcount" value="all"> All Seen</label>
         </div>
       </div>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">ℹ️ Practice mode — no timer, no negative marking</p>
-      <button class="btn btn-primary btn-block" onclick="startRevision()" style="margin-top:8px">Start Revision →</button>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">ℹ️ Practice mode — no timer, no negative marking · Questions come from your Study Mode viewed items</p>
+      <button class="btn btn-primary btn-block" onclick="startRevision()" style="margin-top:8px">Start Viewed Quiz →</button>
     </div>
   </div>
 </div>
@@ -558,7 +558,7 @@ tr:hover td{background:#f8fafc}
     </div>
     <div class="flex" style="gap:12px;margin-bottom:20px">
       <button class="btn btn-primary" id="res-new-quiz-btn" onclick="showScreen('quiz-setup')">🔁 New Quiz</button>
-      <button class="btn btn-primary" id="res-new-revision-btn" onclick="showScreen('revision-setup')" style="display:none">🔄 New Revision</button>
+      <button class="btn btn-primary" id="res-new-revision-btn" onclick="showScreen('revision-setup')" style="display:none">🧠 New Viewed Quiz</button>
       <button class="btn btn-ghost" onclick="showScreen('dashboard')">🏠 Dashboard</button>
       <button class="btn btn-ghost" id="res-review-btn" onclick="toggleReview()">👁 Review Answers</button>
     </div>
@@ -1721,7 +1721,7 @@ async function startQuiz(){
     const history=await fetchUserHistory();
     const eligible=QuestionSelection.quizEligible(pool,allQuestions,history.lastSeen,history.lastCorrect,seenProgress('quiz'));
     if(!eligible.length){
-      alert('No eligible questions remain in this topic. Correctly answered questions will not repeat; use Revision Test to review them.');
+      alert('No eligible questions remain in this topic. Correctly answered questions will not repeat; use Viewed Quiz to review questions you have studied.');
       return;
     }
     // Use a shorter quiz near exhaustion instead of repeating correct questions.
@@ -1740,27 +1740,29 @@ async function startQuiz(){
 }
 
 async function startRevision(){
+  if(!currentUser)return;
   const topic=document.getElementById('rs-topic').value;
   const countVal=document.querySelector('input[name="rcount"]:checked').value;
-  const allHistory=await sbGet('question_history',`select=question_id,is_correct,topic&user_id=eq.${currentUser.id}`);
-  if(!allHistory||!allHistory.length){alert('No previously answered questions found. Try answering some quizzes first!');return;}
-  const history=topic==='all'?allHistory:allHistory.filter(h=>h.topic===topic);
-  if(!history.length){alert(`No previously answered questions found for "${topic}". Try a quiz in this topic first!`);return;}
-  const histMap=new Map();
-  for(const row of history){
-    if(!histMap.has(row.question_id)) histMap.set(row.question_id,{total:0,correct:0});
-    const h=histMap.get(row.question_id);
-    h.total++;
-    if(row.is_correct) h.correct++;
+  if(!await loadStudyProgress()){
+    alert('Your viewed-item history could not be loaded. Please try again before starting a Viewed Quiz.');
+    return;
   }
-  const seenIds=new Set(histMap.keys());
-  let pool=QuestionSelection.unique(allQuestions.filter(q=>seenIds.has(q.id)&&(topic==='all'||q.s===topic)));
-  if(!pool.length){alert('No matching questions found.');return;}
+  const pool=QuestionSelection.viewed(
+    topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic),
+    allQuestions,
+    seenProgress('study')
+  );
+  if(!pool.length){
+    alert(topic==='all'
+      ? 'You have not viewed any Study Mode questions yet. Open some questions in Study Mode first.'
+      : `You have not viewed any Study Mode questions in "${topic}" yet.`);
+    return;
+  }
   shuffleArr(pool);
   const count=countVal==='all'?pool.length:parseInt(countVal);
   const questions=pool.slice(0,Math.min(count,pool.length));
-  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode:'practice',negative:false,timerInterval:null,isRevision:true,histMap};
-  document.getElementById('quiz-topic-label').textContent=`🔄 Revision · ${quizState.topic}`;
+  quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'All Viewed Items':topic,mode:'practice',negative:false,timerInterval:null,isRevision:true,histMap:null};
+  document.getElementById('quiz-topic-label').textContent=`🧠 Viewed Quiz · ${quizState.topic}`;
   buildPalette();
   renderQuizQuestion();
   showScreen('quiz');
@@ -1907,6 +1909,10 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
     deltaEl.textContent=(delta>=0?'+':'')+delta.toFixed(1)+'%';
     deltaEl.style.color=delta>=0?'var(--success)':'var(--danger)';
     if(histSection) histSection.style.display='';
+    if(newQuizBtn) newQuizBtn.style.display='none';
+    if(newRevBtn) newRevBtn.style.display='';
+  }else if(quizState.isRevision){
+    if(histSection) histSection.style.display='none';
     if(newQuizBtn) newQuizBtn.style.display='none';
     if(newRevBtn) newRevBtn.style.display='';
   }else{

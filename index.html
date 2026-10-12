@@ -454,6 +454,8 @@ tr:hover td{background:#f8fafc}
           <label style="cursor:pointer"><input type="radio" name="qcount" value="100"> 100 Qs</label>
           <label style="cursor:pointer"><input type="radio" name="qcount" value="200"> 200 Qs</label>
           <label style="cursor:pointer"><input type="radio" name="qcount" value="300"> 300 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="qcount" value="400"> 400 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="qcount" value="500"> 500 Qs</label>
         </div>
       </div>
       <div class="form-group">
@@ -493,7 +495,11 @@ tr:hover td{background:#f8fafc}
           <label style="cursor:pointer"><input type="radio" name="rcount" value="25" checked> 25 Qs</label>
           <label style="cursor:pointer"><input type="radio" name="rcount" value="50"> 50 Qs</label>
           <label style="cursor:pointer"><input type="radio" name="rcount" value="100"> 100 Qs</label>
-          <label style="cursor:pointer"><input type="radio" name="rcount" value="all"> All Seen</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="200"> 200 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="300"> 300 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="400"> 400 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="500"> 500 Qs</label>
+          <label style="cursor:pointer"><input type="radio" name="rcount" value="all"> All Remaining</label>
         </div>
       </div>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">ℹ️ Practice mode — no timer, no negative marking · Questions come from your Study Mode viewed items</p>
@@ -1747,16 +1753,23 @@ async function startRevision(){
     alert('Your viewed-item history could not be loaded. Please try again before starting a Viewed Quiz.');
     return;
   }
-  const pool=QuestionSelection.viewed(
+  const viewedPool=QuestionSelection.viewed(
     topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic),
     allQuestions,
     seenProgress('study')
   );
+  const alreadyUsed=seenProgress('viewed-quiz');
+  const pool=viewedPool.filter(q=>!alreadyUsed.has(q.id));
   if(!pool.length){
-    alert(topic==='all'
-      ? 'You have not viewed any Study Mode questions yet. Open some questions in Study Mode first.'
-      : `You have not viewed any Study Mode questions in "${topic}" yet.`);
+    alert(viewedPool.length
+      ? 'You have already used all viewed questions in this quiz mode. Study more questions to add new ones.'
+      : (topic==='all'
+        ? 'You have not viewed any Study Mode questions yet. Open some questions in Study Mode first.'
+        : `You have not viewed any Study Mode questions in "${topic}" yet.`));
     return;
+  }
+  if(countVal!=='all'&&pool.length<parseInt(countVal)){
+    alert(`Only ${pool.length} new viewed questions remain${topic==='all'?'':' in this topic'}. This quiz will contain ${pool.length} questions.`);
   }
   shuffleArr(pool);
   const count=countVal==='all'?pool.length:parseInt(countVal);
@@ -1784,7 +1797,7 @@ function updatePalette(){
 function renderQuizQuestion(){
   const {questions,answers,currentIdx}=quizState;
   const q=questions[currentIdx];
-  rememberQuestion('quiz',q);
+  rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',q);
   const total=questions.length;
   document.getElementById('quiz-qmeta').textContent=`Q${currentIdx+1} of ${total} · ${q.s}`;
   document.getElementById('quiz-qtext').textContent=q.q;

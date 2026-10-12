@@ -48,13 +48,13 @@ function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set())
     sbPost=async()=>[{id:'session'}];
     sbUpsertIgnore=testProgressUpsert;
     renderStudyQuestion=()=>rememberQuestion('study',studyState.questions[studyState.currentIdx]);
-    renderQuizQuestion=()=>rememberQuestion('quiz',quizState.questions[quizState.currentIdx]);`,context);
+    renderQuizQuestion=()=>rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',quizState.questions[quizState.currentIdx]);`,context);
   return {context,alerts,storage,run:code=>vm.runInContext(code,context),setBank:rows=>{context.testBank=rows;vm.runInContext('allQuestions=testBank',context);}};
 }
 
 test('quiz setup offers 200 and 300 question options',()=>{
   const counts=[...html.matchAll(/name="qcount" value="(\d+)"/g)].map(match=>Number(match[1]));
-  assert.deepEqual(counts,[25,50,75,100,200,300]);
+  assert.deepEqual(counts,[25,50,75,100,200,300,400,500]);
 });
 
 test('real bank has cross-topic duplicates; selection retains IDs and excludes duplicate text',()=>{
@@ -138,6 +138,10 @@ test('Viewed Quiz only uses questions opened in Study Mode',async()=>{
   await a.run('startRevision()');
   assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id)')),['a']);
   assert.ok(a.run('quizState.topic').includes('All Viewed Items'));
+  a.run('quizState=null');
+  await a.run('startRevision()');
+  assert.equal(a.run('quizState'),null);
+  assert.ok(a.alerts.at(-1).includes('already used all viewed questions'));
 });
 
 test('quiz retries wrong and skipped questions, excludes correct answers and duplicate wording',async()=>{

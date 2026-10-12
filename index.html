@@ -1669,6 +1669,15 @@ function requestStudyExplanation(){
   return requestStudyAI(prompt,{showUser:false,loadingText:'✨ Preparing a complete explanation…'});
 }
 
+function studyFallbackExplanation(q,isAnswered){
+  const keys=['A','B','C','D'];
+  if(!isAnswered){
+    return `⚠️ AI is temporarily unavailable. Please answer the question first; the saved explanation will then be shown here.`;
+  }
+  const answer=`Correct answer: ${keys[q.a]}. ${q.o[q.a]}`;
+  return `⚠️ AI is temporarily unavailable, so here is the saved explanation from the question bank.\n\n${answer}${q.e?`\n\n${q.e}`:''}`;
+}
+
 async function requestStudyAI(msg,{showUser=true,loadingText='⏳ Thinking…'}={}){
   if(studyChatLoading) return;
   studyChatLoading=true;
@@ -1698,7 +1707,7 @@ async function requestStudyAI(msg,{showUser=true,loadingText='⏳ Thinking…'}=
     if(requestToken!==studyChatRequestToken) return;
     thinking.remove();
     if(studyChatHistory.at(-1)?.role==='user'&&studyChatHistory.at(-1)?.content===msg) studyChatHistory.pop();
-    appendChatMsg('ai',`⚠️ ${err.message||'The AI assistant could not be reached. Please try again.'}`);
+    appendChatMsg('ai',studyFallbackExplanation(q,isAnswered));
   }finally{
     if(requestToken===studyChatRequestToken){
       studyChatLoading=false;

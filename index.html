@@ -1928,11 +1928,18 @@ async function persistStudyAnswer(q,selected){
 }
 
 async function studyNav(dir){
-  // End study session if going back
   const ns=studyState;
+  // Backward navigation is intentional review within the current screen. It
+  // must not apply the forward one-pass filter or send the learner to the menu.
+  if(dir<0){
+    if(ns.currentIdx<=0)return;
+    ns.currentIdx-=1;
+    renderStudyQuestion();
+    return;
+  }
   let newIdx=ns.currentIdx+dir;
-  // Study Mode is a one-pass queue. Previously displayed questions are not
-  // shown again through navigation; Study Review is the explicit revisit path.
+  // Forward navigation remains a one-pass queue. Previously displayed
+  // questions are not shown again unless the learner explicitly goes back.
   while(newIdx>=0&&newIdx<ns.questions.length&&ns.sessionViewedIds.has(ns.questions[newIdx].id))newIdx+=dir;
   if(newIdx<0){
     // End session

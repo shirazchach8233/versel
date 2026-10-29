@@ -113,6 +113,17 @@ test('study progress syncs across browsers and prevents viewed questions from re
   assert.deepEqual(Array.from(otherBrowser.run('studyState.questions.map(q=>q.id)')),['b']);
 });
 
+test('study previous navigation stays in the session',async()=>{
+  const a=app();a.setBank([q('a','First'),q('b','Second'),q('c','Third')]);
+  await a.run("startStudy('Topic')");
+  await a.run('studyNav(1)');
+  assert.equal(a.run('studyState.currentIdx'),1);
+  await a.run('studyNav(-1)');
+  assert.equal(a.run('studyState.currentIdx'),0);
+  await a.run('studyNav(-1)');
+  assert.equal(a.run('studyState.currentIdx'),0);
+});
+
 test('existing local study progress is migrated to the server',async()=>{
   const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a','b'])]]);
   const remote=new Set(['a']);

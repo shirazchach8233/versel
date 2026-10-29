@@ -1504,8 +1504,9 @@ async function loadQuestions(){
 async function fetchQuestionBank(){
   // Prefer the pre-compressed bank so new sessions transfer far less data.
   // Keep the JSON path as a fallback for older browsers and local previews.
+  const bankVersion='v31877-dedup';
   try{
-    const compressed=await fetch('questions.json.gz',{cache:'force-cache'});
+    const compressed=await fetch(`questions.json.gz?${bankVersion}`,{cache:'force-cache'});
     if(compressed.ok&&compressed.body&&'DecompressionStream' in window){
       const decompressed=compressed.body.pipeThrough(new DecompressionStream('gzip'));
       return new Response(decompressed,{headers:{'Content-Type':'application/json'}});
@@ -1513,7 +1514,7 @@ async function fetchQuestionBank(){
   }catch(error){
     console.warn('[questions] compressed bank unavailable; using JSON fallback',error);
   }
-  return fetch('questions.json',{cache:'force-cache'});
+  return fetch(`questions.json?${bankVersion}`,{cache:'force-cache'});
 }
 
 function populateTopics(){

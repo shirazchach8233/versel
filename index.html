@@ -410,6 +410,11 @@ tr:hover td{background:#f8fafc}
       </div>
       <div id="dash-module-progress"><div class="loading"><div class="spinner"></div>Loading progress...</div></div>
     </section>
+    <section class="card mb-16" aria-labelledby="dash-weakness-heading">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:6px" id="dash-weakness-heading">Areas Needing Improvement</div>
+      <div class="text-muted" style="font-size:.82rem;margin-bottom:14px">Wrong answers by topic across Study Mode and Quiz Mode</div>
+      <div id="dash-weakness"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </section>
     <div class="card">
       <div class="flex-between mb-16"><div style="font-weight:700;color:var(--primary)">Recent Quiz Attempts</div></div>
       <div id="dash-recent"><div class="loading"><div class="spinner"></div>Loading...</div></div>
@@ -1507,6 +1512,14 @@ async function fetchClientIp(){
 // ══════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════
+async function loadDashboardWeakness(targetId,userId,completed){
+  const target=document.getElementById(targetId);if(!target)return;
+  let studyAnswers=[];try{studyAnswers=await sbGet('study_question_history',`select=topic,is_correct&user_id=eq.${userId}&is_correct=not.is.null`)}catch(error){console.warn('[dashboard] study outcomes unavailable',error)}
+  const byTopic={};studyAnswers.filter(r=>r.is_correct===false).forEach(r=>{if(!r.topic)return;byTopic[r.topic]=byTopic[r.topic]||{study:0,quiz:0};byTopic[r.topic].study++;});
+  completed.forEach(a=>{if(!a.topic||!(a.wrong>0))return;byTopic[a.topic]=byTopic[a.topic]||{study:0,quiz:0};byTopic[a.topic].quiz+=a.wrong||0;});
+  const entries=Object.entries(byTopic).map(([topic,data])=>[topic,data,data.study+data.quiz]).sort((a,b)=>b[2]-a[2]);const max=entries[0]?.[2]||0;
+  target.innerHTML=entries.length?`<div class="weakness-legend"><span>Study Mode wrong</span><span>Quiz Mode wrong</span></div>${entries.map(([topic,data,total])=>{const studyPct=data.study/max*100,quizPct=data.quiz/max*100;return `<div class="weakness-row"><div class="weakness-row-head"><strong>${escapeDashboardHtml(topic)}</strong><span class="weakness-counts">${total} wrong · Study ${data.study} · Quiz ${data.quiz}</span></div><div class="weakness-bar" role="img" aria-label="${escapeDashboardHtml(topic)}: ${total} wrong answers"><div class="weakness-study" style="width:${studyPct}%"></div><div class="weakness-quiz" style="width:${quizPct}%"></div></div></div>`;}).join('')}`:'<div class="weakness-empty">No wrong answers recorded yet. Keep practicing and this chart will show where to focus.</div>';
+}
 async function loadDashboard(){
   const h=new Date().getHours();
   const g=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
@@ -1515,6 +1528,7 @@ async function loadDashboard(){
   const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${currentUser.id}&order=started_at.desc&limit=50`);
   const total=attempts.length;
   const completed=attempts.filter(a=>a.completed_at);
+  await loadDashboardWeakness('dash-weakness',currentUser.id,completed);
   const avg=completed.length?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/completed.length):0;
   const best=completed.length?Math.max(...completed.map(a=>a.percentage||0)):0;
   // Study time

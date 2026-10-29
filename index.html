@@ -1474,7 +1474,7 @@ async function loadQuestions(){
 async function fetchQuestionBank(){
   // Prefer the pre-compressed bank so new sessions transfer far less data.
   // Keep the JSON path as a fallback for older browsers and local previews.
-  const bankVersion='v31877-dedup';
+  const bankVersion='v31877-raw-topics';
   try{
     const compressed=await fetch(`questions.json.gz?${bankVersion}`,{cache:'force-cache'});
     if(compressed.ok&&compressed.body&&'DecompressionStream' in window){

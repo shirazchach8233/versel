@@ -1190,8 +1190,12 @@ async function loadReviewProgress(){
     return false;
   }
 }
-function clearLoginSession(){
+function clearLegacyLoginStorage(){
   ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
+}
+function clearLoginSession(){
+  clearLegacyLoginStorage();
+  try{sessionStorage.removeItem('cdpo_auth_cache_v1');}catch(e){}
 }
 async function migrateLegacyBrowserData(){
   if(!currentUser)return;
@@ -1450,13 +1454,11 @@ function renderDashboardModuleProgress(){
 // ══════════════════════════════════════════════
 window.addEventListener('load', async()=>{
   updateThemeIcon();
-  // Restore session
-  // Authentication is intentionally not restored from browser storage.
-  // Reloading starts a fresh login session; account data lives in Supabase.
-  clearLoginSession();
+  clearLegacyLoginStorage();
   // Check if any users with a real password exist (SETUP_REQUIRED = not yet configured)
   const users = await sbGet('users','select=id&password_hash=neq.SETUP_REQUIRED&limit=1');
   if(!users||users.length===0){showScreen('setup');return;}
+  if(await restoreCachedLoginSession())return;
   showScreen('login');
 });
 
@@ -1618,6 +1620,58 @@ async function doSetup(){
   else{alert.textContent='Setup failed. Check your Supabase connection.';alert.style.display='';}
 }
 
+const AUTH_CACHE_KEY='cdpo_auth_cache_v1';
+const AUTH_CACHE_TTL_MS=12*60*60*1000;
+function writeCachedLoginSession(){
+  if(!currentUser)return;
+  try{sessionStorage.setItem(AUTH_CACHE_KEY,JSON.stringify({id:currentUser.id,cachedAt:Date.now()}));}catch(e){}
+}
+function readCachedLoginSession(){
+  try{
+    const cached=JSON.parse(sessionStorage.getItem(AUTH_CACHE_KEY)||'null');
+    if(!cached||typeof cached.id!=='string'||Date.now()-Number(cached.cachedAt||0)>AUTH_CACHE_TTL_MS)return null;
+    return cached;
+  }catch(e){return null;}
+}
+async function completeLogin(u,restored=false){
+  currentUser={id:u.id,username:u.username,full_name:u.full_name,role:u.role};
+  loginTime=Date.now();
+  // Record a fresh server session. Cached login never stores or reuses a password.
+  const ua=parseUserAgent();
+  const ip=restored?null:await fetchClientIp();
+  const sess=await sbPost('login_sessions',{
+    user_id:u.id,username:u.username,login_at:new Date().toISOString(),
+    ip_address:ip,browser:ua.browser,os:ua.os,device_type:ua.deviceType
+  });
+  if(sess&&sess[0])sessionId=sess[0].id;
+  await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
+  await loadQuestions();
+  await migrateLegacyBrowserData();
+  // These durable history loads are required before showing the question UI;
+  // they prevent cached login from allowing already-viewed questions back in.
+  if(!await loadStudyProgress()||!await loadQuizProgress())throw new Error('Progress could not be synchronized.');
+  writeCachedLoginSession();
+  showNav();
+  showScreen('dashboard');
+  startInactivityWatch();
+}
+async function restoreCachedLoginSession(){
+  const cached=readCachedLoginSession();
+  if(!cached)return false;
+  try{
+    const users=await sbGet('users',`select=id,username,full_name,role,is_active,password_hash&id=eq.${encodeURIComponent(cached.id)}&limit=1`);
+    const u=users?.[0];
+    if(!u||!u.is_active||u.password_hash==='SETUP_REQUIRED')throw new Error('Cached account is no longer active.');
+    await completeLogin(u,true);
+    return true;
+  }catch(error){
+    console.warn('[auth-cache] restore failed; showing login',error);
+    try{sessionStorage.removeItem(AUTH_CACHE_KEY);}catch(e){}
+    currentUser=null;sessionId=null;loginTime=null;
+    return false;
+  }
+}
+
 async function doLogin(){
   const username=document.getElementById('login-user').value.trim();
   const pass=document.getElementById('login-pass').value;
@@ -1631,27 +1685,13 @@ async function doLogin(){
   if(!u.is_active){alertEl.textContent='Account is deactivated. Contact admin.';alertEl.style.display='';return;}
   if(u.password_hash==='SETUP_REQUIRED'){showScreen('setup');return;}
   if(u.password_hash!==hash){alertEl.textContent='Incorrect password.';alertEl.style.display='';return;}
-  // Success
-  currentUser={id:u.id,username:u.username,full_name:u.full_name,role:u.role};
-  loginTime=Date.now();
-  // Record login session — browser/OS/device-type are parsed from the user-agent string
-  // (heuristic, regex-based — no MAC address or OS device name: browsers don't expose those to web pages).
-  const ua=parseUserAgent();
-  const ip=await fetchClientIp();
-  const sess=await sbPost('login_sessions',{
-    user_id:u.id,username:u.username,login_at:new Date().toISOString(),
-    ip_address:ip,browser:ua.browser,os:ua.os,device_type:ua.deviceType
-  });
-  if(sess&&sess[0])sessionId=sess[0].id;
-  // Update last_login
-  await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
-  await loadQuestions();
-  await migrateLegacyBrowserData();
-  await loadStudyProgress();
-  await loadQuizProgress();
-  showNav();
-  showScreen('dashboard');
-  startInactivityWatch();
+  try{await completeLogin(u,false);}
+  catch(error){
+    console.error('[login] initialization failed',error);
+    currentUser=null;sessionId=null;loginTime=null;
+    alertEl.textContent='Login succeeded, but your progress could not be synchronized. Please try again.';
+    alertEl.style.display='';
+  }
 }
 
 async function doLogout(dueToInactivity){

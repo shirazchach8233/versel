@@ -1420,7 +1420,7 @@ async function loadQuestions(){
   if(allQuestions.length>0)return;
   try{
     const r=await fetch('questions.json');
-    const data=await r.json();
+    let data=await r.json();
     // Apply any admin-corrected overrides (from flagged-question reviews) on top of the base bank
     try{
       const overrides=await sbGet('question_overrides','select=*');

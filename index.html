@@ -874,6 +874,7 @@ tr:hover td{background:#f8fafc}
 <script src="previous-year-036-2022-4.js"></script>
 <script src="previous-year-036-2022-5.js"></script>
 <script src="previous-year-326-2022.js"></script>
+<script src="generated-pyq-practice-2026.js"></script>
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -1369,7 +1370,15 @@ async function loadQuestions(){
         });
       }
     }catch(e){console.error('Failed to load question overrides',e);}
-    allQuestions=data;
+    const existingQuestionKeys=new Set(data.map(q=>QuestionSelection.key(q)));
+    const pyqQuestions=[...(window.PREVIOUS_YEAR_036_2022||[]),...(window.PREVIOUS_YEAR_326_2022||[])];
+    pyqQuestions.forEach(q=>existingQuestionKeys.add(QuestionSelection.key(q)));
+    const generated=(window.GENERATED_PYQ_PRACTICE_2026||[]).filter(q=>{
+      const key=QuestionSelection.key(q);
+      if(existingQuestionKeys.has(key))return false;
+      existingQuestionKeys.add(key);return true;
+    });
+    allQuestions=data.concat(generated);
     // Populate topic selectors
     populateTopics();
   }catch(e){console.error('Failed to load questions',e);}

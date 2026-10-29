@@ -64,15 +64,13 @@ test('quiz setup offers 200 and 300 question options',()=>{
   assert.deepEqual(counts,[25,50,75,100,200,300,400,500]);
 });
 
-test('real bank has cross-topic duplicates; selection retains IDs and excludes duplicate text',()=>{
+test('deduplicated bank has unique wording and selection retains IDs',()=>{
   const unique=selection.unique(bank);
-  assert.ok(unique.length<bank.length);
+  assert.equal(unique.length,bank.length);
   assert.equal(new Set(unique.map(selection.key)).size,unique.length);
   assert.ok(unique.every(record=>bank.includes(record)));
-  const keys=new Set();
-  const duplicate=bank.find(record=>{const key=selection.key(record);if(keys.has(key))return true;keys.add(key);return false;});
-  const remaining=selection.unseen(bank,bank,new Set([duplicate.id]));
-  assert.ok(remaining.every(record=>selection.key(record)!==selection.key(duplicate)));
+  const remaining=selection.unseen(bank,bank,new Set([bank[0].id]));
+  assert.ok(!remaining.some(record=>record.id===bank[0].id));
 });
 
 test('normalizes case, whitespace, Unicode quotes and punctuation; keeps different wording',()=>{

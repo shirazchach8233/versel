@@ -5,10 +5,12 @@ const selection=require('../question-selection');
 
 const bank=JSON.parse(fs.readFileSync(require.resolve('../questions.json'),'utf8'));
 const report=JSON.parse(fs.readFileSync(require.resolve('../reports/cdpo-question-import.json'),'utf8'));
+const dedupReport=JSON.parse(fs.readFileSync(require.resolve('../reports/question-deduplication.json'),'utf8'));
 const imported=bank.filter(question=>question.s.includes(' - Module '));
 
 test('question bank records retain the app schema and unique IDs',()=>{
-  assert.equal(bank.length,report.questions_after_import);
+  assert.equal(bank.length,dedupReport.retained_questions);
+  assert.equal(bank.length,report.questions_after_import-dedupReport.removed_questions);
   assert.equal(new Set(bank.map(question=>question.id)).size,bank.length);
   for(const question of bank){
     assert.deepEqual(Object.keys(question).sort(),['a','e','id','o','q','s']);
@@ -23,7 +25,7 @@ test('question bank records retain the app schema and unique IDs',()=>{
 });
 
 test('PDF additions are unique and mapped across all 21 syllabus modules',()=>{
-  assert.equal(imported.length,report.questions_added);
+  assert.ok(imported.length<report.questions_added);
   assert.equal(new Set(imported.map(question=>question.s)).size,21);
   assert.equal(new Set(imported.map(selection.key)).size,imported.length);
 

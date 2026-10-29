@@ -1328,6 +1328,50 @@ function normalizeQuestionTopic(question){
 }
 function normalizeQuestionBankTopics(records){return records.map(q=>({...q,s:normalizeQuestionTopic(q)}));}
 
+// Keep the source question IDs and answer indexes unchanged while presenting
+// six choices in every mode. The extra choices are selected deterministically
+// from the same syllabus topic, so a student's saved progress remains valid.
+function addSimilarOptions(records,pool){
+  const topicPools=new Map();
+  const generic=/^(all of (the )?above|none of (the )?above|all of these|none of these|all these)$/i;
+  const textKey=value=>String(value??'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
+  const hash=value=>{let h=2166136261;for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
+  (pool||[]).forEach(source=>{
+    const topic=normalizeQuestionTopic(source);
+    if(!topicPools.has(topic))topicPools.set(topic,{values:[],keys:new Set()});
+    const bucket=topicPools.get(topic);
+    (source.o||[]).forEach(option=>{
+      const value=String(option);
+      const key=textKey(value);
+      if(!generic.test(value.trim())&&!bucket.keys.has(key)){bucket.keys.add(key);bucket.values.push(value);}
+    });
+  });
+  const globalPool=[...new Set((pool||[]).flatMap(source=>source.o||[]).map(String).filter(option=>!generic.test(option.trim())))];
+  records.forEach(question=>{
+    if(!Array.isArray(question.o)||question.o.length>=6)return;
+    const existing=new Set(question.o.map(textKey));
+    const topic=normalizeQuestionTopic(question);
+    const candidates=topicPools.get(topic)?.values||[];
+    const chosen=[];
+    const target=6-question.o.length;
+    const start=candidates.length?hash(question.id)%candidates.length:0;
+    for(let offset=0;offset<Math.min(candidates.length,128)&&chosen.length<target;offset++){
+      const option=candidates[(start+offset)%candidates.length];
+      if(!chosen.some(value=>textKey(value)===textKey(option)))chosen.push(option);
+    }
+    // Very small topics still receive six choices using the global pool.
+    if(chosen.length<target){
+      const fallbackStart=globalPool.length?hash(`${question.id}:fallback`)%globalPool.length:0;
+      for(let offset=0;offset<Math.min(globalPool.length,256)&&chosen.length<target;offset++){
+        const option=globalPool[(fallbackStart+offset)%globalPool.length],key=textKey(option);
+        if(!existing.has(key)&&!chosen.some(value=>textKey(value)===key))chosen.push(option);
+      }
+    }
+    question.o=question.o.concat(chosen);
+  });
+  return records;
+}
+
 function renderDashboardModuleProgress(){
   const target=document.getElementById('dash-module-progress');
   if(!target)return;
@@ -1447,6 +1491,8 @@ async function loadQuestions(){
       if(existingQuestionKeys.has(key))return false;
       existingQuestionKeys.add(key);return true;
     });
+    const optionPool=[...data,...pyqQuestions,...generated];
+    addSimilarOptions([...data,...pyqQuestions,...generated],optionPool);
     allQuestions=data.concat(generated);
     // Populate topic selectors
     populateTopics();
@@ -1850,7 +1896,7 @@ function renderStudyQuestion(){
   document.getElementById('study-nav-info').textContent=`${currentIdx+1} / ${questions.length}`;
   // Options
   const optsEl=document.getElementById('study-opts');
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   const isAnswered=answered[currentIdx]!==undefined;
   optsEl.innerHTML=q.o.map((opt,i)=>{
     let cls='option-btn';
@@ -1944,7 +1990,7 @@ function requestStudyExplanation(){
 }
 
 function studyFallbackExplanation(q,isAnswered){
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   if(!isAnswered){
     return `⚠️ AI is temporarily unavailable. Please answer the question first; the saved explanation will then be shown here.`;
   }
@@ -2135,7 +2181,7 @@ function renderQuizQuestion(){
   document.getElementById('quiz-q-num').textContent=`Question ${currentIdx+1}`;
   document.getElementById('quiz-q-total').textContent=`${total} total`;
   document.getElementById('quiz-prog-fill').style.width=((currentIdx+1)/total*100)+'%';
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   document.getElementById('quiz-opts').innerHTML=q.o.map((opt,i)=>
     `<button class="option-btn ${answers[currentIdx]===i?'selected':''}" onclick="selectAnswer(${i})">
       <span class="option-key">${keys[i]}.</span><span>${opt}</span></button>`
@@ -2220,7 +2266,7 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
   document.getElementById('res-skip').textContent=skipped;
   document.getElementById('res-score').textContent=score.toFixed(2);
   // Build review list (initially hidden)
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   document.getElementById('review-list').innerHTML=questions.map((q,i)=>{
     const ans=answers[i];
     const correct_ans=q.a;
@@ -2387,7 +2433,7 @@ async function reviewAttempt(attempt,backTo){
     listEl.innerHTML='<div class="empty-state"><div class="icon">🎉</div>No wrong or skipped answers found for this attempt.</div>';
     return;
   }
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   listEl.innerHTML=`<div class="review-list">${rows.map((r,i)=>{
     const q=allQuestions.find(x=>x.id===r.question_id);
     if(!q){
@@ -2538,7 +2584,7 @@ function openEditQuestionModal(questionId){
   }
   document.getElementById('eq-q').value=q.q;
   document.getElementById('eq-e').value=q.e||'';
-  const keys=['A','B','C','D'];
+  const keys=['A','B','C','D','E','F'];
   document.getElementById('eq-options').innerHTML=q.o.map((o,i)=>`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <input type="radio" name="eq-correct" value="${i}" id="eq-opt-radio-${i}" ${i===q.a?'checked':''}/>
@@ -2554,10 +2600,10 @@ async function saveQuestionOverride(){
   const qid=document.getElementById('eq-id').value;
   const qtext=document.getElementById('eq-q').value.trim();
   const explanation=document.getElementById('eq-e').value.trim();
-  const opts=[0,1,2,3].map(i=>{const el=document.getElementById('eq-opt-'+i);return el?el.value.trim():null;});
+  const opts=[0,1,2,3,4,5].map(i=>{const el=document.getElementById('eq-opt-'+i);return el?el.value.trim():null;});
   const correctRadio=document.querySelector('input[name="eq-correct"]:checked');
   if(!qtext||opts.some(o=>!o)||!correctRadio){
-    alertEl.textContent='Please fill in the question, all 4 options, and select the correct answer.';
+    alertEl.textContent='Please fill in the question, all 6 options, and select the correct answer.';
     alertEl.style.display='';
     return;
   }
@@ -2835,7 +2881,7 @@ async function reviewPyqAttempt(ref){
 function renderPyqResults(questions,answers,label){
   let correct=0,wrong=0,skipped=0;questions.forEach((q,i)=>{if(answers[i]<0)skipped++;else if(answers[i]===q.a)correct++;else wrong++;});
   document.getElementById('pyq-res-score').textContent=`${correct} / ${questions.length}`;document.getElementById('pyq-res-correct').textContent=correct;document.getElementById('pyq-res-wrong').textContent=wrong;document.getElementById('pyq-res-skipped').textContent=skipped;document.getElementById('pyq-res-pct').textContent=`${(correct/questions.length*100).toFixed(1)}%`;document.getElementById('pyq-res-grade').textContent=correct>=80?'Excellent performance 🏆':correct>=60?'Strong attempt 👍':correct>=40?'Keep revising 📖':'Use the review below to plan your next attempt';
-  const keys=['A','B','C','D'];document.getElementById('pyq-results-review').innerHTML=questions.map((q,i)=>{const ans=answers[i],ok=ans===q.a;return `<div class="pyq-review-item ${ans<0?'':ok?'correct':'wrong'}"><div class="q-meta">Q${i+1} · ${q.s}</div><div class="review-q">${q.q}</div><div class="review-opts">${q.o.map((o,oi)=>`<span class="badge ${oi===q.a?'badge-correct':oi===ans?'badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}</div><div class="pyq-review-answer">${ans<0?'Not answered':ok?'Your answer is correct':`Your answer: ${keys[ans]}. Correct answer: ${keys[q.a]}.`}</div></div>`;}).join('');
+  const keys=['A','B','C','D','E','F'];document.getElementById('pyq-results-review').innerHTML=questions.map((q,i)=>{const ans=answers[i],ok=ans===q.a;return `<div class="pyq-review-item ${ans<0?'':ok?'correct':'wrong'}"><div class="q-meta">Q${i+1} · ${q.s}</div><div class="review-q">${q.q}</div><div class="review-opts">${q.o.map((o,oi)=>`<span class="badge ${oi===q.a?'badge-correct':oi===ans?'badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}</div><div class="pyq-review-answer">${ans<0?'Not answered':ok?'Your answer is correct':`Your answer: ${keys[ans]}. Correct answer: ${keys[q.a]}.`}</div></div>`;}).join('');
   const resultsTitle=document.querySelector('#screen-pyq-results .text-muted');if(resultsTitle)resultsTitle.textContent=`Previous Year Exam · ${label}`;showScreen('pyq-results');
 }
 function startPyqTimer(){
@@ -2846,7 +2892,7 @@ function startPyqTimer(){
 function renderPyqQuestion(){
   if(!pyqState)return; const examTitle=document.querySelector('.pyq-exam-title');if(examTitle)examTitle.textContent=`🧾 ${pyqState.label} · Full Paper`; const q=pyqState.questions[pyqState.currentIdx],i=pyqState.currentIdx,total=pyqState.questions.length;
   document.getElementById('pyq-qmeta').textContent=`Q${i+1} of ${total} · ${q.s}`;document.getElementById('pyq-qtext').textContent=q.q;document.getElementById('pyq-q-num').textContent=`Question ${i+1}`;document.getElementById('pyq-q-total').textContent=`${total} total`;document.getElementById('pyq-prog-fill').style.width=((i+1)/total*100)+'%';
-  const keys=['A','B','C','D'];document.getElementById('pyq-opts').innerHTML=q.o.map((opt,oi)=>`<button class="option-btn ${pyqState.answers[i]===oi?'selected':''}" onclick="pyqSelectAnswer(${oi})"><span class="option-key">${keys[oi]}.</span><span>${opt}</span></button>`).join('');
+  const keys=['A','B','C','D','E','F'];document.getElementById('pyq-opts').innerHTML=q.o.map((opt,oi)=>`<button class="option-btn ${pyqState.answers[i]===oi?'selected':''}" onclick="pyqSelectAnswer(${oi})"><span class="option-key">${keys[oi]}.</span><span>${opt}</span></button>`).join('');
   document.getElementById('pyq-mark-btn').textContent=pyqState.marked.has(i)?'★ Unmark question':'☆ Mark for review';
   document.getElementById('pyq-palette').innerHTML=pyqState.questions.map((_,pi)=>`<button class="pal-btn ${pi===i?'current ':''}${pyqState.answers[pi]>=0?'answered ':''}${pyqState.marked.has(pi)?'marked':''}" onclick="pyqJump(${pi})">${pi+1}</button>`).join('');
 }
@@ -2873,7 +2919,7 @@ function submitPreviousYearExam(confirmFirst){
     }).catch(error=>console.warn('[pyq-history] could not save attempt',error));
   }
   document.getElementById('pyq-res-score').textContent=`${correct} / ${questions.length}`;document.getElementById('pyq-res-correct').textContent=correct;document.getElementById('pyq-res-wrong').textContent=wrong;document.getElementById('pyq-res-skipped').textContent=skipped;document.getElementById('pyq-res-pct').textContent=`${(correct/questions.length*100).toFixed(1)}%`;document.getElementById('pyq-res-grade').textContent=correct>=80?'Excellent performance 🏆':correct>=60?'Strong attempt 👍':correct>=40?'Keep revising 📖':'Use the review below to plan your next attempt';
-  const keys=['A','B','C','D'];document.getElementById('pyq-results-review').innerHTML=questions.map((q,i)=>{const ans=answers[i],ok=ans===q.a;return `<div class="pyq-review-item ${ans<0?'':ok?'correct':'wrong'}"><div class="q-meta">Q${i+1} · ${q.s}</div><div class="review-q">${q.q}</div><div class="review-opts">${q.o.map((o,oi)=>`<span class="badge ${oi===q.a?'badge-correct':oi===ans?'badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}</div><div class="pyq-review-answer">${ans<0?'Not answered':ok?'Your answer is correct':`Your answer: ${keys[ans]}. Correct answer: ${keys[q.a]}.`}</div></div>`;}).join('');
+  const keys=['A','B','C','D','E','F'];document.getElementById('pyq-results-review').innerHTML=questions.map((q,i)=>{const ans=answers[i],ok=ans===q.a;return `<div class="pyq-review-item ${ans<0?'':ok?'correct':'wrong'}"><div class="q-meta">Q${i+1} · ${q.s}</div><div class="review-q">${q.q}</div><div class="review-opts">${q.o.map((o,oi)=>`<span class="badge ${oi===q.a?'badge-correct':oi===ans?'badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}</div><div class="pyq-review-answer">${ans<0?'Not answered':ok?'Your answer is correct':`Your answer: ${keys[ans]}. Correct answer: ${keys[q.a]}.`}</div></div>`;}).join('');
   const resultsTitle=document.querySelector('#screen-pyq-results .text-muted');if(resultsTitle)resultsTitle.textContent=`Previous Year Exam · ${pyqState.label}`;
   showScreen('pyq-results');
 }

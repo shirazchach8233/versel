@@ -2799,7 +2799,11 @@ async function reviewPyqAttempt(ref){
     const row=saved?.[0];
     if(row){
       const history=await sbGet('question_history',`select=question_id,selected_answer&attempt_id=eq.${encodeURIComponent(row.id)}&order=answered_at.asc`);
-      const questions=(history||[]).map(h=>allQuestions.find(q=>q.id===h.question_id)).filter(Boolean);
+      // PYQ questions live in their paper files, not in the syllabus bank.
+      // Search both sources so a saved PYQ attempt can be reviewed after reload.
+      const pyqQuestions=[...(PYQ_CONFIGS['036-2022'].questions()||[]),...(PYQ_CONFIGS['326-2022'].questions()||[])];
+      const questionsById=new Map([...allQuestions,...pyqQuestions].map(q=>[q.id,q]));
+      const questions=(history||[]).map(h=>questionsById.get(h.question_id)).filter(Boolean);
       const answers=(history||[]).map(h=>h.selected_answer==null?-1:h.selected_answer);
       attempt={questions,answers,label:row.topic,date:row.started_at};
     }

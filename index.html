@@ -1419,7 +1419,7 @@ window.addEventListener('load', async()=>{
 async function loadQuestions(){
   if(allQuestions.length>0)return;
   try{
-    const r=await fetch('questions.json');
+    const r=await fetchQuestionBank();
     let data=await r.json();
     // Apply any admin-corrected overrides (from flagged-question reviews) on top of the base bank
     try{
@@ -1451,6 +1451,21 @@ async function loadQuestions(){
     // Populate topic selectors
     populateTopics();
   }catch(e){console.error('Failed to load questions',e);}
+}
+
+async function fetchQuestionBank(){
+  // Prefer the pre-compressed bank so new sessions transfer far less data.
+  // Keep the JSON path as a fallback for older browsers and local previews.
+  try{
+    const compressed=await fetch('questions.json.gz',{cache:'force-cache'});
+    if(compressed.ok&&compressed.body&&'DecompressionStream' in window){
+      const decompressed=compressed.body.pipeThrough(new DecompressionStream('gzip'));
+      return new Response(decompressed,{headers:{'Content-Type':'application/json'}});
+    }
+  }catch(error){
+    console.warn('[questions] compressed bank unavailable; using JSON fallback',error);
+  }
+  return fetch('questions.json',{cache:'force-cache'});
 }
 
 function populateTopics(){
@@ -1510,6 +1525,7 @@ function startPageTimer(name){
     if(wrap) wrap.classList.add('hidden');
     return;
   }
+
   if(wrap) wrap.classList.remove('hidden');
   pageTimerStart=Date.now();
   const lbl=document.getElementById('page-timer-label');

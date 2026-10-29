@@ -1798,7 +1798,7 @@ async function startStudy(topic,view=studyView){
         : 'You have viewed every question in this topic. Open the Viewed tab to review them.');
       return;
     }
-    studyState={questions:qs,currentIdx:0,topic,view,startTime:Date.now(),lastActiveAt:Date.now(),activeSeconds:0,viewedIds:new Set(),answered:{}};
+    studyState={questions:QuestionSelection.unique(qs),currentIdx:0,topic,view,startTime:Date.now(),lastActiveAt:Date.now(),activeSeconds:0,viewedIds:new Set(),sessionViewedIds:new Set(),answered:{}};
     // Record study session
     const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
     if(sess&&sess[0]) studyState.sessionId=sess[0].id;
@@ -1813,6 +1813,7 @@ function renderStudyQuestion(){
   const {questions,currentIdx,answered}=studyState;
   const q=questions[currentIdx];
   studyState.viewedIds.add(q.id);
+  studyState.sessionViewedIds.add(q.id);
   rememberQuestion('study',q);
   syncStudySessionProgress();
   // Reset chat for each new question
@@ -1867,7 +1868,10 @@ async function persistStudyAnswer(q,selected){
 async function studyNav(dir){
   // End study session if going back
   const ns=studyState;
-  const newIdx=ns.currentIdx+dir;
+  let newIdx=ns.currentIdx+dir;
+  // Study Mode is a one-pass queue. Previously displayed questions are not
+  // shown again through navigation; Study Review is the explicit revisit path.
+  while(newIdx>=0&&newIdx<ns.questions.length&&ns.sessionViewedIds.has(ns.questions[newIdx].id))newIdx+=dir;
   if(newIdx<0){
     // End session
     if(ns.sessionId){

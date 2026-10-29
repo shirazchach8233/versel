@@ -2130,13 +2130,15 @@ async function startRevision(){
     alert('Your Study Review history could not be loaded. Please try again before starting a revision.');
     return;
   }
-  const viewedPool=QuestionSelection.viewed(
-    topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic),
-    allQuestions,
-    seenProgress('study')
-  );
+  // Study Review must be a strict subset of Study Mode's viewed IDs. Do not
+  // use text-based viewed matching here: duplicate wording can otherwise make
+  // an unseen question appear as reviewed when another question has similar text.
+  const studyViewedIds=seenProgress('study');
+  const reviewPool=topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic);
+  const viewedPool=QuestionSelection.unique(reviewPool.filter(q=>studyViewedIds.has(q.id)));
   const alreadyUsed=seenProgress('viewed-quiz');
-  const pool=viewedPool.filter(q=>!alreadyUsed.has(q.id));
+  const alreadyUsedKeys=new Set(QuestionSelection.unique(allQuestions.filter(q=>alreadyUsed.has(q.id))).map(q=>QuestionSelection.key(q)));
+  const pool=viewedPool.filter(q=>!alreadyUsed.has(q.id)&&!alreadyUsedKeys.has(QuestionSelection.key(q)));
   if(!pool.length){
     alert(viewedPool.length
       ? 'You have already used all viewed questions in this quiz mode. Study more questions to add new ones.'

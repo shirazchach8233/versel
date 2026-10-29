@@ -143,7 +143,7 @@ test('study topic tabs report remaining and viewed counts',async()=>{
 
 test('Study Review only uses questions opened in Study Mode and does not repeat across browsers',async()=>{
   const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a'])]]);
-  const a=app(storage);a.setBank([q('a','Viewed'),q('b','Not viewed'),q('c','Other','Other Topic')]);
+  const a=app(storage);a.setBank([q('a','Viewed'),q('b','Viewed'),q('c','Not viewed'),q('d','Other','Other Topic')]);
   a.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
   await a.run('startRevision()');
   assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id)')),['a']);

@@ -1579,7 +1579,9 @@ async function loadDashboard(){
   document.getElementById('dash-greeting').textContent=`${g}, ${currentUser.full_name||currentUser.username}! 👋`;
   renderDashboardModuleProgress();
   const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${currentUser.id}&order=started_at.desc&limit=50`);
-  const total=attempts.length;
+  const serverPyqTimes=new Set(attempts.filter(a=>a.is_pyq).map(a=>a.started_at));
+  const localPyq=pyqAttempts().filter(a=>!serverPyqTimes.has(a.at)).map(a=>({...a,id:null,is_pyq:true,topic:a.label||a.setId,started_at:a.at,completed_at:a.at,percentage:a.questions?.length?Math.round(a.correct/a.questions.length*1000)/10:0}));
+  const total=attempts.length+localPyq.length;
   const completed=attempts.filter(a=>a.completed_at);
   await loadDashboardWeakness('dash-weakness',currentUser.id,completed);
   const avg=completed.length?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/completed.length):0;
@@ -1595,20 +1597,26 @@ async function loadDashboard(){
   document.getElementById('ds-best').textContent=best+'%';
   document.getElementById('ds-time').textContent=fmtTime(totalSecs);
   // Recent attempts
-  const recent=attempts.slice(0,5);
+  const recent=[...attempts,...localPyq].sort((a,b)=>new Date(b.started_at||b.at)-new Date(a.started_at||a.at)).slice(0,5);
   if(recent.length===0){
     document.getElementById('dash-recent').innerHTML='<div class="empty-state"><div class="icon">✏️</div>No quizzes yet — take your first quiz!</div>';
   } else {
     document.getElementById('dash-recent').innerHTML=`<table><thead><tr><th>Topic</th><th>Date</th><th>Score</th><th>Result</th><th></th></tr></thead><tbody>
       ${recent.map(a=>`<tr>
-        <td>${a.topic}</td>
+        <td>${attemptTopicLabel(a)}</td>
         <td>${fmtDate(a.started_at)}</td>
         <td>${(a.percentage||0).toFixed(1)}%</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0)>=50?'Pass':'Fail'}</span></td>
-        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"progress")'>🔍 Review</button>`:''}</td>
+        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"progress")'>🔍 Review</button>`:''}</td>
       </tr>`).join('')}
     </tbody></table>`;
   }
+}
+
+function attemptTopicLabel(a){
+  if(a.is_pyq)return `PYQ · ${a.topic||a.label||'Previous Year Paper'}`;
+  if(a.is_revision||a.topic==='All Viewed Items')return `Study Review · ${a.topic||'Viewed Items'}`;
+  return a.topic||'Quiz';
 }
 
 // ══════════════════════════════════════════════
@@ -2141,7 +2149,15 @@ async function loadProgress(){
 // ids = {total,avg,best,time,timeTopics,topics,weakness,history} — DOM element ids to populate.
 // backTo = which screen a "🔍 Review" click from the history table should return to ('progress' or 'admin-user').
 async function loadProgressFor(userId,ids,backTo){
-  const attempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${userId}&order=started_at.desc`);
+  const serverAttempts=await sbGet('quiz_attempts',`select=*&user_id=eq.${userId}&order=started_at.desc`);
+  let localAttempts=[];
+  if(userId===currentUser?.id){
+    localAttempts=pyqAttempts().filter(a=>!serverAttempts.some(s=>s.is_pyq&&s.started_at===a.at)).map(a=>{
+      const total=a.questions?.length||0;
+      return {...a,id:null,is_pyq:true,topic:a.label||a.setId,started_at:a.at,completed_at:a.at,percentage:total?Math.round(a.correct/total*1000)/10:0};
+    });
+  }
+  const attempts=[...serverAttempts,...localAttempts].sort((a,b)=>new Date(b.started_at)-new Date(a.started_at));
   const completed=attempts.filter(a=>a.completed_at);
   const total=completed.length;
   const avg=total?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/total):0;
@@ -2206,11 +2222,11 @@ async function loadProgressFor(userId,ids,backTo){
   } else {
     document.getElementById(ids.history).innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Topic</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Time</th><th></th></tr></thead><tbody>
       ${completed.slice(0,30).map(a=>`<tr>
-        <td>${fmtDate(a.started_at)}</td><td>${a.topic}</td>
+        <td>${fmtDate(a.started_at)}</td><td>${attemptTopicLabel(a)}</td>
         <td>${(a.score||0).toFixed(2)}</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0).toFixed(1)}%</span></td>
         <td>${a.correct}</td><td>${a.wrong}</td><td>${fmtTime(a.duration_secs||0)}</td>
-        <td>${((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"${backTo}")'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
+        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"${backTo}")'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
   }
@@ -2659,6 +2675,12 @@ function reviewLatestPreviousYearExam(){
   if(!attempt)return;pyqState={questions:attempt.questions,setId:attempt.setId,label:attempt.label,date:attempt.date,answers:attempt.answers,marked:new Set(),currentIdx:0,startTime:0,remaining:0,timerInterval:null};
   renderPyqResults(attempt.questions,attempt.answers,attempt.label);
 }
+function reviewPyqAttempt(at){
+  const attempt=pyqAttempts().find(a=>a.at===at);
+  if(!attempt)return;
+  pyqState={questions:attempt.questions,setId:attempt.setId,label:attempt.label,date:attempt.date,answers:attempt.answers,marked:new Set(),currentIdx:0,startTime:0,remaining:0,timerInterval:null};
+  renderPyqResults(attempt.questions,attempt.answers,attempt.label);
+}
 function renderPyqResults(questions,answers,label){
   let correct=0,wrong=0,skipped=0;questions.forEach((q,i)=>{if(answers[i]<0)skipped++;else if(answers[i]===q.a)correct++;else wrong++;});
   document.getElementById('pyq-res-score').textContent=`${correct} / ${questions.length}`;document.getElementById('pyq-res-correct').textContent=correct;document.getElementById('pyq-res-wrong').textContent=wrong;document.getElementById('pyq-res-skipped').textContent=skipped;document.getElementById('pyq-res-pct').textContent=`${(correct/questions.length*100).toFixed(1)}%`;document.getElementById('pyq-res-grade').textContent=correct>=80?'Excellent performance 🏆':correct>=60?'Strong attempt 👍':correct>=40?'Keep revising 📖':'Use the review below to plan your next attempt';
@@ -2687,8 +2709,18 @@ function submitPreviousYearExam(confirmFirst){
   if(confirmFirst&&!window.confirm(`Submit this exam now? ${unanswered} question${unanswered===1?' is':'s are'} unanswered.`))return;
   if(pyqState.timerInterval)clearInterval(pyqState.timerInterval);const {questions,answers,startTime}=pyqState;let correct=0,wrong=0,skipped=0;
   questions.forEach((q,i)=>{if(answers[i]<0)skipped++;else if(answers[i]===q.a)correct++;else wrong++;});
-  const duration=startTime?Math.floor((Date.now()-startTime)/1000):0,attempt={at:new Date().toISOString(),setId:pyqState.setId,label:pyqState.label,date:pyqState.date,correct,wrong,skipped,score:correct,duration,questions,answers};
+  const duration=startTime?Math.floor((Date.now()-startTime)/1000):0,attempt={at:new Date().toISOString(),setId:pyqState.setId,label:pyqState.label,date:pyqState.date,correct,wrong,skipped,score:correct,duration,questions,answers,is_pyq:true};
   try{const key=`cdpo_pyq_attempts_${currentUser?.id||'guest'}`,rows=JSON.parse(localStorage.getItem(key)||'[]');rows.unshift(attempt);localStorage.setItem(key,JSON.stringify(rows.slice(0,10)));}catch(e){}
+  // Store PYQ attempts in the same durable history as quizzes so they appear
+  // in Recent Attempts and Progress on every signed-in device.
+  if(currentUser){
+    const startedAt=attempt.at;
+    sbPost('quiz_attempts',{user_id:currentUser.id,username:currentUser.username,topic:pyqState.label,mode:'quiz',num_questions:questions.length,started_at:startedAt,completed_at:startedAt,duration_secs:duration,is_revision:false,is_pyq:true,score:correct,correct,wrong,skipped,total:questions.length,percentage:Math.round(correct/questions.length*1000)/10}).then(saved=>{
+      const attemptId=saved?.[0]?.id||null;
+      const rows=questions.map((q,i)=>({user_id:currentUser.id,username:currentUser.username,attempt_id:attemptId,question_id:q.id,topic:q.s,is_correct:answers[i]<0?null:answers[i]===q.a,selected_answer:answers[i]<0?null:answers[i],answered_at:startedAt}));
+      if(rows.length)sbPost('question_history',rows);
+    }).catch(error=>console.warn('[pyq-history] could not save attempt',error));
+  }
   document.getElementById('pyq-res-score').textContent=`${correct} / ${questions.length}`;document.getElementById('pyq-res-correct').textContent=correct;document.getElementById('pyq-res-wrong').textContent=wrong;document.getElementById('pyq-res-skipped').textContent=skipped;document.getElementById('pyq-res-pct').textContent=`${(correct/questions.length*100).toFixed(1)}%`;document.getElementById('pyq-res-grade').textContent=correct>=80?'Excellent performance 🏆':correct>=60?'Strong attempt 👍':correct>=40?'Keep revising 📖':'Use the review below to plan your next attempt';
   const keys=['A','B','C','D'];document.getElementById('pyq-results-review').innerHTML=questions.map((q,i)=>{const ans=answers[i],ok=ans===q.a;return `<div class="pyq-review-item ${ans<0?'':ok?'correct':'wrong'}"><div class="q-meta">Q${i+1} · ${q.s}</div><div class="review-q">${q.q}</div><div class="review-opts">${q.o.map((o,oi)=>`<span class="badge ${oi===q.a?'badge-correct':oi===ans?'badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}</div><div class="pyq-review-answer">${ans<0?'Not answered':ok?'Your answer is correct':`Your answer: ${keys[ans]}. Correct answer: ${keys[q.a]}.`}</div></div>`;}).join('');
   const resultsTitle=document.querySelector('#screen-pyq-results .text-muted');if(resultsTitle)resultsTitle.textContent=`Previous Year Exam · ${pyqState.label}`;

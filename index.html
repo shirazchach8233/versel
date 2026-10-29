@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CDPO Quiz Platform</title>
-<script>(function(){try{var t=localStorage.getItem('cdpo_theme');if(!t){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script>(function(){try{var t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -940,16 +940,18 @@ let startingStudy=false,startingQuiz=false;
 // Local progress makes navigation instant and works offline. Study progress is
 // also synchronized to Supabase so it follows the user across browsers/devices.
 function seenProgress(mode){
-  const storageKey=`cdpo_seen_${mode}_${currentUser.id}`;
-  if(!seenProgressCache.has(storageKey)){
-    let ids=[];
-    try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(saved))ids=saved.filter(id=>typeof id==='string');}catch(e){}
-    seenProgressCache.set(storageKey,new Set(ids));
-  }
-  return seenProgressCache.get(storageKey);
+  const cacheKey=`${currentUser?.id||'anonymous'}:${mode}`;
+  if(!seenProgressCache.has(cacheKey))seenProgressCache.set(cacheKey,new Set());
+  return seenProgressCache.get(cacheKey);
+}
+function legacyProgressIds(mode){
+  if(!currentUser)return [];
+  const key=`cdpo_seen_${mode}_${currentUser.id}`;
+  try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value.filter(id=>typeof id==='string'):[]}catch(e){return[]}
 }
 function saveSeenProgress(mode){
-  try{localStorage.setItem(`cdpo_seen_${mode}_${currentUser.id}`,JSON.stringify([...seenProgress(mode)]));}catch(e){console.warn('Progress could not be saved in this browser.');}
+  // Progress is persisted in Supabase; this function remains as a no-op for
+  // callers that update the in-memory set during the current session.
 }
 function studySessionIsActive(ns=studyState){
   if(!ns)return false;
@@ -1046,19 +1048,25 @@ async function fetchStudyProgress(){
 async function loadStudyProgress(){
   if(!currentUser)return false;
   const localIds=seenProgress('study');
+  legacyProgressIds('study').forEach(id=>localIds.add(id));
   try{
     const serverIds=await fetchStudyProgress();
     studyServerProgressCache.set(currentUser.id,serverIds);
     const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
     const missing=[...localIds].filter(id=>!serverIds.has(id));
+    let legacyMigrated=true;
     for(let start=0;start<missing.length;start+=500){
       const rows=missing.slice(start,start+500).map(id=>({
         user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
       }));
-      if(rows.length&&await sbUpsertIgnore('study_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+      if(rows.length){
+        if(await sbUpsertIgnore('study_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+        else legacyMigrated=false;
+      }
     }
     serverIds.forEach(id=>localIds.add(id));
     saveSeenProgress('study');
+    if(legacyMigrated)localStorage.removeItem(`cdpo_seen_study_${currentUser.id}`);
     return true;
   }catch(error){
     console.error('[study-progress] sync failed',error);
@@ -1097,19 +1105,25 @@ async function fetchQuizProgress(){
 async function loadQuizProgress(){
   if(!currentUser)return false;
   const localIds=seenProgress('quiz');
+  legacyProgressIds('quiz').forEach(id=>localIds.add(id));
   try{
     const serverIds=await fetchQuizProgress();
     quizServerProgressCache.set(currentUser.id,serverIds);
     const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
     const missing=[...localIds].filter(id=>!serverIds.has(id));
+    let legacyMigrated=true;
     for(let start=0;start<missing.length;start+=500){
       const rows=missing.slice(start,start+500).map(id=>({
         user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
       }));
-      if(rows.length&&await sbUpsertIgnore('quiz_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+      if(rows.length){
+        if(await sbUpsertIgnore('quiz_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+        else legacyMigrated=false;
+      }
     }
     serverIds.forEach(id=>localIds.add(id));
     saveSeenProgress('quiz');
+    if(legacyMigrated)localStorage.removeItem(`cdpo_seen_quiz_${currentUser.id}`);
     quizProgressLoadedUsers.add(currentUser.id);
     return true;
   }catch(error){
@@ -1150,19 +1164,25 @@ async function fetchReviewProgress(){
 async function loadReviewProgress(){
   if(!currentUser)return false;
   const localIds=seenProgress('viewed-quiz');
+  legacyProgressIds('viewed-quiz').forEach(id=>localIds.add(id));
   try{
     const serverIds=await fetchReviewProgress();
     reviewServerProgressCache.set(currentUser.id,serverIds);
     const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
     const missing=[...localIds].filter(id=>!serverIds.has(id));
+    let legacyMigrated=true;
     for(let start=0;start<missing.length;start+=500){
       const rows=missing.slice(start,start+500).map(id=>({
         user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
       }));
-      if(rows.length&&await sbUpsertIgnore('study_review_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+      if(rows.length){
+        if(await sbUpsertIgnore('study_review_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+        else legacyMigrated=false;
+      }
     }
     serverIds.forEach(id=>localIds.add(id));
     saveSeenProgress('viewed-quiz');
+    if(legacyMigrated)localStorage.removeItem(`cdpo_seen_viewed-quiz_${currentUser.id}`);
     return true;
   }catch(error){
     console.error('[study-review-progress] sync failed',error);
@@ -1171,6 +1191,39 @@ async function loadReviewProgress(){
 }
 function clearLoginSession(){
   ['cdpo_session','cdpo_sid','cdpo_lt'].forEach(key=>localStorage.removeItem(key));
+}
+async function migrateLegacyBrowserData(){
+  if(!currentUser)return;
+  const legacyKeys={
+    study:`cdpo_seen_study_${currentUser.id}`,
+    quiz:`cdpo_seen_quiz_${currentUser.id}`,
+    review:`cdpo_seen_viewed-quiz_${currentUser.id}`,
+    pyq:`cdpo_pyq_attempts_${currentUser.id}`
+  };
+  const readIds=key=>{try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value.filter(id=>typeof id==='string'):[]}catch(e){return[]}};
+  const topics=new Map(allQuestions.map(q=>[q.id,q.s]));
+  const migrateIds=async(mode,table)=>{
+    const key=legacyKeys[mode],ids=readIds(key);
+    if(!ids.length){if(localStorage.getItem(key)!==null)localStorage.removeItem(key);return true;}
+    const rows=ids.map(id=>({user_id:currentUser.id,question_id:id,topic:topics.get(id)||null,viewed_at:new Date().toISOString()}));
+    const ok=await sbUpsertIgnore(table,rows,'user_id,question_id');
+    if(ok)localStorage.removeItem(key);
+    return ok;
+  };
+  await migrateIds('study','study_question_history');
+  await migrateIds('quiz','quiz_question_history');
+  await migrateIds('review','study_review_question_history');
+  const pyqKey=legacyKeys.pyq;
+  let attempts=[];try{attempts=JSON.parse(localStorage.getItem(pyqKey)||'[]');if(!Array.isArray(attempts))attempts=[];}catch(e){}
+  let pyqOk=true;
+  for(const attempt of attempts){
+    if(!Array.isArray(attempt.questions)||!Array.isArray(attempt.answers))continue;
+    const saved=await sbPost('quiz_attempts',{user_id:currentUser.id,username:currentUser.username,topic:attempt.label||attempt.setId,mode:'quiz',num_questions:attempt.questions.length,started_at:attempt.at||new Date().toISOString(),completed_at:attempt.at||new Date().toISOString(),duration_secs:attempt.duration||0,is_revision:false,is_pyq:true,score:attempt.correct||0,correct:attempt.correct||0,wrong:attempt.wrong||0,skipped:attempt.skipped||0,total:attempt.questions.length,percentage:attempt.questions.length?Math.round((attempt.correct||0)/attempt.questions.length*1000)/10:0});
+    if(!saved||!saved[0]){pyqOk=false;continue;}
+    const rows=attempt.questions.map((q,i)=>({user_id:currentUser.id,username:currentUser.username,attempt_id:saved[0].id,question_id:q.id,topic:q.s,is_correct:attempt.answers[i]<0?null:attempt.answers[i]===q.a,selected_answer:attempt.answers[i]<0?null:attempt.answers[i],answered_at:attempt.at||new Date().toISOString()}));
+    if(rows.length&&!await sbPost('question_history',rows))pyqOk=false;
+  }
+  if(pyqOk&&localStorage.getItem(pyqKey)!==null)localStorage.removeItem(pyqKey);
 }
 let adminViewingUser=null; // {id,username,full_name} — which user's progress the admin drill-down screen is showing
 let reviewBackTarget='progress'; // which screen the Review Mistakes "back" button returns to: 'progress' or 'admin-user'
@@ -1285,21 +1338,9 @@ function renderDashboardModuleProgress(){
 window.addEventListener('load', async()=>{
   updateThemeIcon();
   // Restore session
-  const saved = localStorage.getItem('cdpo_session');
-  if(saved){
-    try{
-      currentUser=JSON.parse(saved);
-      sessionId=localStorage.getItem('cdpo_sid');
-      loginTime=parseInt(localStorage.getItem('cdpo_lt')||Date.now());
-      await loadQuestions();
-      await loadStudyProgress();
-      await loadQuizProgress();
-      showNav();
-      showScreen('dashboard');
-      startInactivityWatch();
-      return;
-    }catch(e){clearLoginSession();}
-  }
+  // Authentication is intentionally not restored from browser storage.
+  // Reloading starts a fresh login session; account data lives in Supabase.
+  clearLoginSession();
   // Check if any users with a real password exist (SETUP_REQUIRED = not yet configured)
   const users = await sbGet('users','select=id&password_hash=neq.SETUP_REQUIRED&limit=1');
   if(!users||users.length===0){showScreen('setup');return;}
@@ -1359,7 +1400,6 @@ function toggleTheme(){
   const cur=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
   const next=cur==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',next);
-  try{localStorage.setItem('cdpo_theme',next);}catch(e){}
   updateThemeIcon();
 }
 
@@ -1453,9 +1493,7 @@ async function doLogin(){
   if(u.password_hash!==hash){alertEl.textContent='Incorrect password.';alertEl.style.display='';return;}
   // Success
   currentUser={id:u.id,username:u.username,full_name:u.full_name,role:u.role};
-  localStorage.setItem('cdpo_session',JSON.stringify(currentUser));
   loginTime=Date.now();
-  localStorage.setItem('cdpo_lt',loginTime);
   // Record login session — browser/OS/device-type are parsed from the user-agent string
   // (heuristic, regex-based — no MAC address or OS device name: browsers don't expose those to web pages).
   const ua=parseUserAgent();
@@ -1464,10 +1502,11 @@ async function doLogin(){
     user_id:u.id,username:u.username,login_at:new Date().toISOString(),
     ip_address:ip,browser:ua.browser,os:ua.os,device_type:ua.deviceType
   });
-  if(sess&&sess[0]){sessionId=sess[0].id;localStorage.setItem('cdpo_sid',sessionId);}
+  if(sess&&sess[0])sessionId=sess[0].id;
   // Update last_login
   await sbPatch('users',`id=eq.${u.id}`,{last_login:new Date().toISOString()});
   await loadQuestions();
+  await migrateLegacyBrowserData();
   await loadStudyProgress();
   await loadQuizProgress();
   showNav();
@@ -1607,7 +1646,7 @@ async function loadDashboard(){
         <td>${fmtDate(a.started_at)}</td>
         <td>${(a.percentage||0).toFixed(1)}%</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0)>=50?'Pass':'Fail'}</span></td>
-        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"progress")'>🔍 Review</button>`:''}</td>
+        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.id||a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"progress")'>🔍 Review</button>`:''}</td>
       </tr>`).join('')}
     </tbody></table>`;
   }
@@ -2226,7 +2265,7 @@ async function loadProgressFor(userId,ids,backTo){
         <td>${(a.score||0).toFixed(2)}</td>
         <td><span class="chip ${(a.percentage||0)>=50?'chip-green':'chip-red'}">${(a.percentage||0).toFixed(1)}%</span></td>
         <td>${a.correct}</td><td>${a.wrong}</td><td>${fmtTime(a.duration_secs||0)}</td>
-        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"${backTo}")'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
+        <td>${a.is_pyq?`<button class="btn btn-ghost btn-sm" onclick='reviewPyqAttempt(${JSON.stringify(a.id||a.at)})'>🔍 Review</button>`:((a.wrong||0)>0||(a.skipped||0)>0)?`<button class="btn btn-ghost btn-sm" onclick='reviewAttempt(${JSON.stringify({id:a.id,topic:a.topic,started_at:a.started_at,percentage:a.percentage})},"${backTo}")'>🔍 Review</button>`:'<span class="text-muted" style="font-size:.78rem">Perfect</span>'}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
   }
@@ -2649,13 +2688,13 @@ function fmtTime(secs){
 // ══════════════════════════════════════════════
 // PREVIOUS YEAR EXAM MODULE
 // ══════════════════════════════════════════════
-let pyqState=null,pyqSelectedSet='036-2022';
+let pyqState=null,pyqSelectedSet='036-2022',pyqAttemptCache=[];
 const PYQ_CONFIGS={
   '036-2022':{questions:()=>window.PREVIOUS_YEAR_036_2022||[],label:'Set 1 · 036/2022',date:'07 April 2022'},
   '326-2022':{questions:()=>window.PREVIOUS_YEAR_326_2022||[],label:'Set 2 · 326/2022',date:'24 January 2023'}
 };
 function pyqAttemptKey(){return `cdpo_pyq_attempts_${currentUser?.id||'guest'}`}
-function pyqAttempts(){try{return JSON.parse(localStorage.getItem(pyqAttemptKey())||'[]')}catch(e){return[]}}
+function pyqAttempts(){return pyqAttemptCache}
 function selectPyqSet(setId){
   if(!PYQ_CONFIGS[setId])return;pyqSelectedSet=setId;
   document.querySelectorAll('.pyq-set-tile').forEach(tile=>tile.classList.toggle('selected',tile.dataset.pyqSet===setId));
@@ -2675,10 +2714,20 @@ function reviewLatestPreviousYearExam(){
   if(!attempt)return;pyqState={questions:attempt.questions,setId:attempt.setId,label:attempt.label,date:attempt.date,answers:attempt.answers,marked:new Set(),currentIdx:0,startTime:0,remaining:0,timerInterval:null};
   renderPyqResults(attempt.questions,attempt.answers,attempt.label);
 }
-function reviewPyqAttempt(at){
-  const attempt=pyqAttempts().find(a=>a.at===at);
-  if(!attempt)return;
-  pyqState={questions:attempt.questions,setId:attempt.setId,label:attempt.label,date:attempt.date,answers:attempt.answers,marked:new Set(),currentIdx:0,startTime:0,remaining:0,timerInterval:null};
+async function reviewPyqAttempt(ref){
+  let attempt=pyqAttempts().find(a=>a.at===ref);
+  if(!attempt&&currentUser&&ref){
+    const saved=await sbGet('quiz_attempts',`select=*&id=eq.${encodeURIComponent(ref)}&user_id=eq.${encodeURIComponent(currentUser.id)}&limit=1`);
+    const row=saved?.[0];
+    if(row){
+      const history=await sbGet('question_history',`select=question_id,selected_answer&attempt_id=eq.${encodeURIComponent(row.id)}&order=answered_at.asc`);
+      const questions=(history||[]).map(h=>allQuestions.find(q=>q.id===h.question_id)).filter(Boolean);
+      const answers=(history||[]).map(h=>h.selected_answer==null?-1:h.selected_answer);
+      attempt={questions,answers,label:row.topic,date:row.started_at};
+    }
+  }
+  if(!attempt||!attempt.questions?.length)return;
+  pyqState={questions:attempt.questions,setId:attempt.setId||'',label:attempt.label,date:attempt.date,answers:attempt.answers,marked:new Set(),currentIdx:0,startTime:0,remaining:0,timerInterval:null};
   renderPyqResults(attempt.questions,attempt.answers,attempt.label);
 }
 function renderPyqResults(questions,answers,label){
@@ -2710,7 +2759,7 @@ function submitPreviousYearExam(confirmFirst){
   if(pyqState.timerInterval)clearInterval(pyqState.timerInterval);const {questions,answers,startTime}=pyqState;let correct=0,wrong=0,skipped=0;
   questions.forEach((q,i)=>{if(answers[i]<0)skipped++;else if(answers[i]===q.a)correct++;else wrong++;});
   const duration=startTime?Math.floor((Date.now()-startTime)/1000):0,attempt={at:new Date().toISOString(),setId:pyqState.setId,label:pyqState.label,date:pyqState.date,correct,wrong,skipped,score:correct,duration,questions,answers,is_pyq:true};
-  try{const key=`cdpo_pyq_attempts_${currentUser?.id||'guest'}`,rows=JSON.parse(localStorage.getItem(key)||'[]');rows.unshift(attempt);localStorage.setItem(key,JSON.stringify(rows.slice(0,10)));}catch(e){}
+  pyqAttemptCache.unshift(attempt);pyqAttemptCache=pyqAttemptCache.slice(0,10);
   // Store PYQ attempts in the same durable history as quizzes so they appear
   // in Recent Attempts and Progress on every signed-in device.
   if(currentUser){

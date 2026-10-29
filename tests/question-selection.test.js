@@ -84,11 +84,13 @@ test('normalizes case, whitespace, Unicode quotes and punctuation; keeps differe
 test('study resumes after reload and logout; another account has independent progress',async()=>{
   const storage=new Map();
   const rows=[q('a','First'),q('alias','FIRST'),q('b','Second'),q('c','Third')];
-  const first=app(storage);first.setBank(rows);
+  const remoteStudyIds=new Set();
+  const first=app(storage,remoteStudyIds);first.setBank(rows);
   await first.run("startStudy('Topic')");
   assert.deepEqual(Array.from(first.run('studyState.questions.map(q=>q.id)')),['a','b','c']);
+  assert.equal(storage.has('cdpo_seen_study_student-1'),false);
   first.run('clearLoginSession()');
-  const next=app(storage);next.setBank(rows);
+  const next=app(storage,remoteStudyIds);next.setBank(rows);
   await next.run("startStudy('Topic')");
   assert.deepEqual(Array.from(next.run('studyState.questions.map(q=>q.id)')),['b','c']);
   const otherAccount=app(storage);otherAccount.setBank(rows);

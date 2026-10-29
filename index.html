@@ -1259,6 +1259,74 @@ const SYLLABUS_SUBJECT_COLORS={
 function escapeDashboardHtml(value){
   return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 }
+const SYLLABUS_TOPIC_NAMES={
+  sociology:[
+    'Sociology - Module 1: Origin and Development of Sociology',
+    'Sociology - Module 2: Sociology in India',
+    'Sociology - Module 3: Globalisation and Development',
+    'Sociology - Module 4: Social Problems',
+    'Sociology - Module 5: Social Research Methods'
+  ],
+  psychology:[
+    'Psychology - Module 1: Introduction to Psychology',
+    'Psychology - Module 2: Biological Basis of Behaviour',
+    'Psychology - Module 3: Sensation, Attention, Perception and Consciousness',
+    'Psychology - Module 4: Psychological Processes',
+    'Psychology - Module 5: Personality and Abnormal Behaviour',
+    'Psychology - Module 6: Social Psychology'
+  ],
+  home:[
+    'Home Science - Module 1: Physiology and Microbiology',
+    'Home Science - Module 2: Child Development and Welfare',
+    'Home Science - Module 3: Human Nutrition and Dietetics',
+    'Home Science - Module 4: Extension Education and Communication',
+    'Home Science - Module 5: Basic Food Science'
+  ],
+  socialWork:[
+    'Social Work - Module 1: Concepts, Methods, Ethics and Development',
+    'Social Work - Module 2: Working with Individuals (Social Casework)',
+    'Social Work - Module 3: Working with Groups and Communities',
+    'Social Work - Module 4: Administration and Legislations',
+    'Social Work - Module 5: Social Security Schemes'
+  ]
+};
+function hasAny(text,words){return words.some(word=>text.includes(word));}
+function normalizeQuestionTopic(question){
+  const raw=String(question.s||'');
+  if(/^(Sociology|Psychology|Home Science|Social Work) - Module \d+:/i.test(raw))return raw;
+  const text=`${question.q||''} ${(question.o||[]).join(' ')}`.toLowerCase();
+  if(raw==='Sociology'||raw==='Community & Development'||raw==='Extension & Community Dev'||raw==='Research Methodology'){
+    if(raw==='Research Methodology'||hasAny(text,['hypothesis','sampling','sample','questionnaire','research design','qualitative','quantitative','variable','data collection','cross sectional','longitudinal','case study method']))return SYLLABUS_TOPIC_NAMES.sociology[4];
+    if(hasAny(text,['caste','kinship','marriage','family','joint family','nuclear family','sanskritisation','dumont','srinivas','subaltern']))return SYLLABUS_TOPIC_NAMES.sociology[1];
+    if(hasAny(text,['violence','dowry','untouchability','communal','fundamentalism','alcohol','drug addiction','child abuse','pocso','malnutrition','social exclusion']))return SYLLABUS_TOPIC_NAMES.sociology[3];
+    if(hasAny(text,['globalisation','globalization','development','poverty','environment','pollution','deforestation','global warming','gender auditing','mnregs','kudumbashree','panchayati raj']))return SYLLABUS_TOPIC_NAMES.sociology[2];
+    return SYLLABUS_TOPIC_NAMES.sociology[0];
+  }
+  if(raw==='Psychology'){
+    if(hasAny(text,['neuron','brain','cerebral','hippocampus','amygdala','neurotransmitter','hormone','endocrine','pituitary','sympathetic','parasympathetic']))return SYLLABUS_TOPIC_NAMES.psychology[1];
+    if(hasAny(text,['sensation','perception','threshold','attention','illusion','colour vision','figure and ground','sleep','dream','circadian','consciousness','meditation']))return SYLLABUS_TOPIC_NAMES.psychology[2];
+    if(hasAny(text,['learning','conditioning','memory','encoding','retrieval','motivation','intelligence','iq','emotional intelligence','reasoning','problem solving','decision making']))return SYLLABUS_TOPIC_NAMES.psychology[3];
+    if(hasAny(text,['personality','freud','psychoanalytic','dsm','schizophrenia','depression','anxiety disorder','adhd','conduct disorder','abnormal']))return SYLLABUS_TOPIC_NAMES.psychology[4];
+    if(hasAny(text,['conformity','compliance','obedience','attitude','prejudice','discrimination','attribution','social influence','prosocial']))return SYLLABUS_TOPIC_NAMES.psychology[5];
+    return SYLLABUS_TOPIC_NAMES.psychology[0];
+  }
+  if(raw==='Home Science'||raw==='Health & Nutrition'||raw==='Nutrition & Health'||raw==='Child Development'||raw==='Pre-school Education'){
+    if(raw==='Child Development'||raw==='Pre-school Education'||hasAny(text,['prenatal','pregnan','infant','breastfeed','immunization','immunisation','newborn','neonate','apgar','milestone','play','early childhood','special needs']))return SYLLABUS_TOPIC_NAMES.home[1];
+    if(hasAny(text,['digestion','digestive','cardiac','cardiovascular','heart','reproductive','cholera','dysentery','botulism','salmonella','aids','microorganism','microbiology']))return SYLLABUS_TOPIC_NAMES.home[0];
+    if(hasAny(text,['extension education','communication','community radio','journalism','ngo','csr','population policy','poverty alleviation','gender sensitisation','welfare programme']))return SYLLABUS_TOPIC_NAMES.home[3];
+    if(hasAny(text,['cereal','pulse','food group','milk','meat','fish','egg','beverage','spice','preservation','adulteration','additive','pasteur','gluten','browning']))return SYLLABUS_TOPIC_NAMES.home[4];
+    return SYLLABUS_TOPIC_NAMES.home[2];
+  }
+  if(raw==='Social Work'||raw==='Juvenile Justice Act'||raw==='Domestic Violence Act'||raw==='Probation of Offenders Act'||raw==='Dowry Prohibition Act'||raw==='Central Social Welfare Board'||raw==='State Social Welfare Board'||raw==='Department of Social Justice'){
+    if(hasAny(text,['casework','case work','client','engagement','assessment','psychosocial','ecological model','self determination','confidentiality']))return SYLLABUS_TOPIC_NAMES.socialWork[1];
+    if(hasAny(text,['group work','group process','community organisation','community organization','group worker','social action','locality development','storming','forming','performing']))return SYLLABUS_TOPIC_NAMES.socialWork[2];
+    if(hasAny(text,['act 20','act, 20','legislation','probation','juvenile','pocso','domestic violence','dowry','sexual harassment','posh','child labour','social work administration','committee']))return SYLLABUS_TOPIC_NAMES.socialWork[3];
+    if(hasAny(text,['vayomithram','sruthitharangam','thalolam','aswasakiranam','nirbhaya','icds','supplementary nutrition','social security','cancer suraksha','hunger free']))return SYLLABUS_TOPIC_NAMES.socialWork[4];
+    return SYLLABUS_TOPIC_NAMES.socialWork[0];
+  }
+  return raw;
+}
+function normalizeQuestionBankTopics(records){return records.map(q=>({...q,s:normalizeQuestionTopic(q)}));}
 
 function renderDashboardModuleProgress(){
   const target=document.getElementById('dash-module-progress');
@@ -1370,8 +1438,9 @@ async function loadQuestions(){
         });
       }
     }catch(e){console.error('Failed to load question overrides',e);}
+    data=normalizeQuestionBankTopics(data);
     const existingQuestionKeys=new Set(data.map(q=>QuestionSelection.key(q)));
-    const pyqQuestions=[...(window.PREVIOUS_YEAR_036_2022||[]),...(window.PREVIOUS_YEAR_326_2022||[])];
+    const pyqQuestions=normalizeQuestionBankTopics([...(window.PREVIOUS_YEAR_036_2022||[]),...(window.PREVIOUS_YEAR_326_2022||[])]);
     pyqQuestions.forEach(q=>existingQuestionKeys.add(QuestionSelection.key(q)));
     const generated=(window.GENERATED_PYQ_PRACTICE_2026||[]).filter(q=>{
       const key=QuestionSelection.key(q);
@@ -2699,8 +2768,8 @@ function fmtTime(secs){
 // ══════════════════════════════════════════════
 let pyqState=null,pyqSelectedSet='036-2022',pyqAttemptCache=[];
 const PYQ_CONFIGS={
-  '036-2022':{questions:()=>window.PREVIOUS_YEAR_036_2022||[],label:'Set 1 · 036/2022',date:'07 April 2022'},
-  '326-2022':{questions:()=>window.PREVIOUS_YEAR_326_2022||[],label:'Set 2 · 326/2022',date:'24 January 2023'}
+  '036-2022':{questions:()=>normalizeQuestionBankTopics(window.PREVIOUS_YEAR_036_2022||[]),label:'Set 1 · 036/2022',date:'07 April 2022'},
+  '326-2022':{questions:()=>normalizeQuestionBankTopics(window.PREVIOUS_YEAR_326_2022||[]),label:'Set 2 · 326/2022',date:'24 January 2023'}
 };
 function pyqAttemptKey(){return `cdpo_pyq_attempts_${currentUser?.id||'guest'}`}
 function pyqAttempts(){return pyqAttemptCache}

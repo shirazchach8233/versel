@@ -8,7 +8,7 @@ const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
 const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
 const q=(id,text,topic='Topic')=>({id,q:text,s:topic,o:['A','B','C','D'],a:0,e:''});
 
-function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set()){
+function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set(),remoteReviewIds=new Set()){
   const alerts=[];
   const elements=new Map();
   const context=vm.createContext({
@@ -33,13 +33,20 @@ function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set())
         const rows=[...remoteQuizIds].slice(offset,offset+limit).map(question_id=>({question_id}));
         return {ok:true,status:200,json:async()=>rows};
       }
+      if(String(url).includes('/study_review_question_history?')){
+        const parsed=new URL(String(url));
+        const offset=Number(parsed.searchParams.get('offset')||0);
+        const limit=Number(parsed.searchParams.get('limit')||500);
+        const rows=[...remoteReviewIds].slice(offset,offset+limit).map(question_id=>({question_id}));
+        return {ok:true,status:200,json:async()=>rows};
+      }
       throw new Error('Unexpected network request');
     },
     clearInterval(){},setInterval(){return 1;},setTimeout(){},Date,Map,Set
   });
   vm.runInContext(script,context);
   context.testProgressUpsert=async(table,rows)=>{
-    const target=table==='quiz_question_history'?remoteQuizIds:remoteStudyIds;
+    const target=table==='quiz_question_history'?remoteQuizIds:table==='study_review_question_history'?remoteReviewIds:remoteStudyIds;
     (Array.isArray(rows)?rows:[rows]).forEach(row=>target.add(row.question_id));
     return true;
   };
@@ -84,9 +91,10 @@ test('study resumes after reload and logout; another account has independent pro
   const next=app(storage);next.setBank(rows);
   await next.run("startStudy('Topic')");
   assert.deepEqual(Array.from(next.run('studyState.questions.map(q=>q.id)')),['b','c']);
-  next.run("currentUser={id:'student-2'}");
-  await next.run("startStudy('Topic')");
-  assert.equal(next.run('studyState.questions[0].id'),'a');
+  const otherAccount=app(storage);otherAccount.setBank(rows);
+  otherAccount.run("currentUser={id:'student-2'}");
+  await otherAccount.run("startStudy('Topic')");
+  assert.equal(otherAccount.run('studyState.questions[0].id'),'a');
 });
 
 test('study progress syncs across browsers and prevents viewed questions from repeating',async()=>{
@@ -131,34 +139,45 @@ test('study topic tabs report remaining and viewed counts',async()=>{
   assert.ok(a.run("document.getElementById('study-topic-grid').innerHTML").includes('1 viewed'));
 });
 
-test('Study Review only uses questions opened in Study Mode',async()=>{
+test('Study Review only uses questions opened in Study Mode and does not repeat across browsers',async()=>{
   const storage=new Map([['cdpo_seen_study_student-1',JSON.stringify(['a'])]]);
   const a=app(storage);a.setBank([q('a','Viewed'),q('b','Not viewed'),q('c','Other','Other Topic')]);
   a.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
   await a.run('startRevision()');
   assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id)')),['a']);
   assert.ok(a.run('quizState.topic').includes('All Viewed Items'));
+  assert.ok(a.run("seenProgress('viewed-quiz').has('a')"));
+  const remoteReviewIds=new Set();
+  const first=app(new Map([['cdpo_seen_study_student-1',JSON.stringify(['a'])]]),new Set(),new Set(),remoteReviewIds);
+  first.setBank([q('a','Viewed'),q('b','Not viewed')]);
+  first.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
+  await first.run('startRevision()');
+  assert.ok(remoteReviewIds.has('a'));
+  const other=app(new Map(),new Set(['a']),new Set(),remoteReviewIds);other.setBank([q('a','Viewed'),q('b','Not viewed')]);
+  other.context.document.querySelector=s=>({value:s.includes('rcount')?'all':'practice'});
+  await other.run('startRevision()');
+  assert.equal(other.run('quizState'),null);
   a.run('quizState=null');
   await a.run('startRevision()');
   assert.equal(a.run('quizState'),null);
   assert.ok(a.alerts.at(-1).includes('already used all viewed questions'));
 });
 
-test('quiz retries wrong and skipped questions, excludes correct answers and duplicate wording',async()=>{
+test('quiz never repeats questions already used in Quiz Mode',async()=>{
   const a=app();a.setBank([q('a','Wrong'),q('alias','WRONG','Other'),q('b','New'),q('c','Correct'),q('d','Skipped')]);
   a.run("fetchUserHistory=async()=>({lastSeen:new Map([['a',1],['c',2],['d',3]]),lastCorrect:new Map([['a',false],['c',true],['d',null]])})");
   await a.run('startQuiz()');
-  assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id).sort()')),['a','b','d']);
-  assert.ok(a.alerts.some(message=>message.includes('new, wrong, or skipped')));
+  assert.deepEqual(Array.from(a.run('quizState.questions.map(q=>q.id).sort()')),['b']);
+  assert.ok(a.alerts.some(message=>message.includes('Only 1 eligible questions remain')));
 });
 
-test('latest result for duplicate wording controls whether it repeats',()=>{
+test('quiz eligibility excludes duplicate wording already seen in Quiz Mode',()=>{
   const rows=[q('a','Same'),q('alias','SAME','Other'),q('b','Other')];
   const lastSeen=new Map([['a',1],['alias',2],['b',3]]);
   const lastCorrect=new Map([['a',false],['alias',true],['b',false]]);
-  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set()).map(x=>x.id),['b']);
+  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set(['a'])).map(x=>x.id),['b']);
   lastSeen.set('a',4);
-  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set()).map(x=>x.id),['a','b']);
+  assert.deepEqual(selection.quizEligible(rows,rows,lastSeen,lastCorrect,new Set(['a'])).map(x=>x.id),['b']);
 });
 
 test('abandoned quiz visits sync across browsers but unviewed questions remain available',async()=>{

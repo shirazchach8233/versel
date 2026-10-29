@@ -933,6 +933,7 @@ let studyView='remaining';
 const seenProgressCache=new Map();
 const studyServerProgressCache=new Map();
 const quizServerProgressCache=new Map();
+const reviewServerProgressCache=new Map();
 const quizProgressLoadedUsers=new Set();
 let startingStudy=false,startingQuiz=false;
 
@@ -1011,6 +1012,7 @@ function rememberQuestion(mode,q){
   if(!ids.has(q.id)){ids.add(q.id);saveSeenProgress(mode);}
   if(mode==='study') persistStudyQuestion(q);
   if(mode==='quiz') persistQuizQuestion(q);
+  if(mode==='viewed-quiz') persistReviewQuestion(q);
 }
 function serverStudyProgress(){
   if(!studyServerProgressCache.has(currentUser.id)) studyServerProgressCache.set(currentUser.id,new Set());
@@ -1113,6 +1115,57 @@ async function loadQuizProgress(){
   }catch(error){
     quizProgressLoadedUsers.delete(currentUser.id);
     console.error('[quiz-progress] sync failed',error);
+    return false;
+  }
+}
+function serverReviewProgress(){
+  if(!reviewServerProgressCache.has(currentUser.id)) reviewServerProgressCache.set(currentUser.id,new Set());
+  return reviewServerProgressCache.get(currentUser.id);
+}
+async function persistReviewQuestion(q){
+  if(!currentUser||!q)return false;
+  const serverIds=serverReviewProgress();
+  if(serverIds.has(q.id))return true;
+  serverIds.add(q.id);
+  const ok=await sbUpsertIgnore('study_review_question_history',{
+    user_id:currentUser.id,question_id:q.id,topic:q.s,viewed_at:new Date().toISOString()
+  },'user_id,question_id',{keepalive:true});
+  if(!ok)serverIds.delete(q.id);
+  return ok;
+}
+async function fetchReviewProgress(){
+  const ids=new Set();
+  for(let offset=0;;){
+    const params=`select=question_id&user_id=eq.${encodeURIComponent(currentUser.id)}&order=question_id.asc&limit=500&offset=${offset}`;
+    const response=await fetch(`${SB_URL}/rest/v1/study_review_question_history?${params}`,{headers:sbH()});
+    if(!response.ok)throw new Error(`Study Review progress could not be loaded (${response.status}).`);
+    const rows=await response.json();
+    if(!Array.isArray(rows))throw new Error('Invalid Study Review progress response.');
+    rows.forEach(row=>{if(typeof row.question_id==='string')ids.add(row.question_id);});
+    if(!rows.length)break;
+    offset+=rows.length;
+  }
+  return ids;
+}
+async function loadReviewProgress(){
+  if(!currentUser)return false;
+  const localIds=seenProgress('viewed-quiz');
+  try{
+    const serverIds=await fetchReviewProgress();
+    reviewServerProgressCache.set(currentUser.id,serverIds);
+    const topicById=new Map(allQuestions.map(q=>[q.id,q.s]));
+    const missing=[...localIds].filter(id=>!serverIds.has(id));
+    for(let start=0;start<missing.length;start+=500){
+      const rows=missing.slice(start,start+500).map(id=>({
+        user_id:currentUser.id,question_id:id,topic:topicById.get(id)||null,viewed_at:new Date().toISOString()
+      }));
+      if(rows.length&&await sbUpsertIgnore('study_review_question_history',rows,'user_id,question_id')) rows.forEach(row=>serverIds.add(row.question_id));
+    }
+    serverIds.forEach(id=>localIds.add(id));
+    saveSeenProgress('viewed-quiz');
+    return true;
+  }catch(error){
+    console.error('[study-review-progress] sync failed',error);
     return false;
   }
 }
@@ -1607,6 +1660,10 @@ async function startStudy(topic,view=studyView){
   if(startingStudy)return;
   startingStudy=true;
   try{
+    if(!await loadStudyProgress()){
+      alert('Your Study Mode history could not be loaded. Please try again before starting.');
+      return;
+    }
     const pool=allQuestions.filter(q=>q.s===topic);
     const qs=studyQuestionsFor(topic,view);
     if(!qs.length){
@@ -1846,9 +1903,13 @@ async function startQuiz(){
     const pool=QuestionSelection.unique(topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic));
     if(!pool.length){alert('No questions are available for this topic.');return;}
     const history=await fetchUserHistory();
+    // Migrate older quiz attempts into the durable viewed set. This prevents
+    // questions answered before quiz_question_history existed from returning.
+    history.lastSeen.forEach((_,id)=>seenProgress('quiz').add(id));
+    saveSeenProgress('quiz');
     const eligible=QuestionSelection.quizEligible(pool,allQuestions,history.lastSeen,history.lastCorrect,seenProgress('quiz'));
     if(!eligible.length){
-      alert('No eligible questions remain in this topic. Correctly answered questions will not repeat; use Study Review to review questions you have studied.');
+      alert('No new questions remain in this topic. Use Study Review to revisit questions you have studied.');
       return;
     }
     // Use a shorter quiz near exhaustion instead of repeating correct questions.
@@ -1872,6 +1933,10 @@ async function startRevision(){
   const countVal=document.querySelector('input[name="rcount"]:checked').value;
   if(!await loadStudyProgress()){
     alert('Your studied-item history could not be loaded. Please try again before starting a revision.');
+    return;
+  }
+  if(!await loadReviewProgress()){
+    alert('Your Study Review history could not be loaded. Please try again before starting a revision.');
     return;
   }
   const viewedPool=QuestionSelection.viewed(

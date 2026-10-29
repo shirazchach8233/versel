@@ -35,12 +35,12 @@
     return results;
   }
   function quizEligible(pool,bank,lastSeen,lastCorrect,locallyViewedIds){
-    const results=latestResultsByKey(bank,lastSeen,lastCorrect);
     const locallyViewed=seenKeys(bank,locallyViewedIds);
     return unique(pool).filter(q=>{
-      const k=key(q),result=results.get(k);
-      if(result)return result.correct!==true;
-      return !locallyViewed.has(k);
+      // Quiz Mode is a learning path, not a retry queue. Once a question has
+      // appeared in Quiz Mode it stays out of future quizzes; Study Review is
+      // the explicit place to revisit studied questions.
+      return !locallyViewed.has(key(q));
     });
   }
   const api={key,unique,seenKeys,unseen,viewed,latestResultsByKey,quizEligible};

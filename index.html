@@ -626,6 +626,11 @@ tr:hover td{background:#f8fafc}
       <div class="stat-card"><div class="stat-num" id="prog-time">–</div><div class="stat-label">Total Study Time</div></div>
     </div>
     <div class="card mb-16">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:6px">Areas Needing Improvement</div>
+      <div class="text-muted" style="font-size:.82rem;margin-bottom:14px">Wrong answers by topic across Study Mode and Quiz Mode</div>
+      <div id="prog-weakness"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+    <div class="card mb-16">
       <div class="flex-between mb-16">
         <div style="font-weight:700;color:var(--primary)">Topic Performance</div>
       </div>
@@ -634,11 +639,6 @@ tr:hover td{background:#f8fafc}
     <div class="card mb-16">
       <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Time Spent per Topic</div>
       <div id="prog-time-topics"><div class="loading"><div class="spinner"></div>Loading...</div></div>
-    </div>
-    <div class="card mb-16">
-      <div style="font-weight:700;color:var(--primary);margin-bottom:6px">Areas Needing Improvement</div>
-      <div class="text-muted" style="font-size:.82rem;margin-bottom:14px">Wrong answers by topic across Study Mode and Quiz Mode</div>
-      <div id="prog-weakness"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </div>
     <div class="card">
       <div style="font-weight:700;color:var(--primary);margin-bottom:16px">Quiz History</div>
@@ -2068,7 +2068,8 @@ async function loadProgressFor(userId,ids,backTo){
   const avg=total?Math.round(completed.reduce((s,a)=>s+(a.percentage||0),0)/total):0;
   const best=total?Math.max(...completed.map(a=>a.percentage||0)):0;
   const ss=await sbGet('study_sessions',`select=topic,duration_secs&user_id=eq.${userId}`);
-  const studyAnswers=await sbGet('study_question_history',`select=topic,is_correct&user_id=eq.${userId}&is_correct=not.is.null`);
+  let studyAnswers=[];
+  try{studyAnswers=await sbGet('study_question_history',`select=topic,is_correct&user_id=eq.${userId}&is_correct=not.is.null`)}catch(error){console.warn('[progress] study outcomes unavailable',error)}
   const secs=ss.reduce((s,x)=>s+(x.duration_secs||0),0);
   document.getElementById(ids.total).textContent=total;
   document.getElementById(ids.avg).textContent=avg+'%';

@@ -1387,10 +1387,14 @@ function advancedModuleQuestions(moduleTopic){
     score:questionChallengeScore(question),
     tie:stableQuestionHash(moduleTopic+question.id)
   })).sort((a,b)=>b.score-a.score||a.tie-b.tie);
-  const selected=custom.concat(ranked.slice(0,baseTarget).map(item=>item.question));
-  const questions=selected
-    .map(q=>({...q,module:number,hint:q.hint||ADVANCED_GENERIC_HINT}))
-    .sort((a,b)=>stableQuestionHash(moduleTopic+a.id)-stableQuestionHash(moduleTopic+b.id));
+  // Put the authored NotebookLM-style case questions first so a learner sees
+  // the intended format immediately when opening a module. Keep the wider
+  // syllabus bank after them as additional practice.
+  const curated=custom.map(q=>({...q,module:number,hint:q.hint||ADVANCED_GENERIC_HINT}));
+  const additional=ranked.slice(0,baseTarget).map(item=>item.question)
+    .sort((a,b)=>stableQuestionHash(moduleTopic+a.id)-stableQuestionHash(moduleTopic+b.id))
+    .map(q=>({...q,module:number,hint:q.hint||ADVANCED_GENERIC_HINT}));
+  const questions=curated.concat(additional);
   advancedModuleQuestionCache.set(moduleTopic,questions);
   return questions;
 }

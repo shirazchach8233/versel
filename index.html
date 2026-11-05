@@ -1352,6 +1352,19 @@ function isApplicationQuestion(question){
   return /^(a |an |during |after |before |in a |when |suppose |consider |if )|case|scenario|best explains|most appropriate|data show|which inference/i.test(question.q);
 }
 
+function questionChallengeScore(question){
+  const stem=question.q.trim();
+  const explanation=String(question.e||'');
+  const choices=Array.isArray(question.o)?question.o:[];
+  const longestChoice=Math.max(0,...choices.map(option=>String(option).length));
+  const optionOverlap=new Set(choices.map(option=>String(option).toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim())).size;
+  return (isApplicationQuestion(question)?6:0)
+    +(stem.length>=100?3:stem.length>=65?2:stem.length>=40?1:0)
+    +(longestChoice>=65?2:longestChoice>=36?1:0)
+    +(explanation.length>=110?2:explanation.length>=60?1:0)
+    +(optionOverlap===choices.length&&choices.length>=4?1:0);
+}
+
 function stableQuestionHash(value){
   let hash=2166136261;
   for(const char of String(value)){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619);}
@@ -1368,13 +1381,13 @@ function advancedModuleQuestions(moduleTopic){
   const customKeys=new Set(custom.map(QuestionSelection.key));
   const base=QuestionSelection.unique(allQuestions.filter(q=>q.s===moduleTopic&&q.e))
     .filter(q=>!customKeys.has(QuestionSelection.key(q)));
-  const application=base.filter(isApplicationQuestion);
-  const factual=base.filter(q=>!isApplicationQuestion(q));
   const baseTarget=ADVANCED_QUESTIONS_PER_MODULE-custom.length;
-  const selected=custom.concat(
-    application.slice(0,baseTarget),
-    evenlyDistributed(factual,baseTarget-Math.min(application.length,baseTarget))
-  );
+  const ranked=base.map(question=>({
+    question,
+    score:questionChallengeScore(question),
+    tie:stableQuestionHash(moduleTopic+question.id)
+  })).sort((a,b)=>b.score-a.score||a.tie-b.tie);
+  const selected=custom.concat(ranked.slice(0,baseTarget).map(item=>item.question));
   const questions=selected
     .map(q=>({...q,module:number,hint:q.hint||ADVANCED_GENERIC_HINT}))
     .sort((a,b)=>stableQuestionHash(moduleTopic+a.id)-stableQuestionHash(moduleTopic+b.id));

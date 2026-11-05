@@ -111,8 +111,9 @@ test('advanced questions load with their written choices and can be studied or q
     assert.equal(new Set(rows.map(selection.key)).size,400,topic);
     assert.ok(rows.every(q=>q.module===Number(topic.match(/Module (\d+)/)[1])),topic);
     assert.deepEqual(rows.filter(q=>!q.hint||!q.e).map(q=>q.id),[],topic);
-    assert.ok(rows.some(q=>q.id===base[0].id),topic);
-    assert.ok(rows.some(q=>q.id===base.at(-1).id),topic);
+    const curatedMinimum=400-Math.min(400,base.length);
+    const applicationCount=rows.filter(q=>a.run(`isApplicationQuestion(allQuestions.find(item=>item.id===${JSON.stringify(q.id)}))`)).length;
+    assert.ok(applicationCount>=curatedMinimum,topic);
   }
   assert.equal(moduleQuestionTotal,8400);
   const advancedGrid=a.context.document.getElementById('study-advanced-grid');

@@ -97,9 +97,10 @@ nav{background:var(--primary);color:#fff;padding:0 24px;height:58px;display:flex
 
 /* ── TOPIC CARDS ── */
 .topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.topic-card{background:var(--card);border-radius:var(--radius);padding:20px;cursor:pointer;border:2px solid transparent;transition:.2s;box-shadow:0 1px 4px #0001}
+.topic-card{background:var(--card);color:var(--text);font:inherit;text-align:left;border-radius:var(--radius);padding:20px;cursor:pointer;border:2px solid transparent;transition:.2s;box-shadow:0 1px 4px #0001}
 .topic-card:hover{border-color:var(--accent);box-shadow:0 4px 16px #0ea5e920}
 .topic-card.selected{border-color:var(--primary);background:#eff6ff}
+.topic-card span{display:block}
 .topic-icon{font-size:2rem;margin-bottom:8px}
 .topic-name{font-weight:600;font-size:.95rem;margin-bottom:4px}
 .topic-count{font-size:.8rem;color:var(--muted)}
@@ -129,6 +130,7 @@ nav{background:var(--primary);color:#fff;padding:0 24px;height:58px;display:flex
 .q-nav{display:flex;gap:12px;justify-content:space-between;align-items:center}
 .explanation-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:14px;margin-top:16px;font-size:.88rem;line-height:1.6;color:#78350f}
 .explanation-box strong{color:#92400e}
+.explanation-box a{color:inherit;text-decoration:underline}
 
 /* ── PALETTE ── */
 .palette-wrap{background:var(--card);padding:16px;border-radius:var(--radius);margin-bottom:20px;box-shadow:0 1px 4px #0001}
@@ -312,7 +314,7 @@ tr:hover td{background:#f8fafc}
   <div class="nav-links">
     <span class="nav-user" id="nav-username"></span>
     <button class="nav-btn" onclick="showScreen('dashboard')" id="nb-dashboard">🏠 <span class="hide-sm">Home</span></button>
-    <button class="nav-btn" onclick="showScreen('study-setup')" id="nb-study">📖 <span class="hide-sm">Study</span></button>
+    <button class="nav-btn" onclick="showScreen('study-setup')" id="nb-study" aria-label="Study Mode">📖 <span class="hide-sm">Study</span></button>
     <button class="nav-btn" onclick="showScreen('quiz-setup')" id="nb-quiz">✏️ <span class="hide-sm">Quiz</span></button>
     <button class="nav-btn" onclick="showScreen('pyq-setup')" id="nb-pyq">🧾 <span class="hide-sm">PYQ</span></button>
     <button class="nav-btn" onclick="showScreen('progress')" id="nb-progress">📊 <span class="hide-sm">Progress</span></button>
@@ -426,12 +428,19 @@ tr:hover td{background:#f8fafc}
 <div id="screen-study-setup" class="screen">
   <div class="main-wrap">
     <div class="page-title">📖 Study Mode — Choose a Topic</div>
-    <p class="text-muted mb-16">Continue with questions you haven't viewed yet, or review questions you have already seen. Study progress is saved for your account in this browser.</p>
+    <p class="text-muted mb-16">Use Remaining for new questions or Viewed to revisit questions you have already opened.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px" role="tablist" aria-label="Study question view">
       <button id="study-tab-remaining" class="btn btn-primary" role="tab" aria-selected="true" onclick="setStudyView('remaining')">📘 Remaining</button>
       <button id="study-tab-viewed" class="btn btn-ghost" role="tab" aria-selected="false" onclick="setStudyView('viewed')">✅ Viewed</button>
     </div>
     <div id="study-view-summary" class="text-muted mb-16"></div>
+    <section class="card mb-16" aria-labelledby="study-advanced-title">
+      <h2 id="study-advanced-title">Advanced Practice</h2>
+      <p class="text-muted mb-16">Choose a subject. Open the hint before answering, then select an option to see the worked explanation.</p>
+      <div class="topic-grid" id="study-advanced-grid"></div>
+      <p id="study-advanced-status" class="text-muted" role="status">Loading Advanced Practice questions…</p>
+    </section>
+    <h2 class="mb-16">All other topics</h2>
     <div class="topic-grid" id="study-topic-grid"></div>
   </div>
 </div>
@@ -450,6 +459,7 @@ tr:hover td{background:#f8fafc}
       <div class="q-meta" id="study-qmeta"></div>
       <div class="q-text" id="study-qtext"></div>
       <div class="options" id="study-opts"></div>
+      <details id="study-hint" hidden><summary>Hint</summary><p class="text-muted"></p></details>
       <div id="study-explanation" class="explanation-box" style="display:none"></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <button class="btn btn-ghost btn-sm" onclick="toggleStudyChat()" id="study-chat-toggle">✨ Explain with AI</button>
@@ -485,7 +495,7 @@ tr:hover td{background:#f8fafc}
     <div class="page-title">✏️ Configure Your Quiz</div>
     <div class="card">
       <div class="form-group">
-        <label>Topic</label>
+        <label for="qs-topic">Topic</label>
         <select id="qs-topic" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem">
           <option value="all">Full Syllabus (All Topics)</option>
         </select>
@@ -516,7 +526,7 @@ tr:hover td{background:#f8fafc}
           Negative Marking (−⅓ per wrong answer)
         </label>
       </div>
-      <p class="text-muted">Quizzes use new questions plus questions you previously answered wrong or skipped. Correctly answered questions will not repeat.</p>
+      <p class="text-muted">Quizzes draw from new questions. In Advanced Practice with Practice mode selected, you can open a hint before choosing. Your first choice is final and shows an explanation.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
     </div>
   </div>
@@ -574,6 +584,8 @@ tr:hover td{background:#f8fafc}
       <div class="q-meta" id="quiz-qmeta"></div>
       <div class="q-text" id="quiz-qtext"></div>
       <div class="options" id="quiz-opts"></div>
+      <details id="quiz-hint" hidden><summary>Hint</summary><p class="text-muted"></p></details>
+      <div id="quiz-feedback" class="explanation-box" aria-live="polite" hidden></div>
     </div>
     <div class="q-nav">
       <button class="btn btn-ghost" onclick="quizNav(-1)">← Prev</button>
@@ -875,6 +887,7 @@ tr:hover td{background:#f8fafc}
 <script src="previous-year-036-2022-5.js"></script>
 <script src="previous-year-326-2022.js"></script>
 <script src="generated-pyq-practice-2026.js"></script>
+<script src="advanced-practice.js?v=2"></script>
 <script>
 // ══════════════════════════════════════════════
 // CONFIG
@@ -1301,6 +1314,8 @@ function normalizeQuestionTopic(question){
   return String(question.s||'');
 }
 function normalizeQuestionBankTopics(records){return records.map(q=>({...q,s:normalizeQuestionTopic(q)}));}
+const ADVANCED_TOPIC_PREFIX='Advanced Practice - ';
+const ADVANCED_QUIZ_LABEL='Advanced Practice (All Subjects)';
 
 // Keep the source question IDs and answer indexes unchanged while presenting
 // six choices in every mode. The extra choices are selected deterministically
@@ -1436,7 +1451,8 @@ async function loadQuestions(){
   if(allQuestions.length>0)return;
   try{
     const r=await fetchQuestionBank();
-    let data=await r.json();
+    const advanced=(window.CDPO_ADVANCED_QUESTIONS||[]).map(q=>({...q}));
+    let data=(await r.json()).concat(advanced);
     // Apply any admin-corrected overrides (from flagged-question reviews) on top of the base bank
     try{
       const overrides=await sbGet('question_overrides','select=*');
@@ -1463,8 +1479,9 @@ async function loadQuestions(){
       if(existingQuestionKeys.has(key))return false;
       existingQuestionKeys.add(key);return true;
     });
-    const optionPool=[...data,...pyqQuestions,...generated];
-    addSimilarOptions([...data,...pyqQuestions,...generated],optionPool);
+    // Advanced distractors are written for their specific cases.
+    const optionPool=[...data.filter(q=>!q.s.startsWith(ADVANCED_TOPIC_PREFIX)),...pyqQuestions,...generated];
+    addSimilarOptions(optionPool,optionPool);
     allQuestions=data.concat(generated);
     // Populate topic selectors
     populateTopics();
@@ -1492,7 +1509,10 @@ function populateTopics(){
   renderStudyTopics();
   // Quiz topic select
   const qs=document.getElementById('qs-topic');
+  const advancedOption=topics.some(t=>t.startsWith(ADVANCED_TOPIC_PREFIX))
+    ? '<option value="advanced">'+ADVANCED_QUIZ_LABEL+'</option>' : '';
   qs.innerHTML='<option value="all">Full Syllabus (All Topics)</option>'+
+    advancedOption+
     topics.map(t=>`<option value="${t}">${t}</option>`).join('');
   const rs=document.getElementById('rs-topic');
   if(rs) rs.innerHTML='<option value="all">All Topics</option>'+topics.map(t=>`<option value="${t}">${t}</option>`).join('');
@@ -1525,7 +1545,7 @@ function showScreen(name){
   if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
   if(name==='dashboard') loadDashboard();
-  if(name==='study-setup'&&allQuestions.length) renderStudyTopics();
+  if(name==='study-setup') renderStudyTopics();
   if(name==='progress') loadProgress();
   if(name==='admin') loadAdmin();
   if(name==='admin-user') loadAdminUserProgress();
@@ -1829,21 +1849,36 @@ function studyQuestionsFor(topic,view=studyView){
 function renderStudyTopics(){
   const grid=document.getElementById('study-topic-grid');
   if(!grid||!currentUser)return;
-  const topics=[...new Set(allQuestions.map(q=>q.s))].sort();
+  const advancedGrid=document.getElementById('study-advanced-grid');
+  const advancedStatus=document.getElementById('study-advanced-status');
+  const byTopic=new Map();
+  for(const q of allQuestions){
+    if(!byTopic.has(q.s))byTopic.set(q.s,[]);
+    byTopic.get(q.s).push(q);
+  }
+  const seen=QuestionSelection.seenKeys(allQuestions,seenProgress('study'));
+  const advancedCards=[],otherCards=[];
   let totalRemaining=0,totalViewed=0;
-  const cards=topics.map(topic=>{
-    const remaining=studyQuestionsFor(topic,'remaining').length;
-    const viewed=studyQuestionsFor(topic,'viewed').length;
+  for(const topic of [...byTopic.keys()].sort()){
+    const questions=QuestionSelection.unique(byTopic.get(topic));
+    const viewed=questions.filter(q=>seen.has(QuestionSelection.key(q))).length;
+    const remaining=questions.length-viewed;
     totalRemaining+=remaining;totalViewed+=viewed;
     const count=studyView==='viewed'?viewed:remaining;
     const label=studyView==='viewed'?'viewed':'remaining';
-    return `<div class="topic-card" onclick="startStudy('${topic.replace(/'/g,"\\'")}','${studyView}')">
-      <div class="topic-icon">${TOPIC_ICONS[topic]||'📚'}</div>
-      <div class="topic-name">${topic}</div>
-      <div class="topic-count">${count} ${label}</div>
-    </div>`;
-  });
-  grid.innerHTML=cards.join('');
+    const advanced=topic.startsWith(ADVANCED_TOPIC_PREFIX);
+    const title=advanced?topic.slice(ADVANCED_TOPIC_PREFIX.length):topic;
+    const cards=advanced?advancedCards:otherCards;
+    cards.push(`<button type="button" class="topic-card" data-topic="${escapeDashboardHtml(topic)}" onclick="startStudy(this.dataset.topic)">
+      <span class="topic-icon" aria-hidden="true">${TOPIC_ICONS[topic]||'📚'}</span>
+      <span class="topic-name">${escapeDashboardHtml(title)}</span>
+      <span class="topic-count">${count} ${label}</span>
+    </button>`);
+  }
+  advancedGrid.innerHTML=advancedCards.join('');
+  advancedStatus.hidden=advancedCards.length>0;
+  advancedStatus.textContent=advancedCards.length?'':'Advanced Practice questions are unavailable. Reload the page to try again.';
+  grid.innerHTML=otherCards.join('');
   const remainingTab=document.getElementById('study-tab-remaining');
   const viewedTab=document.getElementById('study-tab-viewed');
   if(remainingTab){remainingTab.className=`btn ${studyView==='remaining'?'btn-primary':'btn-ghost'}`;remainingTab.setAttribute('aria-selected',studyView==='remaining');}
@@ -1901,7 +1936,8 @@ function renderStudyQuestion(){
   if(chatBtn) chatBtn.textContent='✨ Explain with AI';
   const chatSend=document.getElementById('study-chat-send');
   if(chatSend){chatSend.disabled=false;chatSend.textContent='Send';}
-  document.getElementById('study-qmeta').textContent=`Question ${currentIdx+1} of ${questions.length}`;
+  document.getElementById('study-qmeta').textContent=`Question ${currentIdx+1} of ${questions.length}`+
+    (q.module?` · Syllabus Module ${q.module}`:'');
   document.getElementById('study-qtext').textContent=q.q;
   document.getElementById('study-progress-text').textContent=`${currentIdx+1} / ${questions.length} questions`;
   document.getElementById('study-nav-info').textContent=`${currentIdx+1} / ${questions.length}`;
@@ -1909,6 +1945,7 @@ function renderStudyQuestion(){
   const optsEl=document.getElementById('study-opts');
   const keys=['A','B','C','D','E','F'];
   const isAnswered=answered[currentIdx]!==undefined;
+  renderPracticeHint('study-hint',isAnswered?'':q.hint);
   optsEl.innerHTML=q.o.map((opt,i)=>{
     let cls='option-btn';
     if(isAnswered){
@@ -1921,8 +1958,23 @@ function renderStudyQuestion(){
   }).join('');
   // Explanation
   const expEl=document.getElementById('study-explanation');
-  if(isAnswered&&q.e){expEl.innerHTML=`<strong>Explanation:</strong> ${q.e}`;expEl.style.display='';}
+  if(isAnswered&&q.e){expEl.innerHTML=`<strong>Explanation:</strong> ${questionExplanation(q)}`;expEl.style.display='';}
   else expEl.style.display='none';
+}
+
+function renderPracticeHint(id,hint){
+  const details=document.getElementById(id);
+  details.hidden=!hint;
+  details.open=false;
+  details.querySelector('p').textContent=hint||'';
+}
+
+function questionExplanation(q){
+  if(!q.module)return q.e;
+  const reference=q.source
+    ? `<a href="${escapeDashboardHtml(q.source)}" target="_blank" rel="noopener noreferrer">Source</a>`
+    : '<a href="/assets/cdpo-syllabus-025-2026.pdf" target="_blank" rel="noopener">CDPO syllabus</a>';
+  return `${escapeDashboardHtml(q.e||'')} ${reference}`;
 }
 
 function studyAnswer(idx){
@@ -2109,7 +2161,10 @@ async function startQuiz(){
     const count=parseInt(document.querySelector('input[name="qcount"]:checked').value);
     const mode=document.querySelector('input[name="qmode"]:checked').value;
     const negative=document.getElementById('qs-negative').checked;
-    const pool=QuestionSelection.unique(topic==='all'?allQuestions:allQuestions.filter(q=>q.s===topic));
+    const topicPool=topic==='advanced'
+      ? allQuestions.filter(q=>q.s.startsWith(ADVANCED_TOPIC_PREFIX))
+      : allQuestions.filter(q=>topic==='all'||q.s===topic);
+    const pool=QuestionSelection.unique(topicPool);
     if(!pool.length){alert('No questions are available for this topic.');return;}
     const history=await fetchUserHistory();
     // Migrate older quiz attempts into the durable viewed set. This prevents
@@ -2123,10 +2178,12 @@ async function startQuiz(){
     }
     // Use a shorter quiz near exhaustion instead of repeating correct questions.
     const questions=shuffleArr(eligible).slice(0,count);
-    if(questions.length<count)alert(`Only ${questions.length} eligible questions remain (new, wrong, or skipped). This quiz will contain ${questions.length} questions.`);
+    if(questions.length<count)alert(`Only ${questions.length} eligible questions remain. This quiz will contain ${questions.length} questions.`);
 
     if(quizState?.timerInterval)clearInterval(quizState.timerInterval);
-    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topic==='all'?'Full Syllabus':topic,mode,negative,timerInterval:null,isRevision:false,histMap:null};
+    const topicLabel=topic==='advanced'?ADVANCED_QUIZ_LABEL:topic==='all'?'Full Syllabus':topic;
+    const guided=mode==='practice'&&(topic==='advanced'||topic.startsWith(ADVANCED_TOPIC_PREFIX));
+    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topicLabel,mode,negative,guided,timerInterval:null,isRevision:false,histMap:null};
     document.getElementById('quiz-topic-label').textContent=quizState.topic;
     buildPalette();
     renderQuizQuestion();
@@ -2192,7 +2249,7 @@ function updatePalette(){
 }
 
 function renderQuizQuestion(){
-  const {questions,answers,currentIdx}=quizState;
+  const {questions,answers,currentIdx,guided}=quizState;
   const q=questions[currentIdx];
   rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',q);
   const total=questions.length;
@@ -2200,16 +2257,27 @@ function renderQuizQuestion(){
   document.getElementById('quiz-qtext').textContent=q.q;
   document.getElementById('quiz-q-num').textContent=`Question ${currentIdx+1}`;
   document.getElementById('quiz-q-total').textContent=`${total} total`;
+  document.getElementById('quiz-timer').hidden=quizState.mode!=='timed';
   document.getElementById('quiz-prog-fill').style.width=((currentIdx+1)/total*100)+'%';
   const keys=['A','B','C','D','E','F'];
-  document.getElementById('quiz-opts').innerHTML=q.o.map((opt,i)=>
-    `<button class="option-btn ${answers[currentIdx]===i?'selected':''}" onclick="selectAnswer(${i})">
+  const selected=answers[currentIdx];
+  const revealed=guided&&selected>=0;
+  document.getElementById('quiz-opts').innerHTML=q.o.map((opt,i)=>{
+    let state=selected===i?'selected':'';
+    if(revealed)state=i===q.a?'reveal':i===selected?'wrong':'';
+    return `<button class="option-btn ${state}" ${revealed?'disabled':''} onclick="selectAnswer(${i})">
       <span class="option-key">${keys[i]}.</span><span>${opt}</span></button>`
-  ).join('');
+  }).join('');
+  renderPracticeHint('quiz-hint',guided&&!revealed?q.hint:'');
+  const feedback=document.getElementById('quiz-feedback');
+  feedback.hidden=!revealed;
+  feedback.innerHTML=revealed
+    ? `<strong>${selected===q.a?'Correct':`Correct answer: ${keys[q.a]}`}.</strong> ${questionExplanation(q)||''}` : '';
   updatePalette();
 }
 
 function selectAnswer(idx){
+  if(quizState.guided&&quizState.answers[quizState.currentIdx]>=0)return;
   quizState.answers[quizState.currentIdx]=idx;
   renderQuizQuestion();
 }
@@ -2299,8 +2367,8 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
           ${keys[oi]}. ${o}</span>`).join('')}
       </div>
       ${ans===-1?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">⚠️ Not answered</div>':''}
-      ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${q.e}</div>`:''}
-      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick='openFlagModal(${JSON.stringify(q.id)},${JSON.stringify(q.q)},${JSON.stringify(q.s)})'>🚩 Flag as wrong</button></div>
+      ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${questionExplanation(q)}</div>`:''}
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick="openFlagModal(this.dataset.qid)">🚩 Flag as wrong</button></div>
     </div>`;
   }).join('');
   document.getElementById('results-review').style.display='none';
@@ -2471,8 +2539,8 @@ async function reviewAttempt(attempt,backTo){
         ${q.o.map((o,oi)=>`<span class="${oi===correctIdx?'badge badge-correct':(selIdx!==null&&oi===selIdx&&oi!==correctIdx)?'badge badge-wrong':''}">${keys[oi]}. ${o}</span>`).join('')}
       </div>
       ${skipped?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">⚠️ Not answered</div>':!hasSelected?'<div class="text-muted" style="margin-top:6px;font-size:.8rem">ℹ️ Your exact answer choice wasn\'t recorded for this older attempt — only that it was wrong.</div>':''}
-      ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${q.e}</div>`:''}
-      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick='openFlagModal(${JSON.stringify(q.id)},${JSON.stringify(q.q)},${JSON.stringify(q.s)})'>🚩 Flag as wrong</button></div>
+      ${q.e?`<div class="explanation-box" style="margin-top:10px;font-size:.83rem"><strong>Explanation:</strong> ${questionExplanation(q)}</div>`:''}
+      <div style="margin-top:10px"><button class="btn btn-ghost btn-sm flag-btn" data-qid="${q.id}" onclick="openFlagModal(this.dataset.qid)">🚩 Flag as wrong</button></div>
     </div>`;
   }).join('')}</div>`;
 }
@@ -2481,8 +2549,11 @@ async function reviewAttempt(attempt,backTo){
 // FLAG QUESTION (user-facing)
 // ══════════════════════════════════════════════
 let flagCtx=null;
-function openFlagModal(qid,qtext,topic){
-  flagCtx={id:qid,q:qtext,s:topic};
+function openFlagModal(qid){
+  const question=allQuestions.find(q=>q.id===qid);
+  if(!question)return;
+  const {id,q:qtext,s}=question;
+  flagCtx={id,q:qtext,s};
   document.getElementById('flag-q-preview').textContent=qtext.length>140?qtext.slice(0,140)+'…':qtext;
   document.getElementById('flag-reason').value='';
   document.getElementById('flag-alert').style.display='none';
@@ -2620,10 +2691,11 @@ async function saveQuestionOverride(){
   const qid=document.getElementById('eq-id').value;
   const qtext=document.getElementById('eq-q').value.trim();
   const explanation=document.getElementById('eq-e').value.trim();
-  const opts=[0,1,2,3,4,5].map(i=>{const el=document.getElementById('eq-opt-'+i);return el?el.value.trim():null;});
+  const q=allQuestions.find(x=>x.id===qid);
+  const opts=q?.o.map((_,i)=>document.getElementById('eq-opt-'+i)?.value.trim());
   const correctRadio=document.querySelector('input[name="eq-correct"]:checked');
-  if(!qtext||opts.some(o=>!o)||!correctRadio){
-    alertEl.textContent='Please fill in the question, all 6 options, and select the correct answer.';
+  if(!qtext||!opts?.length||opts.some(o=>!o)||!correctRadio){
+    alertEl.textContent='Please fill in the question and all options, and select the correct answer.';
     alertEl.style.display='';
     return;
   }
@@ -2639,7 +2711,6 @@ async function saveQuestionOverride(){
     // Mark all pending flags for this question as resolved
     await sbPatch('question_flags',`question_id=eq.${qid}&status=eq.pending`,{status:'resolved',resolved_at:new Date().toISOString()});
     // Update in-memory bank so the change is visible immediately without reload
-    const q=allQuestions.find(x=>x.id===qid);
     if(q){q.q=qtext;q.o=opts;q.a=correctIdx;q.e=explanation||q.e;}
     closeModal('modal-edit-question');
     loadAdminFlags();

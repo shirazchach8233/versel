@@ -16,7 +16,13 @@ function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set(),
     localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     window:{addEventListener(){},scrollTo(){}},
     document:{querySelectorAll:()=>[],querySelector:s=>({value:s.includes('qcount')?'25':'practice'}),
-      getElementById:id=>{if(!elements.has(id))elements.set(id,{value:'all',style:{},checked:false,setAttribute(name,value){this[name]=value;}});return elements.get(id);}},
+      getElementById:id=>{
+        if(!elements.has(id)){
+          const child={};
+          elements.set(id,{value:'all',style:{},checked:false,querySelector:()=>child,setAttribute(name,value){this[name]=value;}});
+        }
+        return elements.get(id);
+      }},
     alert:msg=>alerts.push(msg),confirm:()=>false,
     fetch:async url=>{
       if(String(url).includes('/study_question_history?')){
@@ -54,6 +60,8 @@ function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set(),
     showScreen=()=>{};buildPalette=()=>{};
     sbPost=async()=>[{id:'session'}];
     sbUpsertIgnore=testProgressUpsert;
+    const originalQuizRenderer=renderQuizQuestion;
+    const originalStudyRenderer=renderStudyQuestion;
     renderStudyQuestion=()=>rememberQuestion('study',studyState.questions[studyState.currentIdx]);
     renderQuizQuestion=()=>rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',quizState.questions[quizState.currentIdx]);`,context);
   return {context,alerts,storage,run:code=>vm.runInContext(code,context),setBank:rows=>{context.testBank=rows;vm.runInContext('allQuestions=testBank',context);}};
@@ -62,6 +70,92 @@ function app(storage=new Map(),remoteStudyIds=new Set(),remoteQuizIds=new Set(),
 test('quiz setup offers 200 and 300 question options',()=>{
   const counts=[...html.matchAll(/name="qcount" value="(\d+)"/g)].map(match=>Number(match[1]));
   assert.deepEqual(counts,[25,50,75,100,200,300,400,500]);
+});
+
+test('advanced questions load with their written choices and can be studied or quizzed separately',async()=>{
+  const a=app();
+  const scripts=[...html.matchAll(/<script src="((?:previous-year-|generated-pyq-|advanced-practice)[^"]+)"><\/script>/g)];
+  for(const [,file] of scripts){
+    a.run(fs.readFileSync(require.resolve(`../${file.split('?')[0]}`),'utf8'));
+  }
+  a.context.testBank=bank;
+  a.run('fetchQuestionBank=async()=>({json:async()=>testBank});sbGet=async()=>[]');
+  await a.run('loadQuestions()');
+
+  const advanced=Array.from(a.run("allQuestions.filter(q=>q.s.startsWith(ADVANCED_TOPIC_PREFIX))"));
+  assert.equal(advanced.length,160);
+  const older=Array.from(a.run('allQuestions.filter(q=>!q.module).concat(window.PREVIOUS_YEAR_036_2022,window.PREVIOUS_YEAR_326_2022)'));
+  assert.equal(new Set([...older,...advanced].map(q=>q.id)).size,older.length+advanced.length);
+  const olderKeys=new Set(older.map(selection.key));
+  assert.equal(new Set(advanced.map(selection.key)).size,160);
+  for(const question of advanced){
+    assert.ok(!olderKeys.has(selection.key(question)),question.id);
+    const optionCount=Number(question.id.split('-').at(-1))<=15?6:4;
+    assert.equal(question.o.length,optionCount,question.id);
+    assert.equal(new Set(question.o).size,optionCount,question.id);
+    assert.ok(Number.isInteger(question.a)&&question.a>=0&&question.a<optionCount,question.id);
+    assert.ok(question.hint.length>0,question.id);
+    assert.ok(question.e.length>0,question.id);
+    if(question.source)assert.equal(new URL(question.source).protocol,'https:');
+  }
+
+  for(const [subject,moduleCount] of [['Home Science',5],['Psychology',6],['Social Work',5],['Sociology',5]]){
+    const topic=`Advanced Practice - ${subject}`;
+    const rows=Array.from(a.run(`studyQuestionsFor(${JSON.stringify(topic)})`));
+    assert.equal(rows.length,40,subject);
+    assert.deepEqual([...new Set(rows.map(q=>q.module))],[...Array(moduleCount)].map((_,i)=>i+1),subject);
+  }
+  const advancedGrid=a.context.document.getElementById('study-advanced-grid');
+  const otherGrid=a.context.document.getElementById('study-topic-grid');
+  assert.equal((advancedGrid.innerHTML.match(/40 remaining/g)||[]).length,4);
+  assert.doesNotMatch(otherGrid.innerHTML,/Advanced Practice -/);
+
+  a.run('renderStudyQuestion=originalStudyRenderer;sbPatch=async()=>true');
+  await a.run("startStudy('Advanced Practice - Sociology')");
+  const studyHint=a.context.document.getElementById('study-hint');
+  const studyExplanation=a.context.document.getElementById('study-explanation');
+  assert.equal(studyHint.hidden,false);
+  assert.ok(studyHint.querySelector('p').textContent.length>0);
+  assert.equal(studyExplanation.style.display,'none');
+  a.run('studyAnswer(studyState.questions[0].a)');
+  assert.equal(studyHint.hidden,true);
+  assert.equal(studyExplanation.style.display,'');
+  assert.match(studyExplanation.innerHTML,/Explanation:.*CDPO syllabus/);
+  a.run("setStudyView('viewed')");
+  assert.match(advancedGrid.innerHTML,/1 viewed/);
+
+  const topicSelect=a.context.document.getElementById('qs-topic');
+  assert.match(topicSelect.innerHTML,/<option value="advanced">Advanced Practice \(All Subjects\)<\/option>/);
+  topicSelect.value='advanced';
+  a.run('fetchUserHistory=async()=>({lastSeen:new Map(),lastCorrect:new Map()})');
+  await a.run('startQuiz()');
+  assert.equal(a.run('quizState.questions.length'),25);
+  assert.ok(a.run('quizState.questions.every(q=>q.s.startsWith(ADVANCED_TOPIC_PREFIX))'));
+});
+
+test('advanced practice shows a hint and locks the first answer while timed quizzes hide feedback',()=>{
+  const a=app();
+  const item={...q('advanced','Sample question','Advanced Practice - Sociology'),module:1,
+    hint:'Find the decisive clue.',e:'Reasoning here.',source:'https://example.com/reading'};
+  a.setBank([item]);
+  a.run(`renderQuizQuestion=originalQuizRenderer;
+    quizState={questions:allQuestions,answers:[-1],currentIdx:0,mode:'practice',guided:true};
+    renderQuizQuestion();`);
+  const hint=a.context.document.getElementById('quiz-hint');
+  const feedback=a.context.document.getElementById('quiz-feedback');
+  assert.equal(hint.hidden,false);
+  assert.equal(hint.querySelector('p').textContent,item.hint);
+  assert.equal(feedback.hidden,true);
+  a.run('selectAnswer(1);selectAnswer(0)');
+  assert.equal(a.run('quizState.answers[0]'),1);
+  assert.equal(hint.hidden,true);
+  assert.equal(feedback.hidden,false);
+  assert.match(feedback.innerHTML,/Correct answer: A.*Reasoning here.*https:\/\/example\.com\/reading/);
+  a.run("quizState.mode='timed';quizState.guided=false;renderQuizQuestion();selectAnswer(0)");
+  assert.equal(a.run('quizState.answers[0]'),0);
+  assert.equal(hint.hidden,true);
+  assert.equal(feedback.hidden,true);
+  assert.equal(feedback.innerHTML,'');
 });
 
 test('deduplicated bank has unique wording and selection retains IDs',()=>{

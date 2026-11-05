@@ -99,19 +99,35 @@ test('advanced questions load with their written choices and can be studied or q
     if(question.source)assert.equal(new URL(question.source).protocol,'https:');
   }
 
-  for(const [subject,moduleCount] of [['Home Science',5],['Psychology',6],['Social Work',5],['Sociology',5]]){
-    const topic=`Advanced Practice - ${subject}`;
-    const rows=Array.from(a.run(`studyQuestionsFor(${JSON.stringify(topic)})`));
-    assert.equal(rows.length,40,subject);
-    assert.deepEqual([...new Set(rows.map(q=>q.module))],[...Array(moduleCount)].map((_,i)=>i+1),subject);
+  const moduleTopics=Array.from(a.run('Object.values(SYLLABUS_TOPIC_NAMES).flat()'));
+  assert.equal(moduleTopics.length,21);
+  let moduleQuestionTotal=0;
+  for(const topic of moduleTopics){
+    const rows=Array.from(a.run(`advancedModuleQuestions(${JSON.stringify(topic)})`));
+    const base=bank.filter(q=>q.s===topic);
+    moduleQuestionTotal+=rows.length;
+    assert.equal(rows.length,400,topic);
+    assert.equal(new Set(rows.map(q=>q.id)).size,400,topic);
+    assert.equal(new Set(rows.map(selection.key)).size,400,topic);
+    assert.ok(rows.every(q=>q.module===Number(topic.match(/Module (\d+)/)[1])),topic);
+    assert.deepEqual(rows.filter(q=>!q.hint||!q.e).map(q=>q.id),[],topic);
+    assert.ok(rows.some(q=>q.id===base[0].id),topic);
+    assert.ok(rows.some(q=>q.id===base.at(-1).id),topic);
   }
+  assert.equal(moduleQuestionTotal,8400);
   const advancedGrid=a.context.document.getElementById('study-advanced-grid');
   const otherGrid=a.context.document.getElementById('study-topic-grid');
-  assert.equal((advancedGrid.innerHTML.match(/40 remaining/g)||[]).length,4);
+  assert.equal((advancedGrid.innerHTML.match(/2000 remaining/g)||[]).length,3);
+  assert.match(advancedGrid.innerHTML,/2400 remaining/);
   assert.doesNotMatch(otherGrid.innerHTML,/Advanced Practice -/);
+  a.run("showAdvancedModules('Sociology')");
+  const moduleGrid=a.context.document.getElementById('study-advanced-module-grid');
+  assert.equal((moduleGrid.innerHTML.match(/400 remaining · 400 total/g)||[]).length,5);
 
   a.run('renderStudyQuestion=originalStudyRenderer;sbPatch=async()=>true');
-  await a.run("startStudy('Advanced Practice - Sociology')");
+  const sociologyModule='Sociology - Module 1: Origin and Development of Sociology';
+  await a.run(`startStudy(advancedStudyTopic(${JSON.stringify(sociologyModule)}))`);
+  assert.equal(a.run('studyState.questions.length'),400);
   const studyHint=a.context.document.getElementById('study-hint');
   const studyExplanation=a.context.document.getElementById('study-explanation');
   assert.equal(studyHint.hidden,false);
@@ -122,7 +138,7 @@ test('advanced questions load with their written choices and can be studied or q
   assert.equal(studyExplanation.style.display,'');
   assert.match(studyExplanation.innerHTML,/Explanation:.*CDPO syllabus/);
   a.run("setStudyView('viewed')");
-  assert.match(advancedGrid.innerHTML,/1 viewed/);
+  assert.match(moduleGrid.innerHTML,/1 viewed · 400 total/);
 
   const topicSelect=a.context.document.getElementById('qs-topic');
   assert.match(topicSelect.innerHTML,/<option value="advanced">Advanced Practice \(All Subjects\)<\/option>/);

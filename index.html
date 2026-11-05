@@ -104,6 +104,8 @@ nav{background:var(--primary);color:#fff;padding:0 24px;height:58px;display:flex
 .topic-icon{font-size:2rem;margin-bottom:8px}
 .topic-name{font-weight:600;font-size:.95rem;margin-bottom:4px}
 .topic-count{font-size:.8rem;color:var(--muted)}
+.advanced-module-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.advanced-module-header h3{margin:0}
 
 /* ── QUIZ ── */
 #screen-quiz .main-wrap{max-width:860px}
@@ -438,6 +440,13 @@ tr:hover td{background:#f8fafc}
       <h2 id="study-advanced-title">Advanced Practice</h2>
       <p class="text-muted mb-16">Choose a subject. Open the hint before answering, then select an option to see the worked explanation.</p>
       <div class="topic-grid" id="study-advanced-grid"></div>
+      <div id="study-advanced-modules" hidden>
+        <div class="advanced-module-header">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="showAdvancedSubjects()">← Subjects</button>
+          <h3 id="study-advanced-subject-title"></h3>
+        </div>
+        <div class="topic-grid" id="study-advanced-module-grid"></div>
+      </div>
       <p id="study-advanced-status" class="text-muted" role="status">Loading Advanced Practice questions…</p>
     </section>
     <h2 class="mb-16">All other topics</h2>
@@ -1316,6 +1325,78 @@ function normalizeQuestionTopic(question){
 function normalizeQuestionBankTopics(records){return records.map(q=>({...q,s:normalizeQuestionTopic(q)}));}
 const ADVANCED_TOPIC_PREFIX='Advanced Practice - ';
 const ADVANCED_QUIZ_LABEL='Advanced Practice (All Subjects)';
+const ADVANCED_MODULE_PREFIX='Advanced Module::';
+const ADVANCED_QUESTIONS_PER_MODULE=400;
+const ADVANCED_GENERIC_HINT='Identify the exact concept, mechanism or rule being tested, then eliminate options that do not fit every detail.';
+const ADVANCED_SUBJECTS=[
+  {name:'Home Science',key:'home'},
+  {name:'Psychology',key:'psychology'},
+  {name:'Social Work',key:'socialWork'},
+  {name:'Sociology',key:'sociology'}
+];
+let activeAdvancedSubject=null;
+const advancedModuleQuestionCache=new Map();
+
+function moduleNumber(topic){
+  return Number(String(topic).match(/ - Module (\d+):/)?.[1]||0);
+}
+
+function evenlyDistributed(records,count){
+  if(count>=records.length)return records.slice();
+  if(count<=0)return [];
+  if(count===1)return [records[0]];
+  return Array.from({length:count},(_,i)=>records[Math.round(i*(records.length-1)/(count-1))]);
+}
+
+function isApplicationQuestion(question){
+  return /^(a |an |during |after |before |in a |when |suppose |consider |if )|case|scenario|best explains|most appropriate|data show|which inference/i.test(question.q);
+}
+
+function stableQuestionHash(value){
+  let hash=2166136261;
+  for(const char of String(value)){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619);}
+  return hash>>>0;
+}
+
+function advancedModuleQuestions(moduleTopic){
+  if(advancedModuleQuestionCache.has(moduleTopic))return advancedModuleQuestionCache.get(moduleTopic);
+  const number=moduleNumber(moduleTopic);
+  const subject=String(moduleTopic).split(' - Module ')[0];
+  const custom=QuestionSelection.unique(allQuestions.filter(q=>
+    q.s===ADVANCED_TOPIC_PREFIX+subject&&q.module===number
+  ));
+  const customKeys=new Set(custom.map(QuestionSelection.key));
+  const base=QuestionSelection.unique(allQuestions.filter(q=>q.s===moduleTopic&&q.e))
+    .filter(q=>!customKeys.has(QuestionSelection.key(q)));
+  const application=base.filter(isApplicationQuestion);
+  const factual=base.filter(q=>!isApplicationQuestion(q));
+  const baseTarget=ADVANCED_QUESTIONS_PER_MODULE-custom.length;
+  const selected=custom.concat(
+    application.slice(0,baseTarget),
+    evenlyDistributed(factual,baseTarget-Math.min(application.length,baseTarget))
+  );
+  const questions=selected
+    .map(q=>({...q,module:number,hint:q.hint||ADVANCED_GENERIC_HINT}))
+    .sort((a,b)=>stableQuestionHash(moduleTopic+a.id)-stableQuestionHash(moduleTopic+b.id));
+  advancedModuleQuestionCache.set(moduleTopic,questions);
+  return questions;
+}
+
+function advancedStudyTopic(moduleTopic){
+  return ADVANCED_MODULE_PREFIX+moduleTopic;
+}
+
+function studyPoolForTopic(topic){
+  return topic.startsWith(ADVANCED_MODULE_PREFIX)
+    ? advancedModuleQuestions(topic.slice(ADVANCED_MODULE_PREFIX.length))
+    : allQuestions.filter(q=>q.s===topic);
+}
+
+function studyTopicTitle(topic){
+  return topic.startsWith(ADVANCED_MODULE_PREFIX)
+    ? 'Advanced Practice · '+topic.slice(ADVANCED_MODULE_PREFIX.length)
+    : topic;
+}
 
 // Keep the source question IDs and answer indexes unchanged while presenting
 // six choices in every mode. The extra choices are selected deterministically
@@ -1483,6 +1564,7 @@ async function loadQuestions(){
     const optionPool=[...data.filter(q=>!q.s.startsWith(ADVANCED_TOPIC_PREFIX)),...pyqQuestions,...generated];
     addSimilarOptions(optionPool,optionPool);
     allQuestions=data.concat(generated);
+    advancedModuleQuestionCache.clear();
     // Populate topic selectors
     populateTopics();
   }catch(e){console.error('Failed to load questions',e);}
@@ -1839,46 +1921,101 @@ function setStudyView(view){
 }
 
 function studyQuestionsFor(topic,view=studyView){
-  const pool=allQuestions.filter(q=>q.s===topic);
+  const pool=studyPoolForTopic(topic);
   const seen=seenProgress('study');
   return view==='viewed'
     ? QuestionSelection.viewed(pool,allQuestions,seen)
     : QuestionSelection.unseen(pool,allQuestions,seen);
 }
 
+function advancedModuleCounts(moduleTopic){
+  const questions=advancedModuleQuestions(moduleTopic);
+  const seen=QuestionSelection.seenKeys(allQuestions,seenProgress('study'));
+  const viewed=questions.filter(q=>seen.has(QuestionSelection.key(q))).length;
+  return {questions,viewed,remaining:questions.length-viewed};
+}
+
+function renderAdvancedSubjects(){
+  const grid=document.getElementById('study-advanced-grid');
+  const modules=document.getElementById('study-advanced-modules');
+  const status=document.getElementById('study-advanced-status');
+  if(!grid||!modules||!status)return;
+  const label=studyView==='viewed'?'viewed':'remaining';
+  grid.innerHTML=ADVANCED_SUBJECTS.map(subject=>{
+    const totals=SYLLABUS_TOPIC_NAMES[subject.key].reduce((sum,topic)=>{
+      const counts=advancedModuleCounts(topic);
+      sum.viewed+=counts.viewed;
+      sum.remaining+=counts.remaining;
+      return sum;
+    },{viewed:0,remaining:0});
+    const count=studyView==='viewed'?totals.viewed:totals.remaining;
+    return `<button type="button" class="topic-card" data-subject="${escapeDashboardHtml(subject.name)}" onclick="showAdvancedModules(this.dataset.subject)">
+      <span class="topic-icon" aria-hidden="true">📚</span>
+      <span class="topic-name">${escapeDashboardHtml(subject.name)}</span>
+      <span class="topic-count">${count} ${label} · ${SYLLABUS_TOPIC_NAMES[subject.key].length} modules</span>
+    </button>`;
+  }).join('');
+  grid.hidden=false;
+  modules.hidden=true;
+  status.hidden=true;
+  activeAdvancedSubject=null;
+}
+
+function showAdvancedSubjects(){
+  renderAdvancedSubjects();
+  document.getElementById('study-advanced-title')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function showAdvancedModules(subjectName){
+  const subject=ADVANCED_SUBJECTS.find(item=>item.name===subjectName);
+  if(!subject)return;
+  activeAdvancedSubject=subject.name;
+  const label=studyView==='viewed'?'viewed':'remaining';
+  const grid=document.getElementById('study-advanced-grid');
+  const modules=document.getElementById('study-advanced-modules');
+  document.getElementById('study-advanced-subject-title').textContent=subject.name+' · Choose a module';
+  document.getElementById('study-advanced-module-grid').innerHTML=SYLLABUS_TOPIC_NAMES[subject.key].map(topic=>{
+    const counts=advancedModuleCounts(topic);
+    const count=studyView==='viewed'?counts.viewed:counts.remaining;
+    const title=topic.split(': ').slice(1).join(': ');
+    return `<button type="button" class="topic-card" data-topic="${escapeDashboardHtml(advancedStudyTopic(topic))}" onclick="startStudy(this.dataset.topic)">
+      <span class="topic-icon" aria-hidden="true">📖</span>
+      <span class="topic-name">Module ${moduleNumber(topic)} · ${escapeDashboardHtml(title)}</span>
+      <span class="topic-count">${count} ${label} · 400 total</span>
+    </button>`;
+  }).join('');
+  grid.hidden=true;
+  modules.hidden=false;
+}
+
 function renderStudyTopics(){
   const grid=document.getElementById('study-topic-grid');
   if(!grid||!currentUser)return;
-  const advancedGrid=document.getElementById('study-advanced-grid');
-  const advancedStatus=document.getElementById('study-advanced-status');
   const byTopic=new Map();
   for(const q of allQuestions){
     if(!byTopic.has(q.s))byTopic.set(q.s,[]);
     byTopic.get(q.s).push(q);
   }
   const seen=QuestionSelection.seenKeys(allQuestions,seenProgress('study'));
-  const advancedCards=[],otherCards=[];
+  const otherCards=[];
   let totalRemaining=0,totalViewed=0;
   for(const topic of [...byTopic.keys()].sort()){
+    if(topic.startsWith(ADVANCED_TOPIC_PREFIX))continue;
     const questions=QuestionSelection.unique(byTopic.get(topic));
     const viewed=questions.filter(q=>seen.has(QuestionSelection.key(q))).length;
     const remaining=questions.length-viewed;
     totalRemaining+=remaining;totalViewed+=viewed;
     const count=studyView==='viewed'?viewed:remaining;
     const label=studyView==='viewed'?'viewed':'remaining';
-    const advanced=topic.startsWith(ADVANCED_TOPIC_PREFIX);
-    const title=advanced?topic.slice(ADVANCED_TOPIC_PREFIX.length):topic;
-    const cards=advanced?advancedCards:otherCards;
-    cards.push(`<button type="button" class="topic-card" data-topic="${escapeDashboardHtml(topic)}" onclick="startStudy(this.dataset.topic)">
+    otherCards.push(`<button type="button" class="topic-card" data-topic="${escapeDashboardHtml(topic)}" onclick="startStudy(this.dataset.topic)">
       <span class="topic-icon" aria-hidden="true">${TOPIC_ICONS[topic]||'📚'}</span>
-      <span class="topic-name">${escapeDashboardHtml(title)}</span>
+      <span class="topic-name">${escapeDashboardHtml(topic)}</span>
       <span class="topic-count">${count} ${label}</span>
     </button>`);
   }
-  advancedGrid.innerHTML=advancedCards.join('');
-  advancedStatus.hidden=advancedCards.length>0;
-  advancedStatus.textContent=advancedCards.length?'':'Advanced Practice questions are unavailable. Reload the page to try again.';
   grid.innerHTML=otherCards.join('');
+  if(activeAdvancedSubject)showAdvancedModules(activeAdvancedSubject);
+  else renderAdvancedSubjects();
   const remainingTab=document.getElementById('study-tab-remaining');
   const viewedTab=document.getElementById('study-tab-viewed');
   if(remainingTab){remainingTab.className=`btn ${studyView==='remaining'?'btn-primary':'btn-ghost'}`;remainingTab.setAttribute('aria-selected',studyView==='remaining');}
@@ -1897,7 +2034,7 @@ async function startStudy(topic,view=studyView){
       alert('Your Study Mode history could not be loaded. Please try again before starting.');
       return;
     }
-    const pool=allQuestions.filter(q=>q.s===topic);
+    const pool=studyPoolForTopic(topic);
     const qs=studyQuestionsFor(topic,view);
     if(!qs.length){
       if(!pool.length){alert('No questions are available for this topic.');return;}
@@ -1910,7 +2047,7 @@ async function startStudy(topic,view=studyView){
     // Record study session
     const sess=await sbPost('study_sessions',{user_id:currentUser.id,username:currentUser.username,topic,started_at:new Date().toISOString()});
     if(sess&&sess[0]) studyState.sessionId=sess[0].id;
-    document.getElementById('study-topic-title').textContent=(TOPIC_ICONS[topic]||'📚')+' '+topic+(view==='viewed'?' · Viewed':'');
+    document.getElementById('study-topic-title').textContent='📚 '+studyTopicTitle(topic)+(view==='viewed'?' · Viewed':'');
     renderStudyQuestion();
     showScreen('study');
     startStudySessionTimer();
@@ -2711,7 +2848,7 @@ async function saveQuestionOverride(){
     // Mark all pending flags for this question as resolved
     await sbPatch('question_flags',`question_id=eq.${qid}&status=eq.pending`,{status:'resolved',resolved_at:new Date().toISOString()});
     // Update in-memory bank so the change is visible immediately without reload
-    if(q){q.q=qtext;q.o=opts;q.a=correctIdx;q.e=explanation||q.e;}
+    if(q){q.q=qtext;q.o=opts;q.a=correctIdx;q.e=explanation||q.e;advancedModuleQuestionCache.clear();}
     closeModal('modal-edit-question');
     loadAdminFlags();
     loadAdmin();

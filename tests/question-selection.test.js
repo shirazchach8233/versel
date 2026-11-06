@@ -106,7 +106,7 @@ test('advanced questions load with their written choices and can be studied or q
   for(const question of advanced){
     assert.ok(!olderKeys.has(selection.key(question)),question.id);
     const questionNumber=Number(question.id.split('-').at(-1));
-    const optionCount=question.id.startsWith("advanced-sw-")&&questionNumber>=16&&questionNumber<=40?6:questionNumber<=15||questionNumber>=41?6:4;
+    const optionCount=6;
     assert.equal(question.o.length,optionCount,question.id);
     assert.equal(new Set(question.o).size,optionCount,question.id);
     assert.ok(Number.isInteger(question.a)&&question.a>=0&&question.a<optionCount,question.id);

@@ -541,7 +541,7 @@ tr:hover td{background:#f8fafc}
           Negative Marking (−⅓ per wrong answer)
         </label>
       </div>
-      <p class="text-muted">Quizzes draw from new questions. In Advanced Practice with Practice mode selected, you can open a hint before choosing. Your first choice is final and shows an explanation.</p>
+      <p class="text-muted">Quizzes draw from new questions. Hints, correct answers, and explanations stay hidden until you submit. In Advanced Practice with Practice mode selected, your first choice is final.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
     </div>
   </div>
@@ -2459,7 +2459,7 @@ function updatePalette(){
 }
 
 function renderQuizQuestion(){
-  const {questions,answers,currentIdx,guided}=quizState;
+  const {questions,answers,currentIdx}=quizState;
   const q=questions[currentIdx];
   rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',q);
   const total=questions.length;
@@ -2471,18 +2471,15 @@ function renderQuizQuestion(){
   document.getElementById('quiz-prog-fill').style.width=((currentIdx+1)/total*100)+'%';
   const keys=['A','B','C','D','E','F'];
   const selected=answers[currentIdx];
-  const revealed=guided&&selected>=0;
   document.getElementById('quiz-opts').innerHTML=q.o.map((opt,i)=>{
-    let state=selected===i?'selected':'';
-    if(revealed)state=i===q.a?'reveal':i===selected?'wrong':'';
-    return `<button class="option-btn ${state}" ${revealed?'disabled':''} onclick="selectAnswer(${i})">
+    const state=selected===i?'selected':'';
+    return `<button class="option-btn ${state}" onclick="selectAnswer(${i})">
       <span class="option-key">${keys[i]}.</span><span>${opt}</span></button>`
   }).join('');
-  renderPracticeHint('quiz-hint',guided&&!revealed?q.hint:'');
+  renderPracticeHint('quiz-hint','');
   const feedback=document.getElementById('quiz-feedback');
-  feedback.hidden=!revealed;
-  feedback.innerHTML=revealed
-    ? `<strong>${selected===q.a?'Correct':`Correct answer: ${keys[q.a]}`}.</strong> ${questionExplanation(q)||''}` : '';
+  feedback.hidden=true;
+  feedback.innerHTML='';
   updatePalette();
 }
 

@@ -167,7 +167,7 @@ test('advanced questions load with their written choices and can be studied or q
   assert.ok(a.run('quizState.questions.every(q=>q.s.startsWith(ADVANCED_TOPIC_PREFIX))'));
 });
 
-test('advanced practice shows a hint and locks the first answer while timed quizzes hide feedback',()=>{
+test('quiz hides hints and answer feedback until submission while advanced practice locks the first answer',()=>{
   const a=app();
   const item={...q('advanced','Sample question','Advanced Practice - Sociology'),module:1,
     hint:'Find the decisive clue.',e:'Reasoning here.',source:'https://example.com/reading'};
@@ -177,14 +177,14 @@ test('advanced practice shows a hint and locks the first answer while timed quiz
     renderQuizQuestion();`);
   const hint=a.context.document.getElementById('quiz-hint');
   const feedback=a.context.document.getElementById('quiz-feedback');
-  assert.equal(hint.hidden,false);
-  assert.equal(hint.querySelector('p').textContent,item.hint);
+  assert.equal(hint.hidden,true);
+  assert.equal(hint.querySelector('p').textContent,'');
   assert.equal(feedback.hidden,true);
   a.run('selectAnswer(1);selectAnswer(0)');
   assert.equal(a.run('quizState.answers[0]'),1);
   assert.equal(hint.hidden,true);
-  assert.equal(feedback.hidden,false);
-  assert.match(feedback.innerHTML,/Correct answer: A.*Reasoning here.*https:\/\/example\.com\/reading/);
+  assert.equal(feedback.hidden,true);
+  assert.equal(feedback.innerHTML,'');
   a.run("quizState.mode='timed';quizState.guided=false;renderQuizQuestion();selectAnswer(0)");
   assert.equal(a.run('quizState.answers[0]'),0);
   assert.equal(hint.hidden,true);

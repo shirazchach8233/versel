@@ -83,20 +83,37 @@ test('advanced questions load with their written choices and can be studied or q
   await a.run('loadQuestions()');
 
   const advanced=Array.from(a.run("allQuestions.filter(q=>q.s.startsWith(ADVANCED_TOPIC_PREFIX))"));
-  assert.equal(advanced.length,160);
+  assert.equal(advanced.length,8400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Home Science'&&q.module===1).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Home Science'&&q.module===2).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Sociology'&&q.module===1).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Sociology'&&q.module===5).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===1).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===2).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===3).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Home Science'&&q.module===3).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Home Science'&&q.module===4).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Home Science'&&q.module===5).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Social Work'&&q.module===1).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Sociology'&&q.module===4).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===4).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===5).length,400);
+  assert.equal(advanced.filter(q=>q.s==='Advanced Practice - Psychology'&&q.module===6).length,400);
   const older=Array.from(a.run('allQuestions.filter(q=>!q.module).concat(window.PREVIOUS_YEAR_036_2022,window.PREVIOUS_YEAR_326_2022)'));
   assert.equal(new Set([...older,...advanced].map(q=>q.id)).size,older.length+advanced.length);
   const olderKeys=new Set(older.map(selection.key));
-  assert.equal(new Set(advanced.map(selection.key)).size,160);
+  assert.equal(new Set(advanced.map(selection.key)).size,advanced.length);
   for(const question of advanced){
     assert.ok(!olderKeys.has(selection.key(question)),question.id);
-    const optionCount=Number(question.id.split('-').at(-1))<=15?6:4;
+    const questionNumber=Number(question.id.split('-').at(-1));
+    const optionCount=question.id.startsWith("advanced-sw-")&&questionNumber>=16&&questionNumber<=40?6:questionNumber<=15||questionNumber>=41?6:4;
     assert.equal(question.o.length,optionCount,question.id);
     assert.equal(new Set(question.o).size,optionCount,question.id);
     assert.ok(Number.isInteger(question.a)&&question.a>=0&&question.a<optionCount,question.id);
     assert.ok(question.hint.length>0,question.id);
     assert.ok(question.e.length>0,question.id);
-    if(question.source)assert.equal(new URL(question.source).protocol,'https:');
+    assert.ok(question.source,question.id);
+    assert.equal(new URL(question.source).protocol,'https:');
   }
 
   const moduleTopics=Array.from(a.run('Object.values(SYLLABUS_TOPIC_NAMES).flat()'));
@@ -137,7 +154,7 @@ test('advanced questions load with their written choices and can be studied or q
   a.run('studyAnswer(studyState.questions[0].a)');
   assert.equal(studyHint.hidden,true);
   assert.equal(studyExplanation.style.display,'');
-  assert.match(studyExplanation.innerHTML,/Explanation:.*CDPO syllabus/);
+  assert.match(studyExplanation.innerHTML,/Explanation:.*Source/);
   a.run("setStudyView('viewed')");
   assert.match(moduleGrid.innerHTML,/1 viewed · 400 total/);
 

@@ -2392,8 +2392,7 @@ async function startQuiz(){
 
     if(quizState?.timerInterval)clearInterval(quizState.timerInterval);
     const topicLabel=topic==='advanced'?ADVANCED_QUIZ_LABEL:topic==='all'?'Full Syllabus':topic;
-    const guided=mode==='practice'&&(topic==='advanced'||topic.startsWith(ADVANCED_TOPIC_PREFIX));
-    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topicLabel,mode,negative,guided,timerInterval:null,isRevision:false,histMap:null};
+    quizState={questions,answers:new Array(questions.length).fill(-1),currentIdx:0,startTime:Date.now(),topic:topicLabel,mode,negative,timerInterval:null,isRevision:false,histMap:null};
     document.getElementById('quiz-topic-label').textContent=quizState.topic;
     buildPalette();
     renderQuizQuestion();
@@ -2484,7 +2483,9 @@ function renderQuizQuestion(){
 }
 
 function selectAnswer(idx){
-  if(quizState.guided&&quizState.answers[quizState.currentIdx]>=0)return;
+  if(!quizState)return;
+  const q=quizState.questions[quizState.currentIdx];
+  if(!q||!Number.isInteger(idx)||idx<0||idx>=q.o.length)return;
   quizState.answers[quizState.currentIdx]=idx;
   renderQuizQuestion();
 }

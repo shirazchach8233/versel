@@ -220,6 +220,9 @@ tr:hover td{background:#f8fafc}
 .module-progress-summary-copy strong{display:block;font-size:1.15rem;color:var(--text);margin-bottom:6px}
 .module-progress-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .module-progress-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.module-progress-advanced{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.module-progress-advanced-head{margin-bottom:14px}
+.module-progress-advanced-head strong{display:block;color:var(--primary);font-size:1rem;margin-bottom:4px}
 .module-subject{--module-color:var(--accent);border:1px solid var(--border);border-radius:10px;padding:18px;background:var(--card)}
 .module-subject-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
 .module-subject-name{font-weight:700;color:var(--primary)}
@@ -1491,6 +1494,18 @@ function renderDashboardModuleProgress(){
   const startedModules=modules.filter(module=>module.viewed>0).length;
   const completedModules=modules.filter(module=>module.viewed===module.total).length;
   const groups=SYLLABUS_SUBJECT_ORDER.map(subject=>({subject,modules:modules.filter(module=>module.subject===subject)})).filter(group=>group.modules.length);
+  const advancedGroups=ADVANCED_SUBJECTS.map(subject=>({
+    subject:subject.name,
+    modules:SYLLABUS_TOPIC_NAMES[subject.key].map(topic=>{
+      const questions=advancedModuleQuestions(topic);
+      const viewed=questions.filter(question=>seen.has(question.id)).length;
+      return {moduleNumber:moduleNumber(topic),title:topic.split(': ').slice(1).join(': '),total:questions.length,viewed};
+    })
+  }));
+  const advancedTotal=advancedGroups.reduce((sum,group)=>sum+group.modules.reduce((total,module)=>total+module.total,0),0);
+  const advancedViewed=advancedGroups.reduce((sum,group)=>sum+group.modules.reduce((total,module)=>total+module.viewed,0),0);
+  const advancedStarted=advancedGroups.reduce((sum,group)=>sum+group.modules.filter(module=>module.viewed>0).length,0);
+  const advancedCompleted=advancedGroups.reduce((sum,group)=>sum+group.modules.filter(module=>module.viewed===module.total).length,0);
 
   target.innerHTML=`
     <div class="module-progress-summary">
@@ -1532,7 +1547,40 @@ function renderDashboardModuleProgress(){
           }).join('')}
         </div>`;
       }).join('')}
-    </div>`;
+    </div>
+    <section class="module-progress-advanced" aria-labelledby="dash-advanced-progress-heading">
+      <div class="module-progress-advanced-head">
+        <strong id="dash-advanced-progress-heading">Advanced Practice Progress</strong>
+        <div class="text-muted">Questions viewed in Advanced Practice · ${advancedViewed.toLocaleString()} of ${advancedTotal.toLocaleString()} studied · ${advancedStarted} of 21 modules started · ${advancedCompleted} completed</div>
+      </div>
+      <div class="module-progress-groups">
+        ${advancedGroups.map(group=>{
+          const subjectTotal=group.modules.reduce((sum,module)=>sum+module.total,0);
+          const subjectViewed=group.modules.reduce((sum,module)=>sum+module.viewed,0);
+          const subjectPct=subjectTotal?Math.round(subjectViewed/subjectTotal*100):0;
+          const color=SYLLABUS_SUBJECT_COLORS[group.subject]||'var(--accent)';
+          return `<div class="module-subject" style="--module-color:${color}">
+            <div class="module-subject-head">
+              <div class="module-subject-name">${escapeDashboardHtml(group.subject)}</div>
+              <div class="module-subject-score">${subjectPct}% viewed</div>
+            </div>
+            ${group.modules.map(module=>{
+              const pct=module.total?Math.round(module.viewed/module.total*100):0;
+              return `<div class="module-progress-row">
+                <div class="module-progress-label">
+                  <span class="module-number">M${module.moduleNumber}</span>
+                  <span class="module-name">${escapeDashboardHtml(module.title)}</span>
+                  <span class="module-count">${module.viewed.toLocaleString()} / ${module.total.toLocaleString()}</span>
+                </div>
+                <div class="module-bar" role="progressbar" aria-label="Advanced Practice ${escapeDashboardHtml(group.subject)} module ${module.moduleNumber}: ${pct}% viewed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+                  <div class="module-bar-fill" style="width:${pct}%"></div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+    </section>`;
 }
 
 // ══════════════════════════════════════════════

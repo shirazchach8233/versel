@@ -232,6 +232,9 @@ tr:hover td{background:#f8fafc}
 .module-count{font-size:.74rem;color:var(--muted);white-space:nowrap}
 .module-bar{height:9px;background:var(--border);border-radius:99px;overflow:hidden}
 .module-bar-fill{height:100%;width:0;background:var(--module-color);border-radius:inherit;transition:width .45s ease}
+.topic-card .advanced-module-progress{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-top:9px;text-align:left}
+.advanced-module-progress .module-bar{height:5px}
+.advanced-module-progress-label{font-size:.7rem;line-height:1.2;color:var(--muted);white-space:nowrap}
 .pyq-hero{background:linear-gradient(135deg,var(--primary),#0f766e);color:#fff;border-radius:14px;padding:26px;margin-bottom:18px}
 .pyq-hero h1{font-size:1.55rem;margin-bottom:6px}.pyq-hero p{opacity:.86;max-width:720px;line-height:1.55}
 .pyq-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.pyq-fact{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}.pyq-fact strong{display:block;font-size:1.2rem;color:var(--primary)}.pyq-fact span{font-size:.78rem;color:var(--muted)}
@@ -1994,11 +1997,16 @@ function showAdvancedModules(subjectName){
   document.getElementById('study-advanced-module-grid').innerHTML=SYLLABUS_TOPIC_NAMES[subject.key].map(topic=>{
     const counts=advancedModuleCounts(topic);
     const count=studyView==='viewed'?counts.viewed:counts.remaining;
+    const progress=Math.round(counts.viewed/Math.max(1,counts.questions.length)*100);
     const title=topic.split(': ').slice(1).join(': ');
     return `<button type="button" class="topic-card" data-topic="${escapeDashboardHtml(advancedStudyTopic(topic))}" onclick="startStudy(this.dataset.topic)">
       <span class="topic-icon" aria-hidden="true">📖</span>
       <span class="topic-name">Module ${moduleNumber(topic)} · ${escapeDashboardHtml(title)}</span>
-      <span class="topic-count">${count} ${label} · 400 total</span>
+      <span class="topic-count">${count} ${label} · ${counts.questions.length} total</span>
+      <span class="advanced-module-progress">
+        <span class="module-bar" role="progressbar" aria-label="${escapeDashboardHtml(`Module ${moduleNumber(topic)} study progress`)}" aria-valuemin="0" aria-valuemax="${counts.questions.length}" aria-valuenow="${counts.viewed}"><span class="module-bar-fill" style="width:${progress}%"></span></span>
+        <span class="advanced-module-progress-label">${counts.viewed}/${counts.questions.length} studied</span>
+      </span>
     </button>`;
   }).join('');
   grid.hidden=true;

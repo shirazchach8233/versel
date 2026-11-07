@@ -1,0 +1,19 @@
+.exam-countdown-wrap{max-width:1200px;margin:0 auto;padding:24px 20px 0}
+.exam-countdown-wrap[hidden]{display:none}
+.exam-countdown-wrap .exam-countdown{margin-bottom:0}
+.exam-countdown{display:flex;align-items:center;gap:24px;padding:24px;margin-bottom:24px;background:linear-gradient(115deg,#edf5ff,#f4faff);border:1px solid #c7ddf8;border-left:4px solid #2580d8;border-radius:14px;color:#193b67}
+.exam-countdown[hidden]{display:none}
+.exam-countdown-number{flex:0 0 108px;text-align:center;padding:12px 8px;background:#fff;border:1px solid #d5e5f7;border-radius:12px;box-shadow:0 3px 10px #1a3a6b08}
+.exam-countdown-number strong{display:block;font-size:2.8rem;line-height:1.1;font-weight:800;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.exam-countdown-number span{display:block;margin-top:6px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.exam-countdown-copy{flex:1;min-width:0}
+.exam-countdown-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#35679c;margin-bottom:7px}
+.exam-countdown h2{font-size:1.2rem;font-weight:700;line-height:1.35;margin:0 0 7px}
+.exam-countdown-date{display:inline-flex;align-items:center;gap:7px;font-size:.88rem;font-weight:600}
+.exam-countdown-date svg{width:16px;height:16px;flex-shrink:0}
+.exam-countdown p{font-size:.85rem;line-height:1.6;margin-top:8px;color:#506580}
+[data-theme="dark"] .exam-countdown{background:linear-gradient(115deg,#172d49,#1b3045);border-color:#345778;border-left-color:#60a5fa;color:#e0edff}
+[data-theme="dark"] .exam-countdown-number{background:#102238;border-color:#345778;color:#93c5fd}
+[data-theme="dark"] .exam-countdown-eyebrow{color:#93c5fd}
+[data-theme="dark"] .exam-countdown p{color:#b3c7dd}
+@media(max-width:520px){.exam-countdown{padding:18px 14px;gap:14px;align-items:flex-start}.exam-countdown-number{flex-basis:80px;padding:12px 4px}.exam-countdown-number strong{font-size:2.2rem}.exam-countdown-number span{font-size:.62rem}.exam-countdown h2{font-size:1.05rem}.exam-countdown-date{font-size:.8rem}.exam-countdown p{font-size:.8rem}.exam-countdown-eyebrow{font-size:.65rem}}

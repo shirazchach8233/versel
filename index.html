@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CDPO Quiz Platform</title>
+<link rel="stylesheet" href="exam-countdown.css">
 <script>(function(){try{var t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -333,6 +334,17 @@ tr:hover td{background:#f8fafc}
     <button class="nav-btn" onclick="doLogout()">↩ <span class="hide-sm">Logout</span></button>
   </div>
 </nav>
+<div id="exam-countdown-wrap" class="exam-countdown-wrap" hidden>
+    <section id="exam-countdown" class="exam-countdown" aria-labelledby="exam-countdown-heading" hidden>
+      <div class="exam-countdown-number" role="status" aria-live="polite" aria-atomic="true"><strong id="exam-days"></strong><span id="exam-days-label">Days to go</span></div>
+      <div class="exam-countdown-copy">
+        <div class="exam-countdown-eyebrow">Kerala PSC · CDPO 2026</div>
+        <h2 id="exam-countdown-heading">Your CDPO exam is getting closer</h2>
+        <div class="exam-countdown-date"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><time datetime="2026-12-09">9 December 2026</time></div>
+        <p id="exam-countdown-message">A little practice every day brings you closer to your goal. Keep going!</p>
+      </div>
+    </section>
+</div>
 
 <!-- Syllabus transcribed from the user-provided Kerala PSC PDF. -->
 <div id="screen-syllabus" class="screen">
@@ -895,6 +907,7 @@ tr:hover td{background:#f8fafc}
 </div>
 
 <script src="question-selection.js"></script>
+<script src="exam-countdown.js"></script>
 <script src="previous-year-036-2022-1.js"></script>
 <script src="previous-year-036-2022-2.js"></script>
 <script src="previous-year-036-2022-3.js"></script>
@@ -1688,6 +1701,7 @@ function toggleTheme(){
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('exam-countdown-wrap').hidden=['login','setup'].includes(name);
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision',syllabus:'nb-syllabus','pyq-setup':'nb-pyq','pyq-exam':'nb-pyq','pyq-results':'nb-pyq'};

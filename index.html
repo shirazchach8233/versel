@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>CDPO Quiz Platform</title>
-<link rel="stylesheet" href="exam-countdown.css">
+<link rel="stylesheet" href="exam-countdown.css?v=2">
 <script>(function(){try{var t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -263,6 +263,13 @@ tr:hover td{background:#f8fafc}
   .module-progress-meta{justify-content:center}
   .module-progress-groups{grid-template-columns:1fr}
 }
+.retake-entry{border:1px solid var(--border);border-left:4px solid var(--warn)}
+.retake-entry h2{font-size:1.12rem;color:var(--primary);margin:10px 0 8px}
+.retake-entry p{line-height:1.6;margin-bottom:16px}
+.weak-area-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.weak-area-row>div{flex:1;min-width:0}.weak-area-row strong{font-size:.9rem}.weak-area-row p{margin:6px 0 10px;line-height:1.5}.weak-area-row .chip{white-space:nowrap}
+.retake-home-action{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:520px){.weak-area-row{align-items:flex-start;gap:8px}.weak-area-row .chip{font-size:.68rem}.weak-area-row strong{font-size:.82rem}.weak-area-row p{font-size:.75rem}}
 </style>
 </head>
 <body>
@@ -336,11 +343,20 @@ tr:hover td{background:#f8fafc}
 </nav>
 <div id="exam-countdown-wrap" class="exam-countdown-wrap" hidden>
     <section id="exam-countdown" class="exam-countdown" aria-labelledby="exam-countdown-heading" hidden>
-      <div class="exam-countdown-number" role="status" aria-live="polite" aria-atomic="true"><strong id="exam-days"></strong><span id="exam-days-label">Days to go</span></div>
+      <div id="exam-clock" class="exam-clock">
+        <div class="exam-clock-label">Until exam starts · IST</div>
+        <div class="exam-clock-digits" role="timer" aria-live="off" aria-label="Time remaining until the exam starts">
+          <div class="exam-countdown-number"><strong id="exam-days">0</strong><span id="exam-days-label">Days</span></div>
+          <div class="exam-countdown-number"><strong id="exam-hours">00</strong><span>Hours</span></div>
+          <div class="exam-countdown-number"><strong id="exam-minutes">00</strong><span>Minutes</span></div>
+          <div class="exam-countdown-number"><strong id="exam-seconds">00</strong><span>Seconds</span></div>
+        </div>
+        <div class="exam-clock-target">Countdown to 9 Dec, 7:00 AM IST</div>
+      </div>
       <div class="exam-countdown-copy">
         <div class="exam-countdown-eyebrow">Kerala PSC · CDPO 2026</div>
         <h2 id="exam-countdown-heading">Your CDPO exam is getting closer</h2>
-        <div class="exam-countdown-date"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><time datetime="2026-12-09">9 December 2026</time></div>
+        <div class="exam-countdown-date"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><time datetime="2026-12-09T07:00:00+05:30">9 December 2026 · 7:00 AM IST</time></div>
         <p id="exam-countdown-message">A little practice every day brings you closer to your goal. Keep going!</p>
       </div>
     </section>
@@ -405,6 +421,11 @@ tr:hover td{background:#f8fafc}
       <div class="stat-card orange"><div class="stat-num" id="ds-best">–</div><div class="stat-label">Best Score %</div></div>
       <div class="stat-card"><div class="stat-num" id="ds-time">–</div><div class="stat-label">Total Study Time</div></div>
     </div>
+    <section class="card mb-16" aria-labelledby="dash-weakness-heading">
+      <div style="font-weight:700;color:var(--primary);margin-bottom:6px" id="dash-weakness-heading">Your Weak Areas</div>
+      <div class="text-muted" style="font-size:.82rem;margin-bottom:14px">Your personal revision priorities across Study, Quiz, Study Review and previous year papers</div>
+      <div id="dash-weakness"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </section>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
       <div class="card" style="cursor:pointer;text-align:center" onclick="showScreen('study-setup')">
         <div style="font-size:2.5rem;margin-bottom:8px">📖</div>
@@ -431,11 +452,6 @@ tr:hover td{background:#f8fafc}
         <button class="btn btn-ghost btn-sm" onclick="showScreen('syllabus')">View syllabus</button>
       </div>
       <div id="dash-module-progress"><div class="loading"><div class="spinner"></div>Loading progress...</div></div>
-    </section>
-    <section class="card mb-16" aria-labelledby="dash-weakness-heading">
-      <div style="font-weight:700;color:var(--primary);margin-bottom:6px" id="dash-weakness-heading">Areas Needing Improvement</div>
-      <div class="text-muted" style="font-size:.82rem;margin-bottom:14px">Wrong answers by topic across Study Mode and Quiz Mode</div>
-      <div id="dash-weakness"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </section>
     <div class="card">
       <div class="flex-between mb-16"><div style="font-weight:700;color:var(--primary)">Recent Quiz Attempts</div></div>
@@ -520,6 +536,10 @@ tr:hover td{background:#f8fafc}
 <div id="screen-quiz-setup" class="screen">
   <div class="main-wrap" style="max-width:700px">
     <div class="page-title">✏️ Configure Your Quiz</div>
+    <section class="card retake-entry" aria-labelledby="retake-entry-title">
+      <div><span class="chip chip-red">Personal revision</span><h2 id="retake-entry-title">↻ Wrong Answers Retake Quiz</h2><p class="text-muted">Turn past mistakes into progress. Practise questions you answered incorrectly, and clear them by answering correctly.</p></div>
+      <button class="btn btn-primary" onclick="showScreen('wrong-answers-setup')">Open Retake Quiz →</button>
+    </section>
     <div class="card">
       <div class="form-group">
         <label for="qs-topic">Topic</label>
@@ -555,6 +575,20 @@ tr:hover td{background:#f8fafc}
       </div>
       <p class="text-muted">Quizzes draw from new questions. Hints, correct answers, and explanations stay hidden until you submit. In Advanced Practice with Practice mode selected, your first choice is final.</p>
       <button class="btn btn-primary btn-block" onclick="startQuiz()" style="margin-top:8px">Start Quiz →</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-wrong-answers-setup" class="screen">
+  <div class="main-wrap" style="max-width:700px">
+    <div class="flex-between mb-16"><h1 class="page-title" style="margin-bottom:0">↻ Wrong Answers Retake Quiz</h1><button class="btn btn-ghost btn-sm" onclick="showScreen('quiz-setup')">← Quiz</button></div>
+    <div class="card">
+      <p class="text-muted mb-16">Practise questions whose latest recorded answer is wrong, from Study, Quiz, Study Review and previous year papers. Correct answers clear the question from this queue. Skipping keeps it for later.</p>
+      <div id="wa-status" class="alert" role="status" style="background:var(--bg)">Loading your wrong answers…</div>
+      <div class="form-group"><label for="wa-topic">Topic</label><select id="wa-topic" disabled><option value="all">All topics</option></select></div>
+      <div class="form-group"><label for="wa-count">Number of questions</label><select id="wa-count"><option value="10">Up to 10 questions</option><option value="25" selected>Up to 25 questions</option><option value="50">Up to 50 questions</option><option value="all">All remaining wrong answers</option></select></div>
+      <p class="text-muted mb-16">Practice at your own pace, with no timer or negative marking. Answers and explanations appear after submission.</p>
+      <button id="wa-start" class="btn btn-primary btn-block" onclick="startWrongAnswersQuiz()" disabled>Start Retake Quiz →</button>
     </div>
   </div>
 </div>
@@ -907,7 +941,8 @@ tr:hover td{background:#f8fafc}
 </div>
 
 <script src="question-selection.js"></script>
-<script src="exam-countdown.js"></script>
+<script src="wrong-answer-retake.js"></script>
+<script src="exam-countdown.js?v=3"></script>
 <script src="previous-year-036-2022-1.js"></script>
 <script src="previous-year-036-2022-2.js"></script>
 <script src="previous-year-036-2022-3.js"></script>
@@ -1278,7 +1313,7 @@ let lastActivityAt=Date.now(),inactivityWarned=false,inactivityCheckInterval=nul
 const INACTIVITY_LIMIT_MS=60*60*1000; // auto-logout after 60 minutes of no activity
 const INACTIVITY_WARN_LEAD_MS=60*1000; // warn 1 minute before logout
 const PAGE_LABELS={login:'Login',setup:'Setup',dashboard:'Home','study-setup':'Study',study:'Study',
-  'quiz-setup':'Quiz Setup',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes','admin-user':'Admin · User Progress',syllabus:'Syllabus','pyq-setup':'Previous Year Exam','pyq-exam':'Previous Year Exam','pyq-results':'Previous Year Results'};
+  'quiz-setup':'Quiz Setup','wrong-answers-setup':'Wrong Answers Retake',quiz:'Quiz',results:'Results',progress:'Progress',admin:'Admin',review:'Review Mistakes','admin-user':'Admin · User Progress',syllabus:'Syllabus','pyq-setup':'Previous Year Exam','pyq-exam':'Previous Year Exam','pyq-results':'Previous Year Results'};
 
 const TOPIC_ICONS={
   'Child Development':'👶','Extension & Community Dev':'🌾','Facts about India':'🇮🇳',
@@ -1704,11 +1739,12 @@ function showScreen(name){
   document.getElementById('exam-countdown-wrap').hidden=['login','setup'].includes(name);
   // Highlight nav
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision',syllabus:'nb-syllabus','pyq-setup':'nb-pyq','pyq-exam':'nb-pyq','pyq-results':'nb-pyq'};
+  const map={dashboard:'nb-dashboard','study-setup':'nb-study',study:'nb-study','quiz-setup':'nb-quiz','wrong-answers-setup':'nb-quiz',quiz:'nb-quiz',results:'nb-quiz',progress:'nb-progress',admin:'nb-admin','admin-user':'nb-admin','revision-setup':'nb-revision',syllabus:'nb-syllabus','pyq-setup':'nb-pyq','pyq-exam':'nb-pyq','pyq-results':'nb-pyq'};
   const navHighlight = name==='review' ? (reviewBackTarget==='admin-user'?'nb-admin':'nb-progress') : map[name];
   if(navHighlight) document.getElementById(navHighlight)?.classList.add('active');
   // Load screen data
   if(name==='dashboard') loadDashboard();
+  if(name==='wrong-answers-setup') loadWrongAnswersSetup();
   if(name==='study-setup') renderStudyTopics();
   if(name==='progress') loadProgress();
   if(name==='admin') loadAdmin();
@@ -1939,13 +1975,8 @@ async function fetchClientIp(){
 // ══════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════
-async function loadDashboardWeakness(targetId,userId,completed){
-  const target=document.getElementById(targetId);if(!target)return;
-  let studyAnswers=[];try{studyAnswers=await sbGet('study_question_history',`select=topic,is_correct&user_id=eq.${userId}&is_correct=not.is.null`)}catch(error){console.warn('[dashboard] study outcomes unavailable',error)}
-  const byTopic={};studyAnswers.filter(r=>r.is_correct===false).forEach(r=>{if(!r.topic)return;byTopic[r.topic]=byTopic[r.topic]||{study:0,quiz:0,review:0};byTopic[r.topic].study++;});
-  completed.forEach(a=>{if(!a.topic||!(a.wrong>0))return;byTopic[a.topic]=byTopic[a.topic]||{study:0,quiz:0,review:0};byTopic[a.topic][a.is_revision?'review':'quiz']+=a.wrong||0;});
-  const entries=Object.entries(byTopic).map(([topic,data])=>[topic,data,data.study+data.quiz+data.review]).sort((a,b)=>b[2]-a[2]);const max=entries[0]?.[2]||0;
-  target.innerHTML=entries.length?`<div class="weakness-legend"><span>Study Mode wrong</span><span>Quiz Mode wrong</span><span>Study Review wrong</span></div>${entries.map(([topic,data,total])=>{const studyPct=data.study/max*100,quizPct=data.quiz/max*100,reviewPct=data.review/max*100;return `<div class="weakness-row"><div class="weakness-row-head"><strong>${escapeDashboardHtml(topic)}</strong><span class="weakness-counts">${total} wrong · Study ${data.study} · Quiz ${data.quiz} · Review ${data.review}</span></div><div class="weakness-bar" role="img" aria-label="${escapeDashboardHtml(topic)}: ${total} wrong answers"><div class="weakness-study" style="width:${studyPct}%"></div><div class="weakness-quiz" style="width:${quizPct}%"></div><div class="weakness-review" style="width:${reviewPct}%"></div></div></div>`;}).join('')}`:'<div class="weakness-empty">No wrong answers recorded yet. Keep practicing and this chart will show where to focus.</div>';
+async function loadDashboardWeakness(targetId,userId){
+  return renderWeakAreas(targetId,userId);
 }
 async function loadDashboard(){
   const h=new Date().getHours();
@@ -2474,7 +2505,7 @@ function updatePalette(){
 function renderQuizQuestion(){
   const {questions,answers,currentIdx}=quizState;
   const q=questions[currentIdx];
-  rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',q);
+  if(!quizState.isWrongRetake)rememberQuestion(quizState.isRevision?'viewed-quiz':'quiz',q);
   const total=questions.length;
   document.getElementById('quiz-qmeta').textContent=`Q${currentIdx+1} of ${total} · ${q.s}`;
   document.getElementById('quiz-qtext').textContent=q.q;
@@ -2619,6 +2650,10 @@ function showResults(correct,wrong,skipped,score,pct,questions,answers,dur,saveF
     if(histSection) histSection.style.display='none';
     if(newQuizBtn) newQuizBtn.style.display='';
     if(newRevBtn) newRevBtn.style.display='none';
+  }
+  if(newQuizBtn){
+    newQuizBtn.textContent=quizState.isWrongRetake?'↻ Retake More Wrong Answers':'🔁 New Quiz';
+    newQuizBtn.onclick=()=>showScreen(quizState.isWrongRetake?'wrong-answers-setup':'quiz-setup');
   }
   showScreen('results');
 }
@@ -3237,5 +3272,6 @@ function submitPreviousYearExam(confirmFirst){
   showScreen('pyq-results');
 }
 </script>
+<script src="wrong-answer-ui.js"></script>
 </body>
 </html>
